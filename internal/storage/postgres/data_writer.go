@@ -426,129 +426,110 @@ func (w *DataWriter) runOperation(
 	}
 
 	return nil
-} // End runBundle
+}
+
 // Batch operations helper functions
-// Batch insert helper functions
-// Batch insert relationships
-// Batch insert relationships to database
-func (w *DataWriter) batchInsertRelationships(batch *pgx.Batch, xid db.XID8, tenantID string, tupleCollection *database.TupleCollection) error { // Insert relationships in batch
-	titer := tupleCollection.CreateTupleIterator() // Create iterator
-	for titer.HasNext() {                          // Iterate tuples
-		t := titer.GetNext()                      // Get next tuple
-		srelation := t.GetSubject().GetRelation() // Get subject relation
-		if srelation == tuple.ELLIPSIS {          // Check ellipsis
-			srelation = "" // Reset relation
-		} // End of ellipsis check
-		batch.Queue( // Queue insert
-			"INSERT INTO relation_tuples (entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT ON CONSTRAINT uq_relation_tuple_not_expired DO NOTHING", // Insert query
-			t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), srelation, xid, tenantID, // Values
-		) // End of queue
-	} // End of iteration
-	return nil // Success
-} // End of batchInsertRelationships
+func (w *DataWriter) batchInsertRelationships(batch *pgx.Batch, xid db.XID8, tenantID string, tupleCollection *database.TupleCollection) error {
+	titer := tupleCollection.CreateTupleIterator()
+	for titer.HasNext() {
+		t := titer.GetNext()
+		srelation := t.GetSubject().GetRelation()
+		if srelation == tuple.ELLIPSIS {
+			srelation = ""
+		}
+		batch.Queue(
+			"INSERT INTO relation_tuples (entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT ON CONSTRAINT uq_relation_tuple_not_expired DO NOTHING",
+			t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), srelation, xid, tenantID,
+		)
+	}
+	return nil
+}
 
 // Batch update relationships
-// Batch update relationships in database
-func (w *DataWriter) batchUpdateRelationships(batch *pgx.Batch, xid db.XID8, tenantID string, deleteClauses []squirrel.Eq) error { // Update relationships in batch
-	for _, condition := range deleteClauses { // Iterate delete clauses
-		query, args, err := w.database.Builder.Update(RelationTuplesTable). // Build update query
-											Set("expired_tx_id", xid).                                                           // Set expiry
-											Where(squirrel.Eq{"expired_tx_id": utils.ActiveRecordTxnID, "tenant_id": tenantID}). // Where active
-											Where(condition).                                                                    // Where condition
-											ToSql()                                                                              // Generate SQL
-		if err != nil { // Check SQL generation error
-			return err // Return error
-		} // End of error check
-		batch.Queue(query, args...) // Queue update
-	} // End of iteration
-	return nil // Success
-} // End of batchUpdateRelationships
+func (w *DataWriter) batchUpdateRelationships(batch *pgx.Batch, xid db.XID8, tenantID string, deleteClauses []squirrel.Eq) error {
+	for _, condition := range deleteClauses {
+		query, args, err := w.database.Builder.Update(RelationTuplesTable).
+			Set("expired_tx_id", xid).
+			Where(squirrel.Eq{"expired_tx_id": utils.ActiveRecordTxnID, "tenant_id": tenantID}).
+			Where(condition).
+			ToSql()
+		if err != nil {
+			return err
+		}
+		batch.Queue(query, args...)
+	}
+	return nil
+}
 
 // Build delete clauses for relationships
-// Build delete clauses for relationship tuples
-func buildDeleteClausesForRelationships(tupleCollection *database.TupleCollection) []squirrel.Eq { // Build delete clauses
-	deleteClauses := make([]squirrel.Eq, 0) // Initialize clauses
-	// Iterate tuples
-	titer := tupleCollection.CreateTupleIterator() // Create iterator
-	for titer.HasNext() {                          // Iterate tuples
-		t := titer.GetNext()                      // Get next tuple
-		srelation := t.GetSubject().GetRelation() // Get subject relation
-		if srelation == tuple.ELLIPSIS {          // Check ellipsis
-			srelation = "" // Reset relation
-		} // End of ellipsis check
-		// Build condition
-		condition := squirrel.Eq{ // Create condition
-			"entity_type":      t.GetEntity().GetType(),  // Entity type
-			"entity_id":        t.GetEntity().GetId(),    // Entity ID
-			"relation":         t.GetRelation(),          // Relation
-			"subject_type":     t.GetSubject().GetType(), // Subject type
-			"subject_id":       t.GetSubject().GetId(),   // Subject ID
-			"subject_relation": srelation,                // Subject relation
-		} // End of condition
-		// Append to clauses
-		deleteClauses = append(deleteClauses, condition) // Append condition
-	} // End of iteration
-	// Return clauses
-	return deleteClauses // Return delete clauses
-} // End of buildDeleteClausesForRelationships
+func buildDeleteClausesForRelationships(tupleCollection *database.TupleCollection) []squirrel.Eq {
+	deleteClauses := make([]squirrel.Eq, 0)
+	titer := tupleCollection.CreateTupleIterator()
+	for titer.HasNext() {
+		t := titer.GetNext()
+		srelation := t.GetSubject().GetRelation()
+		if srelation == tuple.ELLIPSIS {
+			srelation = ""
+		}
+		condition := squirrel.Eq{
+			"entity_type":      t.GetEntity().GetType(),
+			"entity_id":        t.GetEntity().GetId(),
+			"relation":         t.GetRelation(),
+			"subject_type":     t.GetSubject().GetType(),
+			"subject_id":       t.GetSubject().GetId(),
+			"subject_relation": srelation,
+		}
+		deleteClauses = append(deleteClauses, condition)
+	}
+	return deleteClauses
+}
 
 // Batch insert attributes
-// Batch insert attributes to database
-func (w *DataWriter) batchInsertAttributes(batch *pgx.Batch, xid db.XID8, tenantID string, attributeCollection *database.AttributeCollection) error { // Insert attributes in batch
-	aiter := attributeCollection.CreateAttributeIterator() // Create iterator
-	for aiter.HasNext() {                                  // Iterate attributes
-		a := aiter.GetNext() // Get next attribute
-		// Marshal attribute value to JSON
-		jsonBytes, err := protojson.Marshal(a.GetValue()) // Marshal to JSON
-		if err != nil {                                   // Check marshal error
-			return err // Return error
-		} // End of marshal error check
-		// Convert to string
-		jsonStr := string(jsonBytes) // Convert to string
-		// Queue insert
-		batch.Queue( // Queue insert
-			"INSERT INTO attributes (entity_type, entity_id, attribute, value, created_tx_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6)", // Insert query
-			a.GetEntity().GetType(), a.GetEntity().GetId(), a.GetAttribute(), jsonStr, xid, tenantID, // Values
-		) // End of queue
-	} // End of iteration
-	return nil // Success
-} // End of batchInsertAttributes
+func (w *DataWriter) batchInsertAttributes(batch *pgx.Batch, xid db.XID8, tenantID string, attributeCollection *database.AttributeCollection) error {
+	aiter := attributeCollection.CreateAttributeIterator()
+	for aiter.HasNext() {
+		a := aiter.GetNext()
+		jsonBytes, err := protojson.Marshal(a.GetValue())
+		if err != nil {
+			return err
+		}
+		jsonStr := string(jsonBytes)
+		batch.Queue(
+			"INSERT INTO attributes (entity_type, entity_id, attribute, value, created_tx_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6)",
+			a.GetEntity().GetType(), a.GetEntity().GetId(), a.GetAttribute(), jsonStr, xid, tenantID,
+		)
+	}
+	return nil
+}
 
 // Batch update attributes
-// Batch update attributes in database
-func (w *DataWriter) batchUpdateAttributes(batch *pgx.Batch, xid db.XID8, tenantID string, deleteClauses []squirrel.Eq) error { // Update attributes in batch
-	for _, condition := range deleteClauses { // Iterate delete clauses
-		query, args, err := w.database.Builder.Update(AttributesTable). // Build update query
-										Set("expired_tx_id", xid).                                                           // Set expiry
-										Where(squirrel.Eq{"expired_tx_id": utils.ActiveRecordTxnID, "tenant_id": tenantID}). // Where active
-										Where(condition).                                                                    // Where condition
-										ToSql()                                                                              // Generate SQL
-		if err != nil { // Check SQL generation error
-			return err // Return error
-		} // End of error check
-		// Queue update
-		batch.Queue(query, args...) // Queue update
-	} // End of iteration
-	return nil // Success
-} // End of batchUpdateAttributes
+func (w *DataWriter) batchUpdateAttributes(batch *pgx.Batch, xid db.XID8, tenantID string, deleteClauses []squirrel.Eq) error {
+	for _, condition := range deleteClauses {
+		query, args, err := w.database.Builder.Update(AttributesTable).
+			Set("expired_tx_id", xid).
+			Where(squirrel.Eq{"expired_tx_id": utils.ActiveRecordTxnID, "tenant_id": tenantID}).
+			Where(condition).
+			ToSql()
+		if err != nil {
+			return err
+		}
+		batch.Queue(query, args...)
+	}
+	return nil
+}
 
 // Build delete clauses for attributes
-// Build delete clauses for attribute records
 func buildDeleteClausesForAttributes(attributeCollection *database.AttributeCollection) []squirrel.Eq { // Build delete clauses
-	deleteClauses := make([]squirrel.Eq, 0) // Initialize clauses
-	// Iterate attributes
-	aiter := attributeCollection.CreateAttributeIterator() // Create iterator
-	for aiter.HasNext() {                                  // Iterate attributes
-		a := aiter.GetNext() // Get next attribute
-		// Build condition
-		condition := squirrel.Eq{ // Create condition
-			"entity_type": a.GetEntity().GetType(), // Entity type
-			"entity_id":   a.GetEntity().GetId(),   // Entity ID
-			"attribute":   a.GetAttribute(),        // Attribute name
-		} // End of condition
-		// Append to clauses
-		deleteClauses = append(deleteClauses, condition) // Append condition
-	} // End of iteration
-	// Return clauses
-	return deleteClauses // Return delete clauses
-} // End of buildDeleteClausesForAttributes
+	deleteClauses := make([]squirrel.Eq, 0)
+	aiter := attributeCollection.CreateAttributeIterator()
+	for aiter.HasNext() {
+		a := aiter.GetNext()
+		condition := squirrel.Eq{
+			"entity_type": a.GetEntity().GetType(),
+			"entity_id":   a.GetEntity().GetId(),
+			"attribute":   a.GetAttribute(),
+		}
+		deleteClauses = append(deleteClauses, condition)
+	}
+	return deleteClauses
+}

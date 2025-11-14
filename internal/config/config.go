@@ -66,7 +66,7 @@ type (
 	// Preshared contains configuration for preshared key authentication.
 	Preshared struct {
 		Keys []string `mapstructure:"keys"` // List of preshared keys
-	} // End of Preshared
+	}
 	// OIDC configuration structure
 	// Oidc contains configuration for OIDC authentication.
 	Oidc struct { // OIDC authentication config

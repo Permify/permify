@@ -226,11 +226,12 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 	return &v1.SchemaReadResponse{
 		Schema: response,
 	}, nil
-} // End of Read
+}
+
 // List retrieves all schema versions for a tenant with pagination
 func (r *SchemaServer) List(ctx context.Context, request *v1.SchemaListRequest) (*v1.SchemaListResponse, error) { // List schemas
-	ctx, span := internal.Tracer.Start(ctx, "schemas.list") // Start tracing span
-	defer span.End()                                        // End span on function exit
+	ctx, span := internal.Tracer.Start(ctx, "schemas.list")
+	defer span.End()
 	// Fetch schemas with pagination
 	schemas, ct, err := r.sr.ListSchemas(ctx, request.GetTenantId(), database.NewPagination(database.Size(request.GetPageSize()), database.Token(request.GetContinuousToken()))) // List schemas
 	if err != nil {                                                                                                                                                              // Check for errors
@@ -238,18 +239,20 @@ func (r *SchemaServer) List(ctx context.Context, request *v1.SchemaListRequest) 
 		span.SetStatus(otelCodes.Error, err.Error()) // Set error status
 		slog.ErrorContext(ctx, err.Error())
 		return nil, status.Error(GetStatus(err), err.Error()) // Return list error
-	} // Schemas fetched
+	}
+
 	// Get the latest version
 	head, err := r.sr.HeadVersion(ctx, request.GetTenantId()) // Get head version
 	if err != nil {                                           // Check for errors
 		return nil, status.Error(GetStatus(err), err.Error()) // Return version error
-	} // Head version retrieved
+	}
+
 	// Record metrics
 	r.listSchemaHistogram.Record(ctx, 1)
 	// Return schema list response
 	return &v1.SchemaListResponse{ // Create response
 		Head:            head,
 		Schemas:         schemas,
-		ContinuousToken: ct.String(), // Pagination token
-	}, nil // Return response
-} // End of List
+		ContinuousToken: ct.String(),
+	}, nil
+}

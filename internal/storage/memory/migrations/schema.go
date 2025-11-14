@@ -1,8 +1,8 @@
 package migrations
 
 import (
-	"github.com/hashicorp/go-memdb" // In-memory database
-	// Internal imports
+	"github.com/hashicorp/go-memdb"
+
 	"github.com/Permify/permify/internal/storage/memory/constants"
 )
 
@@ -148,8 +148,8 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
-		constants.TenantsTable: { // Tenants table
-			Name: constants.TenantsTable, // Table name
+		constants.TenantsTable: {
+			Name: constants.TenantsTable,
 			Indexes: map[string]*memdb.IndexSchema{
 				"id": {
 					Name:   "id",
@@ -162,20 +162,20 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
-		constants.BundlesTable: { // Bundles table
-			Name: constants.BundlesTable, // Table name
-			Indexes: map[string]*memdb.IndexSchema{ // Index schemas
-				"id": { // ID index
-					Name:   "id", // Index name
-					Unique: true, // Unique constraint
-					Indexer: &memdb.CompoundIndex{ // Compound index
+		constants.BundlesTable: {
+			Name: constants.BundlesTable,
+			Indexes: map[string]*memdb.IndexSchema{
+				"id": {
+					Name:   "id",
+					Unique: true,
+					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
 							&memdb.StringFieldIndex{Field: "TenantID"},
 							&memdb.StringFieldIndex{Field: "Name"},
 						},
-					}, // End of compound index
-				}, // End of ID index
-			}, // End of indexes
-		}, // End of bundles table
-	}, // End of tables
-} // End of schema
+					},
+				},
+			},
+		},
+	},
+}

@@ -1,35 +1,35 @@
-package openid // OpenID authentication tests
-// Test file for OIDC authentication functionality
-import ( // Test package imports
-	"context" // Context for request management
+package openid
+
+import (
+	"context"
 	"encoding/json"
-	"fmt" // Formatting for test messages
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"sync"
-	"time" // Time utilities for test timing
+	"time"
 
-	"google.golang.org/grpc/metadata" // GRPC metadata utilities
+	"google.golang.org/grpc/metadata"
 
-	"github.com/golang-jwt/jwt/v4"                                // JWT token library
-	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils" // GRPC metadata utils
-	. "github.com/onsi/ginkgo/v2"                                 // Ginkgo test framework
-	. "github.com/onsi/gomega"                                    // Gomega matchers
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
-	"github.com/Permify/permify/internal/config"     // Internal config
-	base "github.com/Permify/permify/pkg/pb/base/v1" // Base protobuf types
-) // End of test imports
-// Test suite begins here
-var _ = Describe("authn-oidc", func() { // Main test suite
-	audience := "aud"                      // Test audience
-	listenAddress := "localhost:9999"      // Local test server address
-	issuerURL := "http://" + listenAddress // Construct issuer URL
-	var fakeOidcProvider *fakeOidcProvider // Mock OIDC provider for testing
+	"github.com/Permify/permify/internal/config"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
+)
 
-	var server *httptest.Server // Test HTTP server
+var _ = Describe("authn-oidc", func() {
+	audience := "aud"
+	listenAddress := "localhost:9999"
+	issuerURL := "http://" + listenAddress
+	var fakeOidcProvider *fakeOidcProvider
 
-	BeforeEach(func() { // Setup before each test
-		var err error // Error variable
+	var server *httptest.Server
+
+	BeforeEach(func() {
+		var err error
 
 		fakeOidcProvider, err = newFakeOidcProvider(ProviderConfig{ // Initialize fake provider
 			IssuerURL:    issuerURL,                                    // Mock issuer URL
@@ -38,20 +38,20 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 			UserInfoPath: "/userInfo",                                  // User info endpoint
 			JWKSPath:     "/jwks",                                      // JWKS endpoint
 			Algorithms:   []string{"RS256", "HS256", "ES256", "PS256"}, // Supported algorithms
-		}) // End of provider config
-		Expect(err).To(BeNil()) // Verify no errors
+		})
+		Expect(err).To(BeNil())
 		// Start test HTTP server
 		server, err = fakeHttpServer(listenAddress, fakeOidcProvider.ServeHTTP)
-		Expect(err).To(BeNil()) // Verify server creation
-	}) // End of BeforeEach
-	// Cleanup section
-	AfterEach(func() { // Cleanup after each test
-		server.Close() // Close test server
-	}) // End of AfterEach
-	// Test contexts begin
-	Context("Authenticate With Signing Methods", func() { // Test different signing methods
-		It("Case 1", func() { // Test signing method validation
-			tests := []struct { // Test cases for signing methods
+		Expect(err).To(BeNil())
+	})
+
+	AfterEach(func() {
+		server.Close()
+	})
+
+	Context("Authenticate With Signing Methods", func() {
+		It("Case 1", func() {
+			tests := []struct {
 				name   string
 				method jwt.SigningMethod
 				err    error
@@ -60,8 +60,8 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 					"Should pass with RS256",
 					jwt.SigningMethodRS256,
 					nil,
-				}, // End of RS256 test case
-			} // End of signing method test cases
+				},
+			}
 			// Execute test cases
 			for _, tt := range tests { // Run each signing method test
 				now := time.Now()               // Record test start time
@@ -100,9 +100,9 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 				} else {
 					Expect(err).To(Equal(tt.err))
 				}
-			} // End of test cases
-		}) // End of test
-	}) // End of context
+			}
+		})
+	})
 	// Claims validation tests
 	Context("Authenticate Claims", func() { // Test claims validation
 		It("Case 1", func() {
@@ -150,8 +150,8 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 						NotBefore: &jwt.NumericDate{Time: time.Date(3999, 1, 0, 0, 0, 0, 0, time.UTC)},
 					},
 					true,
-				}, // End of NotBefore test case
-			} // End of claim test cases
+				},
+			}
 			// Execute all claim validation tests
 			for _, tt := range tests { // Execute claim validation tests
 				now := time.Now()
@@ -188,9 +188,9 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 				err = auth.Authenticate(niceMd.ToIncoming(ctx))
 				Expect(err != nil).To(Equal(tt.wantErr), fmt.Sprintf("Wanted error: %t, got %v", tt.wantErr, err))
 				Expect(time.Now()).To(BeTemporally("<=", now.Add(1*time.Second))) // Verify execution time
-			} // End of test iteration
-		}) // End of test case
-	}) // End of Authenticate Claims context
+			}
+		})
+	})
 	// Test key ID authentication scenarios
 	Context("Authenticate Key Ids", func() { // Test key ID authentication
 		It("Case 1", func() { // Test various key ID scenarios
@@ -223,7 +223,7 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 					true,
 					6 * time.Second, // Expected timing with retries
 				}, // End test case 3
-			} // End of key ID test case array
+			}
 			// Execute all key ID tests
 			for _, tt := range tests { // Iterate through key ID tests
 				now := time.Now()               // Start timer
@@ -233,7 +233,7 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 					Audience:  []string{audience},
 					ExpiresAt: &jwt.NumericDate{Time: now.AddDate(1, 0, 0)},
 					IssuedAt:  &jwt.NumericDate{Time: now},
-				} // End of claims
+				}
 				// Create test token with optional key ID
 				// create signed token from oidc provider possibly with kid in header
 				unsignedToken := createUnsignedToken(claims, tt.method)
@@ -261,8 +261,8 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 				err = auth.Authenticate(niceMd.ToIncoming(ctx))
 				Expect(err != nil).To(Equal(tt.wantErr), fmt.Sprintf("Wanted error: %t, got %v", tt.wantErr, err))
 				Expect(time.Now()).To(BeTemporally("<=", now.Add(tt.wantTiming))) // Verify timing
-			} // End of key ID test iteration
-		}) // End of Case 1
+			}
+		})
 
 		It("Case 2", func() { // Test key rotation scenario
 			// create authenticator
@@ -291,8 +291,8 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 					"Old KID not found, retry with new KID",
 					jwt.SigningMethodRS256,
 					"keykey",
-				}, // End of test case 2
-			} // End of key rotation test cases
+				},
+			}
 
 			for _, tt := range tests { // Iterate through rotation tests
 				fakeOidcProvider.UpdateKeyID(tt.method, tt.newKeyId) // Update provider key
@@ -318,8 +318,8 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 				err = auth.Authenticate(niceMd.ToIncoming(ctx))
 				Expect(err).Should(BeNil())
 				Expect(time.Now()).To(BeTemporally("<=", now.Add(1*time.Second))) // Verify quick response
-			} // End of rotation test iteration
-		}) // End of Case 2
+			}
+		})
 
 		It("Case 3: Complex test for maximum retries and backoff interval", func() { // Test backoff behavior
 			// create authenticator
@@ -345,14 +345,14 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 					jwt.SigningMethodRS256,
 					"invalidkey1",
 					true, // Will succeed after retry
-				}, // End of test case 1
+				},
 				{ // Test case 2: always fail
 					"Invalid KID, should retry and fail",
 					jwt.SigningMethodRS256,
 					"invalidkey2",
 					false, // Will not succeed
-				}, // End of test case 2
-			} // End of complex test cases
+				},
+			}
 
 			for _, tt := range tests { // Execute each complex test
 				now := time.Now()               // Start timer
@@ -394,8 +394,8 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 					err = auth.Authenticate(niceMd.ToIncoming(ctx))                   // Authenticate with valid key
 					Expect(err).Should(BeNil())                                       // Should succeed
 					Expect(time.Now()).To(BeTemporally("<=", now.Add(1*time.Second))) // Verify quick success
-				} // End of succeedAfterRetry check
-			} // End of complex test iteration
+				}
+			}
 		})
 
 		It("Case 4: Concurrent requests leading to global backoff lock for 6 seconds", func() { // Test concurrent retries
@@ -433,7 +433,7 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 				idToken, err := fakeOidcProvider.SignIDToken(unsignedToken)
 				Expect(err).To(BeNil())
 				return idToken, nil
-			} // End of helper function
+			}
 			// Setup valid key for later tests
 			// Set valid token to ensure it's in cache for subsequent tests
 			validKeyID := "validkey"                                         // Valid key ID for testing
@@ -468,7 +468,7 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 				err := auth.Authenticate(ctx) // Attempt authentication
 				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
 				Expect(time.Now()).To(BeTemporally("<=", now.Add(1*time.Second))) // Should fail immediately
-			} // End of Step 2 iteration
+			}
 			// Test valid key still works
 			// Step 3: A valid KID already in the JWKS cache should continue to authenticate successfully immediately
 			validToken, _ := createTokenWithKid(validKeyID)
@@ -490,7 +490,7 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 				err := auth.Authenticate(ctx)                          // Authenticate with invalid key
 				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
 				Expect(time.Now()).To(BeTemporally("<=", now.Add(1*time.Second))) // Should fail immediately
-			} // End of Step 4 iteration
+			}
 			// Verify behavior after backoff expires
 			// Test rejection after backoff expires
 			// Step 5: Ensure invalid keys are still rejected after backoff period
@@ -503,7 +503,7 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 				niceMd.Set("authorization", "Bearer "+token)
 				err = auth.Authenticate(niceMd.ToIncoming(ctx))
 				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_BEARER_TOKEN.String()))
-			} // End of Step 5 iteration
+			}
 			Expect(time.Now()).To(BeTemporally("<=", now.Add(4*time.Second))) // Verify timing with retries
 		})
 	})
@@ -731,9 +731,9 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 				))
 			case <-time.After(5 * time.Second):
 				Fail("Authentication should have completed or been cancelled")
-			} // End of error select
-		}) // End of cancellation test
-	}) // End of Context Cancellation context
+			}
+		})
+	})
 
 	Context("OIDC Configuration Errors", func() { // Test OIDC config errors
 		It("should return error for missing issuer in OIDC configuration", func() { // Test missing issuer
@@ -763,7 +763,7 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 			})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("issuer value is required but missing in OIDC configuration"))
-		}) // End of missing issuer test
+		})
 
 		It("should return error for missing JWKsURI in OIDC configuration", func() { // Test missing JWKsURI
 			// Create a custom server that returns OIDC config without JWKsURI
@@ -794,7 +794,7 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 			})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("JWKsURI value is required but missing in OIDC configuration"))
-		}) // End of missing JWKsURI test
+		})
 
 		It("should return error for invalid JSON in OIDC configuration", func() { // Test invalid JSON
 			// Create a custom server that returns invalid JSON
@@ -818,8 +818,8 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 			})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("failed to decode OIDC configuration"))
-		}) // End of invalid JSON test
-	}) // End of OIDC Configuration Errors context
+		})
+	})
 
 	Context("HTTP Request Errors", func() { // Test HTTP errors
 		It("should return error for non-200 HTTP status code", func() { // Test HTTP 404
@@ -843,7 +843,7 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 			})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("received unexpected status code (404)"))
-		}) // End of HTTP 404 test
+		})
 
 		It("should return error for invalid issuer URL", func() { // Test invalid URL
 			_, err := NewOidcAuthn(context.Background(), config.Oidc{
@@ -856,8 +856,8 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 			})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("failed to fetch OIDC configuration"))
-		}) // End of invalid URL test
-	}) // End of HTTP Request Errors context
+		})
+	})
 
 	Context("Response Body Reading Errors", func() { // Test response body errors
 		It("should return error when response body cannot be read", func() { // Test body read error
@@ -888,9 +888,9 @@ var _ = Describe("authn-oidc", func() { // Main test suite
 			})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("failed to fetch OIDC configuration"))
-		}) // End of body read error test
-	}) // End of Response Body Reading Errors context
-}) // End of authn-oidc describe
+		})
+	})
+})
 
 func claimOverride(current, overrider *jwt.RegisteredClaims) { // Helper to override claims
 	if overrider.Audience != nil { // Override audience if provided
@@ -914,4 +914,4 @@ func claimOverride(current, overrider *jwt.RegisteredClaims) { // Helper to over
 	if overrider.Subject != "" { // Override subject if provided
 		current.Subject = overrider.Subject // Set subject
 	} // End subject override
-} // End of claimOverride function
+}
