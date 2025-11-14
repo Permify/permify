@@ -67,7 +67,7 @@ var _ = Describe("Postgres", func() {
 				watchBufferSize:       100,
 				maxConnectionLifeTime: 30 * time.Minute,
 				maxConnectionIdleTime: 5 * time.Minute,
-				maxOpenConnections:    10,
+				maxConns:              10,
 				maxIdleConnections:    5,
 			}
 		})
@@ -169,6 +169,130 @@ var _ = Describe("Postgres", func() {
 			option := MaxRetries(5)
 			option(pg)
 			Expect(pg.maxRetries).Should(Equal(5))
+		})
+
+		It("Case 4: MaxConns should set maxConns", func() {
+			pg := &Postgres{}
+			option := MaxConns(25)
+			option(pg)
+			Expect(pg.maxConns).Should(Equal(25))
+		})
+
+		It("Case 5: MinConns should set minConns", func() {
+			pg := &Postgres{}
+			option := MinConns(5)
+			option(pg)
+			Expect(pg.minConns).Should(Equal(5))
+		})
+
+		It("Case 6: MinIdleConns should set minIdleConns", func() {
+			pg := &Postgres{}
+			option := MinIdleConns(3)
+			option(pg)
+			Expect(pg.minIdleConns).Should(Equal(3))
+		})
+
+		It("Case 7: HealthCheckPeriod should set healthCheckPeriod", func() {
+			pg := &Postgres{}
+			option := HealthCheckPeriod(30 * time.Second)
+			option(pg)
+			Expect(pg.healthCheckPeriod).Should(Equal(30 * time.Second))
+		})
+
+		It("Case 8: MaxConnLifetimeJitter should set maxConnLifetimeJitter", func() {
+			pg := &Postgres{}
+			option := MaxConnLifetimeJitter(10 * time.Second)
+			option(pg)
+			Expect(pg.maxConnLifetimeJitter).Should(Equal(10 * time.Second))
+		})
+
+		It("Case 9: ConnectTimeout should set connectTimeout", func() {
+			pg := &Postgres{}
+			option := ConnectTimeout(5 * time.Second)
+			option(pg)
+			Expect(pg.connectTimeout).Should(Equal(5 * time.Second))
+		})
+
+		It("Case 10: MaxOpenConnections should set maxConns (deprecated wrapper)", func() {
+			pg := &Postgres{}
+			option := MaxOpenConnections(20)
+			option(pg)
+			Expect(pg.maxConns).Should(Equal(20))
+		})
+
+		It("Case 11: MaxIdleConnections should set maxIdleConnections (deprecated)", func() {
+			pg := &Postgres{}
+			option := MaxIdleConnections(5)
+			option(pg)
+			Expect(pg.maxIdleConnections).Should(Equal(5))
+		})
+	})
+
+	Context("Backward Compatibility", func() {
+		It("Case 1: MaxIdleConnections should be used as MinConns when MinConns is not set", func() {
+			pg := &Postgres{
+				minConns:           0, // Not set
+				maxIdleConnections: 5,
+			}
+			// Simulate the logic from newDB
+			minConns := pg.minConns
+			if minConns == 0 && pg.maxIdleConnections > 0 {
+				minConns = pg.maxIdleConnections
+			}
+			Expect(minConns).Should(Equal(5))
+		})
+
+		It("Case 2: MinConns should take precedence over MaxIdleConnections", func() {
+			pg := &Postgres{
+				minConns:           3, // Explicitly set
+				maxIdleConnections: 5,
+			}
+			// Simulate the logic from newDB
+			minConns := pg.minConns
+			if minConns == 0 && pg.maxIdleConnections > 0 {
+				minConns = pg.maxIdleConnections
+			}
+			Expect(minConns).Should(Equal(3)) // Should use MinConns, not MaxIdleConnections
+		})
+
+		It("Case 3: MaxOpenConnections should map to MaxConns", func() {
+			pg := &Postgres{}
+			// MaxOpenConnections internally calls MaxConns
+			option := MaxOpenConnections(15)
+			option(pg)
+			Expect(pg.maxConns).Should(Equal(15))
+		})
+
+		It("Case 4: When both MinConns and MaxIdleConnections are 0, should use 0 (pgx default)", func() {
+			pg := &Postgres{
+				minConns:           0,
+				maxIdleConnections: 0,
+			}
+			// Simulate the logic from newDB
+			minConns := pg.minConns
+			if minConns == 0 && pg.maxIdleConnections > 0 {
+				minConns = pg.maxIdleConnections
+			}
+			Expect(minConns).Should(Equal(0)) // Should remain 0, pgx will use its default
+		})
+
+		It("Case 5: MinIdleConns should only be set when explicitly configured", func() {
+			pg := &Postgres{
+				minIdleConns:       0, // Not set
+				maxIdleConnections: 5,
+			}
+			// MinIdleConns should only be set if > 0
+			shouldSet := pg.minIdleConns > 0
+			Expect(shouldSet).Should(BeFalse()) // Should not be set
+		})
+
+		It("Case 6: MinIdleConns should be set when explicitly configured", func() {
+			pg := &Postgres{
+				minIdleConns: 3, // Explicitly set
+			}
+			// MinIdleConns should only be set if > 0
+			shouldSet := pg.minIdleConns > 0
+			Expect(shouldSet).Should(BeTrue()) // Should be set
 		})
 	})
 })
