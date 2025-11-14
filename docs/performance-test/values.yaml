@@ -109,8 +109,8 @@ app:
     auto_migrate: true
     max_conns: 1
     max_open_connections: 1  # Deprecated: use max_conns instead
-    max_idle_connections: 1  # Deprecated: use min_idle_conns instead
-    min_conns: 2
+    max_idle_connections: 1  # Deprecated: use min_conns instead (maps to MinConns if min_conns is not set)
+    min_conns: 1
     min_idle_conns: 0
     max_connection_lifetime: "300s"
     max_connection_idle_time: "60s"

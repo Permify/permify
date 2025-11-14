@@ -31,7 +31,7 @@ type Postgres struct {
 	maxConnectionLifeTime time.Duration
 	maxConnectionIdleTime time.Duration
 	maxConns              int // Maximum number of connections in the pool (maps to pgxpool MaxConns)
-	maxIdleConnections    int // Deprecated: Use MinIdleConns instead. Kept for backward compatibility.
+	maxIdleConnections    int // Deprecated: Use MinConns instead. Kept for backward compatibility (maps to MinConns if MinConns is not set).
 	minConns              int // Minimum number of connections in the pool (maps to pgxpool MinConns)
 	minIdleConns          int // Minimum number of idle connections in the pool (maps to pgxpool MinIdleConns)
 	healthCheckPeriod     time.Duration

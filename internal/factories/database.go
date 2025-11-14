@@ -23,7 +23,7 @@ import (
 //	- MaxOpenConnections: deprecated, use MaxConns instead
 //	- MinConns: the minimum number of connections in the pool (maps to pgxpool MinConns)
 //	- MinIdleConns: the minimum number of idle connections in the pool (maps to pgxpool MinIdleConns)
-//	- MaxIdleConnections: deprecated, use MinIdleConns instead
+//	- MaxIdleConnections: deprecated, use MinConns instead (maps to MinConns if MinConns is not set)
 //	- MaxConnectionIdleTime: the maximum amount of time a connection can be idle before being closed
 //	- MaxConnectionLifetime: the maximum amount of time a connection can be reused before being closed
 //	- WatchBufferSize: specifies the buffer size for database watch operations, impacting how many changes can be queued

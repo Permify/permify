@@ -2,7 +2,7 @@ package postgres
 
 const (
 	_defaultMaxConns              = 0 // 0 = use pgxpool default (unlimited). Set explicitly to override.
-	_defaultMaxIdleConnections    = 0 // Deprecated: Use _defaultMinConns or _defaultMinIdleConns instead. Kept for backward compatibility.
+	_defaultMaxIdleConnections    = 0 // Deprecated: Use _defaultMinConns instead. Kept for backward compatibility (maps to MinConns if MinConns is not set).
 	_defaultMinConns              = 0 // 0 = use pgxpool default (no minimum). Set explicitly to override.
 	_defaultMinIdleConns          = 0 // 0 = use pgxpool default (no minimum idle). Set explicitly to override.
 	_defaultMaxDataPerWrite       = 1000
