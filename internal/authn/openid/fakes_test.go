@@ -143,6 +143,7 @@ func httpError(w http.ResponseWriter, code int) {
 	http.Error(w, http.StatusText(code), code)
 }
 
+// UpdateKeyID updates the key ID for the given signing method
 func (s *fakeOidcProvider) UpdateKeyID(method jwt.SigningMethod, newKeyID string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -154,23 +155,21 @@ func (s *fakeOidcProvider) UpdateKeyID(method jwt.SigningMethod, newKeyID string
 	}
 }
 
+// SignIDToken signs an unsigned token using the appropriate private key
 func (s *fakeOidcProvider) SignIDToken(unsignedToken *jwt.Token) (string, error) {
-	var signedToken string
-	var err error
-	// Sign based on method
 	switch unsignedToken.Method {
 	case jwt.SigningMethodRS256:
-		signedToken, err = unsignedToken.SignedString(s.rsaPrivateKey)
+		signedToken, err := unsignedToken.SignedString(s.rsaPrivateKey)
+		if err != nil {
+			return "", err
+		}
+		return signedToken, nil
 	default:
-		return "", fmt.Errorf("incorrect signing method type, supported algorithms: HS256, RS256, ES256, PS256")
+		return "", fmt.Errorf("unsupported signing method: %s (only RS256 is implemented in test fake)", unsignedToken.Method.Alg())
 	}
-	// Check for signing errors
-	if err != nil {
-		return "", err
-	}
-	return signedToken, nil
 }
 
+// createUnsignedToken creates an unsigned token with the given claims and method
 func createUnsignedToken(regClaims jwt.RegisteredClaims, method jwt.SigningMethod) *jwt.Token {
 	claims := struct {
 		jwt.RegisteredClaims
@@ -180,6 +179,7 @@ func createUnsignedToken(regClaims jwt.RegisteredClaims, method jwt.SigningMetho
 	return jwt.NewWithClaims(method, claims)
 }
 
+// fakeHttpServer creates a fake HTTP server for testing
 func fakeHttpServer(url string, handler http.HandlerFunc) (*httptest.Server, error) {
 	listener, err := net.Listen("tcp", url)
 	if err != nil {
