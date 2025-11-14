@@ -19,8 +19,11 @@ import (
 //	It should have the following properties:
 //	- Engine: the type of the database, e.g., POSTGRES or MEMORY
 //	- URI: the connection string for the database (only required for some database engines, e.g., POSTGRES)
-//	- MaxOpenConnections: the maximum number of open connections to the database
-//	- MaxIdleConnections: the maximum number of idle connections in the connection pool
+//	- MaxConns: the maximum number of connections in the pool (maps to pgxpool MaxConns)
+//	- MaxOpenConnections: deprecated, use MaxConns instead
+//	- MinConns: the minimum number of connections in the pool (maps to pgxpool MinConns)
+//	- MinIdleConns: the minimum number of idle connections in the pool (maps to pgxpool MinIdleConns)
+//	- MaxIdleConnections: deprecated, use MinConns instead (maps to MinConns if MinConns is not set)
 //	- MaxConnectionIdleTime: the maximum amount of time a connection can be idle before being closed
 //	- MaxConnectionLifetime: the maximum amount of time a connection can be reused before being closed
 //	- WatchBufferSize: specifies the buffer size for database watch operations, impacting how many changes can be queued
@@ -33,29 +36,56 @@ func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 	switch conf.Engine {
 	case database.POSTGRES.String():
 
+		opts := []PQDatabase.Option{
+			PQDatabase.MaxConnectionIdleTime(conf.MaxConnectionIdleTime),
+			PQDatabase.MaxConnectionLifeTime(conf.MaxConnectionLifetime),
+			PQDatabase.WatchBufferSize(conf.WatchBufferSize),
+			PQDatabase.MaxDataPerWrite(conf.MaxDataPerWrite),
+			PQDatabase.MaxRetries(conf.MaxRetries),
+		}
+
+		// Add MinConns if set (takes precedence over MaxIdleConnections for backward compatibility)
+		if conf.MinConns > 0 {
+			opts = append(opts, PQDatabase.MinConns(conf.MinConns))
+		}
+
+		// Use MaxConns if set, otherwise fall back to MaxOpenConnections for backward compatibility
+		// Note: MaxConns defaults to 0 in config, so we check MaxOpenConnections if MaxConns is 0
+		if conf.MaxConns > 0 {
+			opts = append(opts, PQDatabase.MaxConns(conf.MaxConns))
+		} else {
+			// Backward compatibility: if MaxConns is not set, use MaxOpenConnections
+			opts = append(opts, PQDatabase.MaxOpenConnections(conf.MaxOpenConnections))
+		}
+
+		// Kept for backward compatibility
+		if conf.MaxIdleConnections > 0 {
+			opts = append(opts, PQDatabase.MaxIdleConnections(conf.MaxIdleConnections))
+		}
+
+		// Add MinIdleConns if set (takes precedence over MaxIdleConnections)
+		if conf.MinIdleConns > 0 {
+			opts = append(opts, PQDatabase.MinIdleConns(conf.MinIdleConns))
+		}
+
+		// Add optional pool configuration options if set
+		if conf.HealthCheckPeriod > 0 {
+			opts = append(opts, PQDatabase.HealthCheckPeriod(conf.HealthCheckPeriod))
+		}
+		if conf.MaxConnLifetimeJitter > 0 {
+			opts = append(opts, PQDatabase.MaxConnLifetimeJitter(conf.MaxConnLifetimeJitter))
+		}
+		if conf.ConnectTimeout > 0 {
+			opts = append(opts, PQDatabase.ConnectTimeout(conf.ConnectTimeout))
+		}
+
 		if conf.URI == "" {
-			db, err = PQDatabase.NewWithSeparateURIs(conf.Writer.URI, conf.Reader.URI,
-				PQDatabase.MaxOpenConnections(conf.MaxOpenConnections),
-				PQDatabase.MaxIdleConnections(conf.MaxIdleConnections),
-				PQDatabase.MaxConnectionIdleTime(conf.MaxConnectionIdleTime),
-				PQDatabase.MaxConnectionLifeTime(conf.MaxConnectionLifetime),
-				PQDatabase.WatchBufferSize(conf.WatchBufferSize),
-				PQDatabase.MaxDataPerWrite(conf.MaxDataPerWrite),
-				PQDatabase.MaxRetries(conf.MaxRetries),
-			)
+			db, err = PQDatabase.NewWithSeparateURIs(conf.Writer.URI, conf.Reader.URI, opts...)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			db, err = PQDatabase.New(conf.URI,
-				PQDatabase.MaxOpenConnections(conf.MaxOpenConnections),
-				PQDatabase.MaxIdleConnections(conf.MaxIdleConnections),
-				PQDatabase.MaxConnectionIdleTime(conf.MaxConnectionIdleTime),
-				PQDatabase.MaxConnectionLifeTime(conf.MaxConnectionLifetime),
-				PQDatabase.WatchBufferSize(conf.WatchBufferSize),
-				PQDatabase.MaxDataPerWrite(conf.MaxDataPerWrite),
-				PQDatabase.MaxRetries(conf.MaxRetries),
-			)
+			db, err = PQDatabase.New(conf.URI, opts...)
 			if err != nil {
 				return nil, err
 			}

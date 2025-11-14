@@ -7,17 +7,43 @@ import (
 // Option - Option type
 type Option func(*Postgres)
 
-// MaxOpenConnections - Defines maximum open connections for postgresql db
+// MaxOpenConnections - Deprecated: use MaxConns instead for consistency with pgxpool.
+// Kept for backward compatibility and internally forwards to MaxConns.
 func MaxOpenConnections(size int) Option {
+	return MaxConns(size)
+}
+
+// MaxConns - Defines maximum number of connections in the pool (maps to pgxpool MaxConns)
+func MaxConns(size int) Option {
 	return func(c *Postgres) {
-		c.maxOpenConnections = size
+		c.maxConns = size
 	}
 }
 
-// MaxIdleConnections - Defines maximum idle connections for postgresql db
+// MaxIdleConnections - Deprecated: use MinConns instead.
+// Kept for backward compatibility and only used as a fallback for MinConns when
+// MinConns is not set (0). MinIdleConns is only honored when explicitly configured.
 func MaxIdleConnections(c int) Option {
 	return func(p *Postgres) {
 		p.maxIdleConnections = c
+	}
+}
+
+// MinConns - Defines minimum number of connections in the pool
+// If not set (0) and MaxIdleConnections is set, MaxIdleConnections will be used for backward compatibility (old behavior).
+func MinConns(c int) Option {
+	return func(p *Postgres) {
+		p.minConns = c
+	}
+}
+
+// MinIdleConns - Defines minimum number of idle connections in the pool.
+// This is superior to MinConns for ensuring idle connections are always available.
+// Note: MaxIdleConnections only affects MinConns when MinConns is not set; it does
+// not implicitly set MinIdleConns.
+func MinIdleConns(c int) Option {
+	return func(p *Postgres) {
+		p.minIdleConns = c
 	}
 }
 
@@ -32,6 +58,27 @@ func MaxConnectionIdleTime(d time.Duration) Option {
 func MaxConnectionLifeTime(d time.Duration) Option {
 	return func(p *Postgres) {
 		p.maxConnectionLifeTime = d
+	}
+}
+
+// HealthCheckPeriod - Defines the period between health checks on idle connections
+func HealthCheckPeriod(d time.Duration) Option {
+	return func(p *Postgres) {
+		p.healthCheckPeriod = d
+	}
+}
+
+// MaxConnLifetimeJitter - Defines the jitter added to MaxConnLifetime to prevent all connections from expiring at once
+func MaxConnLifetimeJitter(d time.Duration) Option {
+	return func(p *Postgres) {
+		p.maxConnLifetimeJitter = d
+	}
+}
+
+// ConnectTimeout - Defines the maximum time to wait when establishing a new connection
+func ConnectTimeout(d time.Duration) Option {
+	return func(p *Postgres) {
+		p.connectTimeout = d
 	}
 }
 
