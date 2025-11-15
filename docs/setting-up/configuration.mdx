@@ -98,7 +98,7 @@ database:
   max_open_connections: 20  # Deprecated: use max_connections instead. Kept for backward compatibility.
   max_idle_connections: 1  # Deprecated: use min_connections instead. Kept for backward compatibility (maps to MinConnections if min_connections is not set).
   min_connections: 0  # Minimum number of connections in the pool (maps to pgxpool MinConns). If 0 and max_idle_connections is set, max_idle_connections will be used.
-  min_idle_conns: 0  # Minimum idle connections (maps to pgxpool MinIdleConns). Must be explicitly set if needed (not set in old code).
+  min_idle_connections: 0  # Minimum idle connections (maps to pgxpool MinIdleConns). Must be explicitly set if needed (not set in old code).
   max_connection_lifetime: 300s
   max_connection_idle_time: 60s
   health_check_period: 0s  # Use pgxpool default (1 minute) if 0
@@ -404,7 +404,7 @@ audits, decision logs, authorization model)
 |   ├── max_open_connections (deprecated)
 |   ├── max_idle_connections (deprecated)
 |   ├── min_connections
-|   ├── min_idle_conns
+|   ├── min_idle_connections
 |   ├── max_connection_lifetime
 |   ├── max_connection_idle_time
 |   ├── health_check_period
@@ -433,7 +433,7 @@ audits, decision logs, authorization model)
 | [ ]      | max_open_connections (deprecated)  | 20      | Deprecated: use max_connections instead. Kept for backward compatibility.                                             |
 | [ ]      | max_idle_connections (deprecated)  | 1       | Deprecated: use min_connections instead. Kept for backward compatibility (maps to MinConnections if min_connections is not set).                                         |
 | [ ]      | min_connections                    | 0       | Minimum number of connections in the pool (maps to pgxpool MinConns). If 0 and max_idle_connections is set, max_idle_connections will be used.                                            |
-| [ ]      | min_idle_conns                     | 0       | Minimum number of idle connections in the pool (maps to pgxpool MinIdleConns). Must be explicitly set if needed (not set in old code). |
+| [ ]      | min_idle_connections               | 0       | Minimum number of idle connections in the pool (maps to pgxpool MinIdleConns). Must be explicitly set if needed (not set in old code). |
 | [ ]      | max_connection_lifetime            | 300s    | Determines the maximum lifetime of a connection in seconds.                                                       |
 | [ ]      | max_connection_idle_time           | 60s     | Determines the maximum time in seconds that a connection can remain idle before it is closed.                     |
 | [ ]      | health_check_period                | 0s      | Period between health checks on idle connections. 0 means use pgxpool default (1 minute).                        |
@@ -460,7 +460,7 @@ audits, decision logs, authorization model)
 | database-max-open-connections (deprecated) | PERMIFY_DATABASE_MAX_OPEN_CONNECTIONS            | int      |
 | database-max-idle-connections (deprecated) | PERMIFY_DATABASE_MAX_IDLE_CONNECTIONS            | int      |
 | database-min-connections                   | PERMIFY_DATABASE_MIN_CONNECTIONS                 | int      |
-| database-min-idle-conns                    | PERMIFY_DATABASE_MIN_IDLE_CONNS                  | int      |
+| database-min-idle-connections              | PERMIFY_DATABASE_MIN_IDLE_CONNECTIONS            | int      |
 | database-max-connection-lifetime           | PERMIFY_DATABASE_MAX_CONNECTION_LIFETIME         | duration |
 | database-max-connection-idle-time          | PERMIFY_DATABASE_MAX_CONNECTION_IDLE_TIME        | duration |
 | database-health-check-period               | PERMIFY_DATABASE_HEALTH_CHECK_PERIOD             | duration |

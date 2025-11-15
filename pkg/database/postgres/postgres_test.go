@@ -185,11 +185,11 @@ var _ = Describe("Postgres", func() {
 			Expect(pg.minConnections).Should(Equal(5))
 		})
 
-		It("Case 6: MinIdleConnections should set minIdleConns", func() {
+		It("Case 6: MinIdleConnections should set minIdleConnections", func() {
 			pg := &Postgres{}
 			option := MinIdleConnections(3)
 			option(pg)
-			Expect(pg.minIdleConns).Should(Equal(3))
+			Expect(pg.minIdleConnections).Should(Equal(3))
 		})
 
 		It("Case 7: HealthCheckPeriod should set healthCheckPeriod", func() {
@@ -276,22 +276,22 @@ var _ = Describe("Postgres", func() {
 			Expect(minConns).Should(Equal(0)) // Should remain 0, pgx will use its default
 		})
 
-		It("Case 5: MinIdleConns should only be set when explicitly configured", func() {
+		It("Case 5: MinIdleConnections should only be set when explicitly configured", func() {
 			pg := &Postgres{
-				minIdleConns:       0, // Not set
+				minIdleConnections: 0, // Not set
 				maxIdleConnections: 5,
 			}
-			// MinIdleConns should only be set if > 0
-			shouldSet := pg.minIdleConns > 0
+			// MinIdleConnections should only be set if > 0
+			shouldSet := pg.minIdleConnections > 0
 			Expect(shouldSet).Should(BeFalse()) // Should not be set
 		})
 
-		It("Case 6: MinIdleConns should be set when explicitly configured", func() {
+		It("Case 6: MinIdleConnections should be set when explicitly configured", func() {
 			pg := &Postgres{
-				minIdleConns: 3, // Explicitly set
+				minIdleConnections: 3, // Explicitly set
 			}
-			// MinIdleConns should only be set if > 0
-			shouldSet := pg.minIdleConns > 0
+			// MinIdleConnections should only be set if > 0
+			shouldSet := pg.minIdleConnections > 0
 			Expect(shouldSet).Should(BeTrue()) // Should be set
 		})
 	})

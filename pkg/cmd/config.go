@@ -94,7 +94,7 @@ func NewConfigCommand() *cobra.Command {
 	f.Int("database-max-open-connections", conf.Database.MaxOpenConnections, "deprecated: use database-max-connections instead. maximum number of parallel connections that can be made to the database at any time")
 	f.Int("database-max-idle-connections", conf.Database.MaxIdleConnections, "deprecated: use database-min-connections instead. maximum number of idle connections that can be made to the database at any time")
 	f.Int("database-min-connections", conf.Database.MinConnections, "minimum number of connections in the pool")
-	f.Int("database-min-idle-conns", conf.Database.MinIdleConns, "minimum number of idle connections in the pool")
+	f.Int("database-min-idle-connections", conf.Database.MinIdleConnections, "minimum number of idle connections in the pool")
 	f.Duration("database-max-connection-lifetime", conf.Database.MaxConnectionLifetime, "maximum amount of time a connection may be reused")
 	f.Duration("database-max-connection-idle-time", conf.Database.MaxConnectionIdleTime, "maximum amount of time a connection may be idle")
 	f.Duration("database-health-check-period", conf.Database.HealthCheckPeriod, "period between health checks on idle connections")
@@ -224,7 +224,7 @@ func conf() func(cmd *cobra.Command, args []string) error { // Return config han
 			[]string{"database.max_open_connections", fmt.Sprintf("%v", cfg.Database.MaxOpenConnections), getKeyOrigin(cmd, "database-max-open-connections", "PERMIFY_DATABASE_MAX_OPEN_CONNECTIONS")},
 			[]string{"database.max_idle_connections", fmt.Sprintf("%v", cfg.Database.MaxIdleConnections), getKeyOrigin(cmd, "database-max-idle-connections", "PERMIFY_DATABASE_MAX_IDLE_CONNECTIONS")},
 			[]string{"database.min_connections", fmt.Sprintf("%v", cfg.Database.MinConnections), getKeyOrigin(cmd, "database-min-connections", "PERMIFY_DATABASE_MIN_CONNECTIONS")},
-			[]string{"database.min_idle_conns", fmt.Sprintf("%v", cfg.Database.MinIdleConns), getKeyOrigin(cmd, "database-min-idle-conns", "PERMIFY_DATABASE_MIN_IDLE_CONNS")},
+			[]string{"database.min_idle_connections", fmt.Sprintf("%v", cfg.Database.MinIdleConnections), getKeyOrigin(cmd, "database-min-idle-connections", "PERMIFY_DATABASE_MIN_IDLE_CONNECTIONS")},
 			[]string{"database.max_connection_lifetime", fmt.Sprintf("%v", cfg.Database.MaxConnectionLifetime), getKeyOrigin(cmd, "database-max-connection-lifetime", "PERMIFY_DATABASE_MAX_CONNECTION_LIFETIME")},
 			[]string{"database.max_connection_idle_time", fmt.Sprintf("%v", cfg.Database.MaxConnectionIdleTime), getKeyOrigin(cmd, "database-max-connection-idle-time", "PERMIFY_DATABASE_MAX_CONNECTION_IDLE_TIME")},
 			[]string{"database.health_check_period", fmt.Sprintf("%v", cfg.Database.HealthCheckPeriod), getKeyOrigin(cmd, "database-health-check-period", "PERMIFY_DATABASE_HEALTH_CHECK_PERIOD")},

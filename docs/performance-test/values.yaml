@@ -111,7 +111,7 @@ app:
     max_open_connections: 1  # Deprecated: use max_connections instead
     max_idle_connections: 1  # Deprecated: use min_connections instead (maps to MinConnections if min_connections is not set)
     min_connections: 1
-    min_idle_conns: 0
+    min_idle_connections: 0
     max_connection_lifetime: "300s"
     max_connection_idle_time: "60s"
     health_check_period: "0s"

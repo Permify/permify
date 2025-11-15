@@ -41,8 +41,8 @@ type Postgres struct {
 	maxIdleConnections int
 	// minConnections is the minimum number of connections in the pool (maps to pgxpool MinConns)
 	minConnections int
-	// minIdleConns is the minimum number of idle connections in the pool (maps to pgxpool MinIdleConns)
-	minIdleConns int
+	// minIdleConnections is the minimum number of idle connections in the pool (maps to pgxpool MinIdleConns)
+	minIdleConnections int
 	// healthCheckPeriod is the period between health checks on idle connections
 	healthCheckPeriod time.Duration
 	// maxConnectionLifetimeJitter is jitter added to MaxConnLifetime to prevent all connections from expiring at once
@@ -67,7 +67,7 @@ func newDB(writerUri, readerUri string, opts ...Option) (*Postgres, error) {
 		maxConnections:              _defaultMaxConns,
 		maxIdleConnections:          _defaultMaxIdleConnections,
 		minConnections:              _defaultMinConns,
-		minIdleConns:                _defaultMinIdleConns,
+		minIdleConnections:          _defaultMinIdleConnections,
 		maxDataPerWrite:             _defaultMaxDataPerWrite,
 		maxRetries:                  _defaultMaxRetries,
 		watchBufferSize:             _defaultWatchBufferSize,
@@ -113,10 +113,10 @@ func newDB(writerUri, readerUri string, opts ...Option) (*Postgres, error) {
 	}
 
 	// Set the minimum number of idle connections in the pool.
-	// Note: MinIdleConns was not set in the old code, so we only set it if explicitly configured.
-	if pg.minIdleConns > 0 {
-		writeConfig.MinIdleConns = int32(pg.minIdleConns)
-		readConfig.MinIdleConns = int32(pg.minIdleConns)
+	// Note: MinIdleConnections was not set in the old code, so we only set it if explicitly configured.
+	if pg.minIdleConnections > 0 {
+		writeConfig.MinIdleConns = int32(pg.minIdleConnections)
+		readConfig.MinIdleConns = int32(pg.minIdleConnections)
 	}
 
 	// Set the maximum number of connections in the pool for both write and read configurations.
