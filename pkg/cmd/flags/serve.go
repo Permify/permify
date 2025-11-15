@@ -507,10 +507,10 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
-	if err = viper.BindPFlag("database.min_idle_conns", flags.Lookup("database-min-idle-conns")); err != nil {
+	if err = viper.BindPFlag("database.min_idle_connections", flags.Lookup("database-min-idle-connections")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("database.min_idle_conns", "PERMIFY_DATABASE_MIN_IDLE_CONNS"); err != nil {
+	if err = viper.BindEnv("database.min_idle_connections", "PERMIFY_DATABASE_MIN_IDLE_CONNECTIONS"); err != nil {
 		panic(err)
 	}
 

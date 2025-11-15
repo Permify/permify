@@ -124,7 +124,7 @@ func NewServeCommand() *cobra.Command {
 	f.Int("database-max-open-connections", conf.Database.MaxOpenConnections, "deprecated: use database-max-connections instead. maximum number of parallel connections that can be made to the database at any time")
 	f.Int("database-max-idle-connections", conf.Database.MaxIdleConnections, "deprecated: use database-min-connections instead. maximum number of idle connections that can be made to the database at any time")
 	f.Int("database-min-connections", conf.Database.MinConnections, "minimum number of connections in the pool")
-	f.Int("database-min-idle-conns", conf.Database.MinIdleConns, "minimum number of idle connections in the pool")
+	f.Int("database-min-idle-connections", conf.Database.MinIdleConnections, "minimum number of idle connections in the pool")
 	f.Duration("database-max-connection-lifetime", conf.Database.MaxConnectionLifetime, "maximum amount of time a connection may be reused")
 	f.Duration("database-max-connection-idle-time", conf.Database.MaxConnectionIdleTime, "maximum amount of time a connection may be idle")
 	f.Duration("database-health-check-period", conf.Database.HealthCheckPeriod, "period between health checks on idle connections")

@@ -43,7 +43,7 @@ func MinConnections(c int) Option {
 // not implicitly set MinIdleConnections.
 func MinIdleConnections(c int) Option {
 	return func(p *Postgres) {
-		p.minIdleConns = c
+		p.minIdleConnections = c
 	}
 }
 

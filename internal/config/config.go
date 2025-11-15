@@ -171,7 +171,7 @@ type (
 		MaxOpenConnections          int               `mapstructure:"max_open_connections"`    // Deprecated: Use MaxConnections instead. Kept for backward compatibility.
 		MaxIdleConnections          int               `mapstructure:"max_idle_connections"`    // Deprecated: Use MinConnections instead. Kept for backward compatibility (maps to MinConnections if min_connections is not set).
 		MinConnections              int               `mapstructure:"min_connections"`         // Minimum number of connections in the pool (maps to pgxpool MinConns). If 0 and max_idle_connections is set, max_idle_connections will be used.
-		MinIdleConns                int               `mapstructure:"min_idle_conns"`          // Minimum number of idle connections in the pool (maps to pgxpool MinIdleConns). Must be explicitly set if needed (not set in old code).
+		MinIdleConnections          int               `mapstructure:"min_idle_connections"`    // Minimum number of idle connections in the pool (maps to pgxpool MinIdleConns). Must be explicitly set if needed (not set in old code).
 		MaxConnectionLifetime       time.Duration     `mapstructure:"max_connection_lifetime"` // Maximum duration a connection can be reused
 		MaxConnectionIdleTime       time.Duration     `mapstructure:"max_connection_idle_time"`
 		HealthCheckPeriod           time.Duration     `mapstructure:"health_check_period"`            // Period between health checks on idle connections
@@ -361,7 +361,7 @@ func DefaultConfig() *Config {
 			MaxOpenConnections:          20,                // Deprecated: Use MaxConnections instead. Kept for backward compatibility.
 			MaxIdleConnections:          1,                 // Deprecated: Kept for backward compatibility (maps to MinConnections if MinConnections is not set)
 			MinConnections:              0,                 // Min connections in pool (0 = pgx default, use MaxIdleConnections for backward compatibility if set)
-			MinIdleConns:                0,                 // Min idle connections (0 = pgx default, must be explicitly set if needed)
+			MinIdleConnections:          0,                 // Min idle connections (0 = pgx default, must be explicitly set if needed)
 			MaxConnectionLifetime:       time.Second * 300, // Connection lifetime
 			MaxConnectionIdleTime:       time.Second * 60,  // Connection idle time
 			HealthCheckPeriod:           0,                 // Use pgxpool default (1 minute)

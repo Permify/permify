@@ -22,7 +22,7 @@ import (
 //	- MaxConnections: the maximum number of connections in the pool (maps to pgxpool MaxConns)
 //	- MaxOpenConnections: deprecated, use MaxConnections instead
 //	- MinConnections: the minimum number of connections in the pool (maps to pgxpool MinConns)
-//	- MinIdleConns: the minimum number of idle connections in the pool (maps to pgxpool MinIdleConns)
+//	- MinIdleConnections: the minimum number of idle connections in the pool (maps to pgxpool MinIdleConns)
 //	- MaxIdleConnections: deprecated, use MinConnections instead (maps to MinConnections if MinConnections is not set)
 //	- MaxConnectionIdleTime: the maximum amount of time a connection can be idle before being closed
 //	- MaxConnectionLifetime: the maximum amount of time a connection can be reused before being closed
@@ -64,8 +64,8 @@ func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 		}
 
 		// Add MinIdleConnections if set (takes precedence over MaxIdleConnections)
-		if conf.MinIdleConns > 0 {
-			opts = append(opts, PQDatabase.MinIdleConnections(conf.MinIdleConns))
+		if conf.MinIdleConnections > 0 {
+			opts = append(opts, PQDatabase.MinIdleConnections(conf.MinIdleConnections))
 		}
 
 		// Add optional pool configuration options if set
