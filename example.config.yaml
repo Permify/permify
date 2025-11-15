@@ -77,15 +77,15 @@ database:
   engine: postgres
   uri: postgres://user:password@host:5432/db_name
   auto_migrate: false
-  max_conns: 20  # Maximum number of connections in the pool (maps to pgxpool MaxConns)
-  max_open_connections: 20  # Deprecated: use max_conns instead. Kept for backward compatibility.
-  max_idle_connections: 1  # Deprecated: use min_conns instead. Kept for backward compatibility (maps to MinConns if min_conns is not set).
-  min_conns: 0  # Minimum number of connections in the pool (maps to pgxpool MinConns). If 0 and max_idle_connections is set, max_idle_connections will be used.
+  max_connections: 20  # Maximum number of connections in the pool (maps to pgxpool MaxConns)
+  max_open_connections: 20  # Deprecated: use max_connections instead. Kept for backward compatibility.
+  max_idle_connections: 1  # Deprecated: use min_connections instead. Kept for backward compatibility (maps to MinConnections if min_connections is not set).
+  min_connections: 0  # Minimum number of connections in the pool (maps to pgxpool MinConns). If 0 and max_idle_connections is set, max_idle_connections will be used.
   min_idle_conns: 0  # Minimum idle connections (maps to pgxpool MinIdleConns). Must be explicitly set if needed (not set in old code).
   max_connection_lifetime: 300s
   max_connection_idle_time: 60s
   health_check_period: 0s  # Use pgxpool default (1 minute) if 0
-  max_conn_lifetime_jitter: 0s  # Will default to 20% of max_connection_lifetime if 0
+  max_connection_lifetime_jitter: 0s  # Will default to 20% of max_connection_lifetime if 0
   connect_timeout: 0s  # Use pgx default (no timeout) if 0
   max_data_per_write: 1_000
   max_retries: 10

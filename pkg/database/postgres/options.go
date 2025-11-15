@@ -7,41 +7,41 @@ import (
 // Option - Option type
 type Option func(*Postgres)
 
-// MaxOpenConnections - Deprecated: use MaxConns instead for consistency with pgxpool.
-// Kept for backward compatibility and internally forwards to MaxConns.
+// MaxOpenConnections - Deprecated: use MaxConnections instead for consistency with pgxpool.
+// Kept for backward compatibility and internally forwards to MaxConnections.
 func MaxOpenConnections(size int) Option {
-	return MaxConns(size)
+	return MaxConnections(size)
 }
 
-// MaxConns - Defines maximum number of connections in the pool (maps to pgxpool MaxConns)
-func MaxConns(size int) Option {
+// MaxConnections - Defines maximum number of connections in the pool (maps to pgxpool MaxConns)
+func MaxConnections(size int) Option {
 	return func(c *Postgres) {
-		c.maxConns = size
+		c.maxConnections = size
 	}
 }
 
-// MaxIdleConnections - Deprecated: use MinConns instead.
-// Kept for backward compatibility and only used as a fallback for MinConns when
-// MinConns is not set (0). MinIdleConns is only honored when explicitly configured.
+// MaxIdleConnections - Deprecated: use MinConnections instead.
+// Kept for backward compatibility and only used as a fallback for MinConnections when
+// MinConnections is not set (0). MinIdleConns is only honored when explicitly configured.
 func MaxIdleConnections(c int) Option {
 	return func(p *Postgres) {
 		p.maxIdleConnections = c
 	}
 }
 
-// MinConns - Defines minimum number of connections in the pool
+// MinConnections - Defines minimum number of connections in the pool
 // If not set (0) and MaxIdleConnections is set, MaxIdleConnections will be used for backward compatibility (old behavior).
-func MinConns(c int) Option {
+func MinConnections(c int) Option {
 	return func(p *Postgres) {
-		p.minConns = c
+		p.minConnections = c
 	}
 }
 
-// MinIdleConns - Defines minimum number of idle connections in the pool.
-// This is superior to MinConns for ensuring idle connections are always available.
-// Note: MaxIdleConnections only affects MinConns when MinConns is not set; it does
-// not implicitly set MinIdleConns.
-func MinIdleConns(c int) Option {
+// MinIdleConnections - Defines minimum number of idle connections in the pool.
+// This is superior to MinConnections for ensuring idle connections are always available.
+// Note: MaxIdleConnections only affects MinConnections when MinConnections is not set; it does
+// not implicitly set MinIdleConnections.
+func MinIdleConnections(c int) Option {
 	return func(p *Postgres) {
 		p.minIdleConns = c
 	}
@@ -68,10 +68,10 @@ func HealthCheckPeriod(d time.Duration) Option {
 	}
 }
 
-// MaxConnLifetimeJitter - Defines the jitter added to MaxConnLifetime to prevent all connections from expiring at once
-func MaxConnLifetimeJitter(d time.Duration) Option {
+// MaxConnectionLifetimeJitter - Defines the jitter added to MaxConnLifetime to prevent all connections from expiring at once
+func MaxConnectionLifetimeJitter(d time.Duration) Option {
 	return func(p *Postgres) {
-		p.maxConnLifetimeJitter = d
+		p.maxConnectionLifetimeJitter = d
 	}
 }
 

@@ -166,21 +166,21 @@ type (
 		Reader struct {
 			URI string `mapstructure:"uri"`
 		} `mapstructure:"reader"`
-		AutoMigrate           bool              `mapstructure:"auto_migrate"`            // Whether to enable automatic migration
-		MaxConns              int               `mapstructure:"max_conns"`               // Maximum number of connections in the pool (maps to pgxpool MaxConns)
-		MaxOpenConnections    int               `mapstructure:"max_open_connections"`    // Deprecated: Use MaxConns instead. Kept for backward compatibility.
-		MaxIdleConnections    int               `mapstructure:"max_idle_connections"`    // Deprecated: Use MinConns instead. Kept for backward compatibility (maps to MinConns if min_conns is not set).
-		MinConns              int               `mapstructure:"min_conns"`               // Minimum number of connections in the pool (maps to pgxpool MinConns). If 0 and max_idle_connections is set, max_idle_connections will be used.
-		MinIdleConns          int               `mapstructure:"min_idle_conns"`          // Minimum number of idle connections in the pool (maps to pgxpool MinIdleConns). Must be explicitly set if needed (not set in old code).
-		MaxConnectionLifetime time.Duration     `mapstructure:"max_connection_lifetime"` // Maximum duration a connection can be reused
-		MaxConnectionIdleTime time.Duration     `mapstructure:"max_connection_idle_time"`
-		HealthCheckPeriod     time.Duration     `mapstructure:"health_check_period"`      // Period between health checks on idle connections
-		MaxConnLifetimeJitter time.Duration     `mapstructure:"max_conn_lifetime_jitter"` // Jitter added to MaxConnLifetime to prevent all connections from expiring at once
-		ConnectTimeout        time.Duration     `mapstructure:"connect_timeout"`          // Maximum time to wait when establishing a new connection
-		MaxDataPerWrite       int               `mapstructure:"max_data_per_write"`
-		MaxRetries            int               `mapstructure:"max_retries"`
-		WatchBufferSize       int               `mapstructure:"watch_buffer_size"`
-		GarbageCollection     GarbageCollection `mapstructure:"garbage_collection"`
+		AutoMigrate                 bool              `mapstructure:"auto_migrate"`            // Whether to enable automatic migration
+		MaxConnections              int               `mapstructure:"max_connections"`         // Maximum number of connections in the pool (maps to pgxpool MaxConns)
+		MaxOpenConnections          int               `mapstructure:"max_open_connections"`    // Deprecated: Use MaxConnections instead. Kept for backward compatibility.
+		MaxIdleConnections          int               `mapstructure:"max_idle_connections"`    // Deprecated: Use MinConnections instead. Kept for backward compatibility (maps to MinConnections if min_connections is not set).
+		MinConnections              int               `mapstructure:"min_connections"`         // Minimum number of connections in the pool (maps to pgxpool MinConns). If 0 and max_idle_connections is set, max_idle_connections will be used.
+		MinIdleConns                int               `mapstructure:"min_idle_conns"`          // Minimum number of idle connections in the pool (maps to pgxpool MinIdleConns). Must be explicitly set if needed (not set in old code).
+		MaxConnectionLifetime       time.Duration     `mapstructure:"max_connection_lifetime"` // Maximum duration a connection can be reused
+		MaxConnectionIdleTime       time.Duration     `mapstructure:"max_connection_idle_time"`
+		HealthCheckPeriod           time.Duration     `mapstructure:"health_check_period"`            // Period between health checks on idle connections
+		MaxConnectionLifetimeJitter time.Duration     `mapstructure:"max_connection_lifetime_jitter"` // Jitter added to MaxConnectionLifetime to prevent all connections from expiring at once
+		ConnectTimeout              time.Duration     `mapstructure:"connect_timeout"`                // Maximum time to wait when establishing a new connection
+		MaxDataPerWrite             int               `mapstructure:"max_data_per_write"`
+		MaxRetries                  int               `mapstructure:"max_retries"`
+		WatchBufferSize             int               `mapstructure:"watch_buffer_size"`
+		GarbageCollection           GarbageCollection `mapstructure:"garbage_collection"`
 	}
 
 	GarbageCollection struct {
@@ -355,21 +355,21 @@ func DefaultConfig() *Config {
 			},
 		},
 		Database: Database{ // Database configuration
-			Engine:                "memory",          // In-memory database
-			AutoMigrate:           true,              // Auto migrate enabled
-			MaxConns:              0,                 // Max connections in pool (0 means use MaxOpenConnections for backward compatibility)
-			MaxOpenConnections:    20,                // Deprecated: Use MaxConns instead. Kept for backward compatibility.
-			MaxIdleConnections:    1,                 // Deprecated: Kept for backward compatibility (maps to MinConns if MinConns is not set)
-			MinConns:              0,                 // Min connections in pool (0 = pgx default, use MaxIdleConnections for backward compatibility if set)
-			MinIdleConns:          0,                 // Min idle connections (0 = pgx default, must be explicitly set if needed)
-			MaxConnectionLifetime: time.Second * 300, // Connection lifetime
-			MaxConnectionIdleTime: time.Second * 60,  // Connection idle time
-			HealthCheckPeriod:     0,                 // Use pgxpool default (1 minute)
-			MaxConnLifetimeJitter: 0,                 // Will default to 20% of MaxConnLifetime if not set
-			ConnectTimeout:        0,                 // Use pgx default (no timeout)
-			MaxDataPerWrite:       1000,              // Max data per write
-			MaxRetries:            10,                // Max retries
-			WatchBufferSize:       100,               // Watch buffer size
+			Engine:                      "memory",          // In-memory database
+			AutoMigrate:                 true,              // Auto migrate enabled
+			MaxConnections:              0,                 // Max connections in pool (0 means use MaxOpenConnections for backward compatibility)
+			MaxOpenConnections:          20,                // Deprecated: Use MaxConnections instead. Kept for backward compatibility.
+			MaxIdleConnections:          1,                 // Deprecated: Kept for backward compatibility (maps to MinConnections if MinConnections is not set)
+			MinConnections:              0,                 // Min connections in pool (0 = pgx default, use MaxIdleConnections for backward compatibility if set)
+			MinIdleConns:                0,                 // Min idle connections (0 = pgx default, must be explicitly set if needed)
+			MaxConnectionLifetime:       time.Second * 300, // Connection lifetime
+			MaxConnectionIdleTime:       time.Second * 60,  // Connection idle time
+			HealthCheckPeriod:           0,                 // Use pgxpool default (1 minute)
+			MaxConnectionLifetimeJitter: 0,                 // Will default to 20% of MaxConnectionLifetime if not set
+			ConnectTimeout:              0,                 // Use pgx default (no timeout)
+			MaxDataPerWrite:             1000,              // Max data per write
+			MaxRetries:                  10,                // Max retries
+			WatchBufferSize:             100,               // Watch buffer size
 			GarbageCollection: GarbageCollection{
 				Enabled: false,
 			},

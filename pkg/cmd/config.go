@@ -90,15 +90,15 @@ func NewConfigCommand() *cobra.Command {
 	f.String("database-writer-uri", conf.Database.Writer.URI, "writer uri of your data source to store relation tuples and schema")
 	f.String("database-reader-uri", conf.Database.Reader.URI, "reader uri of your data source to store relation tuples and schema")
 	f.Bool("database-auto-migrate", conf.Database.AutoMigrate, "auto migrate database tables")
-	f.Int("database-max-conns", conf.Database.MaxConns, "maximum number of connections in the pool")
-	f.Int("database-max-open-connections", conf.Database.MaxOpenConnections, "deprecated: use database-max-conns instead. maximum number of parallel connections that can be made to the database at any time")
-	f.Int("database-max-idle-connections", conf.Database.MaxIdleConnections, "deprecated: use database-min-idle-conns instead. maximum number of idle connections that can be made to the database at any time")
-	f.Int("database-min-conns", conf.Database.MinConns, "minimum number of connections in the pool")
+	f.Int("database-max-connections", conf.Database.MaxConnections, "maximum number of connections in the pool")
+	f.Int("database-max-open-connections", conf.Database.MaxOpenConnections, "deprecated: use database-max-connections instead. maximum number of parallel connections that can be made to the database at any time")
+	f.Int("database-max-idle-connections", conf.Database.MaxIdleConnections, "deprecated: use database-min-connections instead. maximum number of idle connections that can be made to the database at any time")
+	f.Int("database-min-connections", conf.Database.MinConnections, "minimum number of connections in the pool")
 	f.Int("database-min-idle-conns", conf.Database.MinIdleConns, "minimum number of idle connections in the pool")
 	f.Duration("database-max-connection-lifetime", conf.Database.MaxConnectionLifetime, "maximum amount of time a connection may be reused")
 	f.Duration("database-max-connection-idle-time", conf.Database.MaxConnectionIdleTime, "maximum amount of time a connection may be idle")
 	f.Duration("database-health-check-period", conf.Database.HealthCheckPeriod, "period between health checks on idle connections")
-	f.Duration("database-max-conn-lifetime-jitter", conf.Database.MaxConnLifetimeJitter, "jitter added to MaxConnLifetime to prevent all connections from expiring at once")
+	f.Duration("database-max-connection-lifetime-jitter", conf.Database.MaxConnectionLifetimeJitter, "jitter added to max_connection_lifetime to prevent all connections from expiring at once")
 	f.Duration("database-connect-timeout", conf.Database.ConnectTimeout, "maximum time to wait when establishing a new connection")
 	f.Int("database-max-data-per-write", conf.Database.MaxDataPerWrite, "sets the maximum amount of data per write operation to the database")
 	f.Int("database-max-retries", conf.Database.MaxRetries, "defines the maximum number of retries for database operations in case of failure")
@@ -220,15 +220,15 @@ func conf() func(cmd *cobra.Command, args []string) error { // Return config han
 			[]string{"database.writer.uri", HideSecret(cfg.Database.Writer.URI), getKeyOrigin(cmd, "database-writer-uri", "PERMIFY_DATABASE_WRITER_URI")},
 			[]string{"database.reader.uri", HideSecret(cfg.Database.Reader.URI), getKeyOrigin(cmd, "database-reader-uri", "PERMIFY_DATABASE_READER_URI")},
 			[]string{"database.auto_migrate", fmt.Sprintf("%v", cfg.Database.AutoMigrate), getKeyOrigin(cmd, "database-auto-migrate", "PERMIFY_DATABASE_AUTO_MIGRATE")},
-			[]string{"database.max_conns", fmt.Sprintf("%v", cfg.Database.MaxConns), getKeyOrigin(cmd, "database-max-conns", "PERMIFY_DATABASE_MAX_CONNS")},
+			[]string{"database.max_connections", fmt.Sprintf("%v", cfg.Database.MaxConnections), getKeyOrigin(cmd, "database-max-connections", "PERMIFY_DATABASE_MAX_CONNECTIONS")},
 			[]string{"database.max_open_connections", fmt.Sprintf("%v", cfg.Database.MaxOpenConnections), getKeyOrigin(cmd, "database-max-open-connections", "PERMIFY_DATABASE_MAX_OPEN_CONNECTIONS")},
 			[]string{"database.max_idle_connections", fmt.Sprintf("%v", cfg.Database.MaxIdleConnections), getKeyOrigin(cmd, "database-max-idle-connections", "PERMIFY_DATABASE_MAX_IDLE_CONNECTIONS")},
-			[]string{"database.min_conns", fmt.Sprintf("%v", cfg.Database.MinConns), getKeyOrigin(cmd, "database-min-conns", "PERMIFY_DATABASE_MIN_CONNS")},
+			[]string{"database.min_connections", fmt.Sprintf("%v", cfg.Database.MinConnections), getKeyOrigin(cmd, "database-min-connections", "PERMIFY_DATABASE_MIN_CONNECTIONS")},
 			[]string{"database.min_idle_conns", fmt.Sprintf("%v", cfg.Database.MinIdleConns), getKeyOrigin(cmd, "database-min-idle-conns", "PERMIFY_DATABASE_MIN_IDLE_CONNS")},
 			[]string{"database.max_connection_lifetime", fmt.Sprintf("%v", cfg.Database.MaxConnectionLifetime), getKeyOrigin(cmd, "database-max-connection-lifetime", "PERMIFY_DATABASE_MAX_CONNECTION_LIFETIME")},
 			[]string{"database.max_connection_idle_time", fmt.Sprintf("%v", cfg.Database.MaxConnectionIdleTime), getKeyOrigin(cmd, "database-max-connection-idle-time", "PERMIFY_DATABASE_MAX_CONNECTION_IDLE_TIME")},
 			[]string{"database.health_check_period", fmt.Sprintf("%v", cfg.Database.HealthCheckPeriod), getKeyOrigin(cmd, "database-health-check-period", "PERMIFY_DATABASE_HEALTH_CHECK_PERIOD")},
-			[]string{"database.max_conn_lifetime_jitter", fmt.Sprintf("%v", cfg.Database.MaxConnLifetimeJitter), getKeyOrigin(cmd, "database-max-conn-lifetime-jitter", "PERMIFY_DATABASE_MAX_CONN_LIFETIME_JITTER")},
+			[]string{"database.max_connection_lifetime_jitter", fmt.Sprintf("%v", cfg.Database.MaxConnectionLifetimeJitter), getKeyOrigin(cmd, "database-max-connection-lifetime-jitter", "PERMIFY_DATABASE_MAX_CONNECTION_LIFETIME_JITTER")},
 			[]string{"database.connect_timeout", fmt.Sprintf("%v", cfg.Database.ConnectTimeout), getKeyOrigin(cmd, "database-connect-timeout", "PERMIFY_DATABASE_CONNECT_TIMEOUT")},
 			[]string{"database.max_data_per_write", fmt.Sprintf("%v", cfg.Database.MaxDataPerWrite), getKeyOrigin(cmd, "database-max-data-per-write", "PERMIFY_DATABASE_MAX_DATA_PER_WRITE")},
 			[]string{"database.max_retries", fmt.Sprintf("%v", cfg.Database.MaxRetries), getKeyOrigin(cmd, "database-max-retries", "PERMIFY_DATABASE_MAX_RETRIES")},
