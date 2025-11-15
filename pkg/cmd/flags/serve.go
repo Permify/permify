@@ -468,7 +468,7 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 	if err = viper.BindPFlag("database.max_connections", flags.Lookup("database-max-connections")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("database.max_connections", "PERMIFY_DATABASE_MAX_CONNS"); err != nil {
+	if err = viper.BindEnv("database.max_connections", "PERMIFY_DATABASE_MAX_CONNECTIONS"); err != nil {
 		panic(err)
 	}
 
@@ -503,7 +503,7 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 	if err = viper.BindPFlag("database.min_connections", flags.Lookup("database-min-connections")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("database.min_connections", "PERMIFY_DATABASE_MIN_CONNS"); err != nil {
+	if err = viper.BindEnv("database.min_connections", "PERMIFY_DATABASE_MIN_CONNECTIONS"); err != nil {
 		panic(err)
 	}
 
@@ -524,7 +524,7 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 	if err = viper.BindPFlag("database.max_connection_lifetime_jitter", flags.Lookup("database-max-connection-lifetime-jitter")); err != nil {
 		panic(err)
 	}
-	if err = viper.BindEnv("database.max_connection_lifetime_jitter", "PERMIFY_DATABASE_MAX_CONN_LIFETIME_JITTER"); err != nil {
+	if err = viper.BindEnv("database.max_connection_lifetime_jitter", "PERMIFY_DATABASE_MAX_CONNECTION_LIFETIME_JITTER"); err != nil {
 		panic(err)
 	}
 

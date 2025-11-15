@@ -128,7 +128,7 @@ func NewServeCommand() *cobra.Command {
 	f.Duration("database-max-connection-lifetime", conf.Database.MaxConnectionLifetime, "maximum amount of time a connection may be reused")
 	f.Duration("database-max-connection-idle-time", conf.Database.MaxConnectionIdleTime, "maximum amount of time a connection may be idle")
 	f.Duration("database-health-check-period", conf.Database.HealthCheckPeriod, "period between health checks on idle connections")
-	f.Duration("database-max-connection-lifetime-jitter", conf.Database.MaxConnectionLifetimeJitter, "jitter added to MaxConnectionLifetimeJitter to prevent all connections from expiring at once")
+	f.Duration("database-max-connection-lifetime-jitter", conf.Database.MaxConnectionLifetimeJitter, "jitter added to max_connection_lifetime to prevent all connections from expiring at once")
 	f.Duration("database-connect-timeout", conf.Database.ConnectTimeout, "maximum time to wait when establishing a new connection")
 	f.Int("database-max-data-per-write", conf.Database.MaxDataPerWrite, "sets the maximum amount of data per write operation to the database")
 	f.Int("database-max-retries", conf.Database.MaxRetries, "defines the maximum number of retries for database operations in case of failure")
