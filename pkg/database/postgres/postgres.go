@@ -25,18 +25,30 @@ type Postgres struct {
 
 	Builder squirrel.StatementBuilderType
 	// options
-	maxDataPerWrite       int
-	maxRetries            int
-	watchBufferSize       int
+	// maxDataPerWrite sets the maximum amount of data per write operation to the database
+	maxDataPerWrite int
+	// maxRetries defines the maximum number of retries for database operations in case of failure
+	maxRetries int
+	// watchBufferSize specifies the buffer size for database watch operations, impacting how many changes can be queued
+	watchBufferSize int
+	// maxConnectionLifeTime determines the maximum lifetime of a connection in the pool
 	maxConnectionLifeTime time.Duration
+	// maxConnectionIdleTime determines the maximum time a connection can remain idle before being closed
 	maxConnectionIdleTime time.Duration
-	maxConns              int // Maximum number of connections in the pool (maps to pgxpool MaxConns)
-	maxIdleConnections    int // Deprecated: Use MinConns instead. Kept for backward compatibility (maps to MinConns if MinConns is not set).
-	minConns              int // Minimum number of connections in the pool (maps to pgxpool MinConns)
-	minIdleConns          int // Minimum number of idle connections in the pool (maps to pgxpool MinIdleConns)
-	healthCheckPeriod     time.Duration
-	maxConnLifetimeJitter time.Duration
-	connectTimeout        time.Duration
+	// maxConnections is the maximum number of connections in the pool (maps to pgxpool MaxConns)
+	maxConnections int
+	// maxIdleConnections is deprecated: Use MinConnections instead. Kept for backward compatibility (maps to MinConnections if MinConnections is not set).
+	maxIdleConnections int
+	// minConnections is the minimum number of connections in the pool (maps to pgxpool MinConns)
+	minConnections int
+	// minIdleConns is the minimum number of idle connections in the pool (maps to pgxpool MinIdleConns)
+	minIdleConns int
+	// healthCheckPeriod is the period between health checks on idle connections
+	healthCheckPeriod time.Duration
+	// maxConnectionLifetimeJitter is jitter added to MaxConnLifetime to prevent all connections from expiring at once
+	maxConnectionLifetimeJitter time.Duration
+	// connectTimeout is the maximum time to wait when establishing a new connection
+	connectTimeout time.Duration
 }
 
 // New -
@@ -52,16 +64,16 @@ func NewWithSeparateURIs(writerUri, readerUri string, opts ...Option) (*Postgres
 // new - Creates new postgresql db instance
 func newDB(writerUri, readerUri string, opts ...Option) (*Postgres, error) {
 	pg := &Postgres{
-		maxConns:              _defaultMaxConns,
-		maxIdleConnections:    _defaultMaxIdleConnections,
-		minConns:              _defaultMinConns,
-		minIdleConns:          _defaultMinIdleConns,
-		maxDataPerWrite:       _defaultMaxDataPerWrite,
-		maxRetries:            _defaultMaxRetries,
-		watchBufferSize:       _defaultWatchBufferSize,
-		healthCheckPeriod:     _defaultHealthCheckPeriod,
-		maxConnLifetimeJitter: _defaultMaxConnLifetimeJitter,
-		connectTimeout:        _defaultConnectTimeout,
+		maxConnections:              _defaultMaxConns,
+		maxIdleConnections:          _defaultMaxIdleConnections,
+		minConnections:              _defaultMinConns,
+		minIdleConns:                _defaultMinIdleConns,
+		maxDataPerWrite:             _defaultMaxDataPerWrite,
+		maxRetries:                  _defaultMaxRetries,
+		watchBufferSize:             _defaultWatchBufferSize,
+		healthCheckPeriod:           _defaultHealthCheckPeriod,
+		maxConnectionLifetimeJitter: _defaultMaxConnLifetimeJitter,
+		connectTimeout:              _defaultConnectTimeout,
 	}
 
 	// Custom options
@@ -90,8 +102,8 @@ func newDB(writerUri, readerUri string, opts ...Option) (*Postgres, error) {
 	setPlanCacheMode(readConfig.ConnConfig)
 
 	// Set the minimum number of connections in the pool for both write and read configurations.
-	// For backward compatibility: if MinConns is not set (0) but MaxIdleConnections is set, use MaxIdleConnections (old behavior).
-	minConns := pg.minConns
+	// For backward compatibility: if MinConnections is not set (0) but MaxIdleConnections is set, use MaxIdleConnections (old behavior).
+	minConns := pg.minConnections
 	if minConns == 0 && pg.maxIdleConnections > 0 {
 		minConns = pg.maxIdleConnections
 	}
@@ -109,10 +121,10 @@ func newDB(writerUri, readerUri string, opts ...Option) (*Postgres, error) {
 
 	// Set the maximum number of connections in the pool for both write and read configurations.
 	// pgxpool default is 0 (unlimited), so only set if explicitly configured.
-	// Note: MaxOpenConnections is already mapped to MaxConns via options.go, so no backward compatibility needed here.
-	if pg.maxConns > 0 {
-		writeConfig.MaxConns = int32(pg.maxConns)
-		readConfig.MaxConns = int32(pg.maxConns)
+	// Note: MaxOpenConnections is already mapped to MaxConnections via options.go, so no backward compatibility needed here.
+	if pg.maxConnections > 0 {
+		writeConfig.MaxConns = int32(pg.maxConnections)
+		readConfig.MaxConns = int32(pg.maxConnections)
 	}
 
 	// Set the maximum amount of time a connection may be idle before being closed for both configurations.
@@ -124,9 +136,9 @@ func newDB(writerUri, readerUri string, opts ...Option) (*Postgres, error) {
 	readConfig.MaxConnLifetime = pg.maxConnectionLifeTime
 
 	// Set a jitter to the maximum connection lifetime to prevent all connections from expiring at the same time.
-	if pg.maxConnLifetimeJitter > 0 {
-		writeConfig.MaxConnLifetimeJitter = pg.maxConnLifetimeJitter
-		readConfig.MaxConnLifetimeJitter = pg.maxConnLifetimeJitter
+	if pg.maxConnectionLifetimeJitter > 0 {
+		writeConfig.MaxConnLifetimeJitter = pg.maxConnectionLifetimeJitter
+		readConfig.MaxConnLifetimeJitter = pg.maxConnectionLifetimeJitter
 	} else {
 		// Default to 20% of MaxConnLifetime if not explicitly set
 		writeConfig.MaxConnLifetimeJitter = time.Duration(0.2 * float64(pg.maxConnectionLifeTime))

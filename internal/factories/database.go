@@ -19,11 +19,11 @@ import (
 //	It should have the following properties:
 //	- Engine: the type of the database, e.g., POSTGRES or MEMORY
 //	- URI: the connection string for the database (only required for some database engines, e.g., POSTGRES)
-//	- MaxConns: the maximum number of connections in the pool (maps to pgxpool MaxConns)
-//	- MaxOpenConnections: deprecated, use MaxConns instead
-//	- MinConns: the minimum number of connections in the pool (maps to pgxpool MinConns)
+//	- MaxConnections: the maximum number of connections in the pool (maps to pgxpool MaxConns)
+//	- MaxOpenConnections: deprecated, use MaxConnections instead
+//	- MinConnections: the minimum number of connections in the pool (maps to pgxpool MinConns)
 //	- MinIdleConns: the minimum number of idle connections in the pool (maps to pgxpool MinIdleConns)
-//	- MaxIdleConnections: deprecated, use MinConns instead (maps to MinConns if MinConns is not set)
+//	- MaxIdleConnections: deprecated, use MinConnections instead (maps to MinConnections if MinConnections is not set)
 //	- MaxConnectionIdleTime: the maximum amount of time a connection can be idle before being closed
 //	- MaxConnectionLifetime: the maximum amount of time a connection can be reused before being closed
 //	- WatchBufferSize: specifies the buffer size for database watch operations, impacting how many changes can be queued
@@ -44,17 +44,17 @@ func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 			PQDatabase.MaxRetries(conf.MaxRetries),
 		}
 
-		// Add MinConns if set (takes precedence over MaxIdleConnections for backward compatibility)
-		if conf.MinConns > 0 {
-			opts = append(opts, PQDatabase.MinConns(conf.MinConns))
+		// Add MinConnections if set (takes precedence over MaxIdleConnections for backward compatibility)
+		if conf.MinConnections > 0 {
+			opts = append(opts, PQDatabase.MinConnections(conf.MinConnections))
 		}
 
-		// Use MaxConns if set, otherwise fall back to MaxOpenConnections for backward compatibility
-		// Note: MaxConns defaults to 0 in config, so we check MaxOpenConnections if MaxConns is 0
-		if conf.MaxConns > 0 {
-			opts = append(opts, PQDatabase.MaxConns(conf.MaxConns))
+		// Use MaxConnections if set, otherwise fall back to MaxOpenConnections for backward compatibility
+		// Note: MaxConnections defaults to 0 in config, so we check MaxOpenConnections if MaxConnections is 0
+		if conf.MaxConnections > 0 {
+			opts = append(opts, PQDatabase.MaxConnections(conf.MaxConnections))
 		} else {
-			// Backward compatibility: if MaxConns is not set, use MaxOpenConnections
+			// Backward compatibility: if MaxConnections is not set, use MaxOpenConnections
 			opts = append(opts, PQDatabase.MaxOpenConnections(conf.MaxOpenConnections))
 		}
 
@@ -63,17 +63,17 @@ func DatabaseFactory(conf config.Database) (db database.Database, err error) {
 			opts = append(opts, PQDatabase.MaxIdleConnections(conf.MaxIdleConnections))
 		}
 
-		// Add MinIdleConns if set (takes precedence over MaxIdleConnections)
+		// Add MinIdleConnections if set (takes precedence over MaxIdleConnections)
 		if conf.MinIdleConns > 0 {
-			opts = append(opts, PQDatabase.MinIdleConns(conf.MinIdleConns))
+			opts = append(opts, PQDatabase.MinIdleConnections(conf.MinIdleConns))
 		}
 
 		// Add optional pool configuration options if set
 		if conf.HealthCheckPeriod > 0 {
 			opts = append(opts, PQDatabase.HealthCheckPeriod(conf.HealthCheckPeriod))
 		}
-		if conf.MaxConnLifetimeJitter > 0 {
-			opts = append(opts, PQDatabase.MaxConnLifetimeJitter(conf.MaxConnLifetimeJitter))
+		if conf.MaxConnectionLifetimeJitter > 0 {
+			opts = append(opts, PQDatabase.MaxConnectionLifetimeJitter(conf.MaxConnectionLifetimeJitter))
 		}
 		if conf.ConnectTimeout > 0 {
 			opts = append(opts, PQDatabase.ConnectTimeout(conf.ConnectTimeout))

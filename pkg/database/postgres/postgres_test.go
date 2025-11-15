@@ -67,7 +67,7 @@ var _ = Describe("Postgres", func() {
 				watchBufferSize:       100,
 				maxConnectionLifeTime: 30 * time.Minute,
 				maxConnectionIdleTime: 5 * time.Minute,
-				maxConns:              10,
+				maxConnections:        10,
 				maxIdleConnections:    5,
 			}
 		})
@@ -171,23 +171,23 @@ var _ = Describe("Postgres", func() {
 			Expect(pg.maxRetries).Should(Equal(5))
 		})
 
-		It("Case 4: MaxConns should set maxConns", func() {
+		It("Case 4: MaxConnections should set maxConnections", func() {
 			pg := &Postgres{}
-			option := MaxConns(25)
+			option := MaxConnections(25)
 			option(pg)
-			Expect(pg.maxConns).Should(Equal(25))
+			Expect(pg.maxConnections).Should(Equal(25))
 		})
 
-		It("Case 5: MinConns should set minConns", func() {
+		It("Case 5: MinConnections should set minConnections", func() {
 			pg := &Postgres{}
-			option := MinConns(5)
+			option := MinConnections(5)
 			option(pg)
-			Expect(pg.minConns).Should(Equal(5))
+			Expect(pg.minConnections).Should(Equal(5))
 		})
 
-		It("Case 6: MinIdleConns should set minIdleConns", func() {
+		It("Case 6: MinIdleConnections should set minIdleConns", func() {
 			pg := &Postgres{}
-			option := MinIdleConns(3)
+			option := MinIdleConnections(3)
 			option(pg)
 			Expect(pg.minIdleConns).Should(Equal(3))
 		})
@@ -199,11 +199,11 @@ var _ = Describe("Postgres", func() {
 			Expect(pg.healthCheckPeriod).Should(Equal(30 * time.Second))
 		})
 
-		It("Case 8: MaxConnLifetimeJitter should set maxConnLifetimeJitter", func() {
+		It("Case 8: MaxConnectionLifetimeJitter should set maxConnectionLifetimeJitter", func() {
 			pg := &Postgres{}
-			option := MaxConnLifetimeJitter(10 * time.Second)
+			option := MaxConnectionLifetimeJitter(10 * time.Second)
 			option(pg)
-			Expect(pg.maxConnLifetimeJitter).Should(Equal(10 * time.Second))
+			Expect(pg.maxConnectionLifetimeJitter).Should(Equal(10 * time.Second))
 		})
 
 		It("Case 9: ConnectTimeout should set connectTimeout", func() {
@@ -213,11 +213,11 @@ var _ = Describe("Postgres", func() {
 			Expect(pg.connectTimeout).Should(Equal(5 * time.Second))
 		})
 
-		It("Case 10: MaxOpenConnections should set maxConns (deprecated wrapper)", func() {
+		It("Case 10: MaxOpenConnections should set maxConnections (deprecated wrapper)", func() {
 			pg := &Postgres{}
 			option := MaxOpenConnections(20)
 			option(pg)
-			Expect(pg.maxConns).Should(Equal(20))
+			Expect(pg.maxConnections).Should(Equal(20))
 		})
 
 		It("Case 11: MaxIdleConnections should set maxIdleConnections (deprecated)", func() {
@@ -231,11 +231,11 @@ var _ = Describe("Postgres", func() {
 	Context("Backward Compatibility", func() {
 		It("Case 1: MaxIdleConnections should be used as MinConns when MinConns is not set", func() {
 			pg := &Postgres{
-				minConns:           0, // Not set
+				minConnections:     0, // Not set
 				maxIdleConnections: 5,
 			}
 			// Simulate the logic from newDB
-			minConns := pg.minConns
+			minConns := pg.minConnections
 			if minConns == 0 && pg.maxIdleConnections > 0 {
 				minConns = pg.maxIdleConnections
 			}
@@ -244,32 +244,32 @@ var _ = Describe("Postgres", func() {
 
 		It("Case 2: MinConns should take precedence over MaxIdleConnections", func() {
 			pg := &Postgres{
-				minConns:           3, // Explicitly set
+				minConnections:     3, // Explicitly set
 				maxIdleConnections: 5,
 			}
 			// Simulate the logic from newDB
-			minConns := pg.minConns
+			minConns := pg.minConnections
 			if minConns == 0 && pg.maxIdleConnections > 0 {
 				minConns = pg.maxIdleConnections
 			}
 			Expect(minConns).Should(Equal(3)) // Should use MinConns, not MaxIdleConnections
 		})
 
-		It("Case 3: MaxOpenConnections should map to MaxConns", func() {
+		It("Case 3: MaxOpenConnections should map to MaxConnections", func() {
 			pg := &Postgres{}
-			// MaxOpenConnections internally calls MaxConns
+			// MaxOpenConnections internally calls MaxConnections
 			option := MaxOpenConnections(15)
 			option(pg)
-			Expect(pg.maxConns).Should(Equal(15))
+			Expect(pg.maxConnections).Should(Equal(15))
 		})
 
 		It("Case 4: When both MinConns and MaxIdleConnections are 0, should use 0 (pgx default)", func() {
 			pg := &Postgres{
-				minConns:           0,
+				minConnections:     0,
 				maxIdleConnections: 0,
 			}
 			// Simulate the logic from newDB
-			minConns := pg.minConns
+			minConns := pg.minConnections
 			if minConns == 0 && pg.maxIdleConnections > 0 {
 				minConns = pg.maxIdleConnections
 			}
