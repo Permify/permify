@@ -1,11 +1,11 @@
 package servers
 
 import (
+	"context"
 	"log/slog"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
 	api "go.opentelemetry.io/otel/metric"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/status"
 
 	"github.com/Permify/permify/internal"
