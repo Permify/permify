@@ -1,10 +1,9 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/juju/ratelimit"
 )
