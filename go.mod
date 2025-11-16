@@ -250,7 +250,7 @@ require (
 	github.com/maratori/testableexamples v1.0.0 // indirect
 	github.com/maratori/testpackage v1.1.1 // indirect
 	github.com/matoous/godox v1.1.0 // indirect
-	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/mgechev/revive v1.12.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -266,7 +266,7 @@ require (
 	github.com/nishanths/predeclared v0.2.2 // indirect
 	github.com/nunnatsa/ginkgolinter v0.21.0 // indirect
 	github.com/olekukonko/errors v1.1.0 // indirect
-	github.com/olekukonko/ll v0.0.9 // indirect
+	github.com/olekukonko/ll v0.1.2 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/polyfloyd/go-errorlint v1.8.0 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.4 // indirect
@@ -383,7 +383,7 @@ require (
 	github.com/moby/sys/sequential v0.6.0 // indirect
 	github.com/moby/term v0.5.2 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/olekukonko/tablewriter v1.1.0
+	github.com/olekukonko/tablewriter v1.1.1
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
@@ -415,4 +415,11 @@ require (
 	golang.org/x/text v0.30.0 // indirect
 	golang.org/x/tools v0.37.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250929231259-57b25ae835d4 // indirect
+)
+
+require (
+	github.com/clipperhouse/displaywidth v0.3.1 // indirect
+	github.com/clipperhouse/stringish v0.1.1 // indirect
+	github.com/clipperhouse/uax29/v2 v2.2.0 // indirect
+	github.com/olekukonko/cat v0.0.0-20250911104152-50322a0618f6 // indirect
 )
