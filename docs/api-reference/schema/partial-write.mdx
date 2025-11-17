@@ -10,14 +10,14 @@ To streamline this process, we have published an endpoint allows authorized user
 
 ## **Endpoint Definition**
 
-**`/v1/{tenant_id}/schemas/partial-write`**
+**`/v1/tenants/{tenant_id}/schemas/partial-write`**
 
 This endpoint allows authorized users to make partial updates to the schema by adding or modifying actions within individual entities.
 
 **Request Payload Structure**
 
 ```bash
-PATCH /v1/{tenant_id}/schemas/partial-write
+PATCH /v1/tenants/{tenant_id}/schemas/partial-write
 Content-Type: application/json
 ```
 body:
