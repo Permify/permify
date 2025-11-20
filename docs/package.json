@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "loose-envify": "^1.4.0",
-    "mintlify": "^4.2.186",
+    "mintlify": "^4.2.207",
     "monaco-editor": "^0.54.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
