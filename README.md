@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://permify.co/post/fusionauth-acquires-permify/" target="_blank">
-    <img width="1722" height="280" alt="github-banner" src="https://github.com/user-attachments/assets/411387c0-03c0-4e56-a4d7-0324b99068bc" />
+    <img width="1722" height="280" alt="github-banner" src="https://github.com/user-attachments/assets/bacac09d-3d88-4870-8d67-307ed14d603b" />
   </a>
 </div>
 
