@@ -15,6 +15,7 @@ const {Text, Title} = Typography;
 
 const MainLayout = ({children, ...rest}) => {
         const fileInputRef = useRef(null);
+        const [bannerDismissed, setBannerDismissed] = useState(false);
 
         const screens = useBreakpoint();
 
@@ -158,6 +159,50 @@ const MainLayout = ({children, ...rest}) => {
 
         return (
             <Layout className="App h-screen flex flex-col">
+                {/* Announcement Banner */}
+                {!bannerDismissed && (
+                    <div style={{
+                        backgroundColor: '#6318FF',
+                        color: 'white',
+                        textAlign: 'center',
+                        padding: '12px 20px',
+                        fontSize: '14px',
+                        lineHeight: '1.5',
+                        position: 'relative'
+                    }}>
+                        <strong>Permify</strong> has been acquired by <strong>FusionAuth</strong> 🎉{' '}
+                        <a 
+                            href="https://fusionauth.io/blog/fusionauth-permify-pr" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{color: 'white', textDecoration: 'underline', marginLeft: '5px'}}
+                        >
+                            Read the official announcement
+                        </a>{' '}
+                        for more details.
+                        <button
+                            onClick={() => {
+                                setBannerDismissed(true);
+                            }}
+                            style={{
+                                position: 'absolute',
+                                right: '20px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'white',
+                                cursor: 'pointer',
+                                fontSize: '18px',
+                                padding: '0 8px',
+                                lineHeight: '1'
+                            }}
+                            aria-label="Dismiss banner"
+                        >
+                            ×
+                        </button>
+                    </div>
+                )}
 
                 <Toaster position="top-right" reverseOrder={false}/>
 
