@@ -15,7 +15,7 @@ jobs:
                 egress-policy: audit
 
             - name: Checkout repository
-              uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+              uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
             - name: Invoke generator workflow Permify/permify-java repo
               uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
