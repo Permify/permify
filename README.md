@@ -1,7 +1,16 @@
 <div align="center">
   <a href="https://permify.co/post/fusionauth-acquires-permify/" target="_blank">
-    <img width="1722" height="280" alt="github-banner" src="https://github.com/user-attachments/assets/bacac09d-3d88-4870-8d67-307ed14d603b" />
+    <img width="1722" height="280" alt="github-banner" src="https://github.com/user-attachments/assets/f1ceb418-0c74-4220-ae19-d2139fbbf7b4" />
   </a>
+</div>
+
+<div align="center">
+  <p><strong>Exciting news:</strong> Permify has been acquired by FusionAuth! 🎉</p>
+  <p>
+    <a href="https://permify.co/post/fusionauth-acquires-permify/" target="_blank">Permify Blog Post</a> | 
+    <a href="https://fusionauth.io/blog/fusionauth-permify-pr" target="_blank">Official Press Release</a> | 
+    <a href="https://fusionauth.io/blog/fusionauth-acquires-permify" target="_blank">FusionAuth Blog Post</a>
+  </p>
 </div>
 
 <br>
