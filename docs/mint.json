@@ -24,6 +24,10 @@
   "modeToggle": {
     "default": "dark"
   },
+  "banner": {
+    "content": "**Permify** has been acquired by **FusionAuth** 🎉 [Read the official announcement](https://fusionauth.io/blog/fusionauth-permify-pr) for more details.",
+    "dismissible": false
+  },
   "analytics": {
     "plausible": {
       "domain": "docs.permify.co"
