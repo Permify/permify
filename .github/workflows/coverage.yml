@@ -24,10 +24,8 @@ jobs:
     - name: tests
       run: make test
 
-    - name: Install goveralls
-      run: go install github.com/mattn/goveralls@latest
-
-    - name: Send coverage
-      env:
-        COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-      run: goveralls -coverprofile=covprofile -service=github
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: Permify/permify
