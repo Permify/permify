@@ -36,7 +36,7 @@ linter-hadolint: ### check by hadolint linter
 .PHONY: test
 test: ### run tests and gather coverage
 	@go clean -testcache
-	@go test -race -coverprofile=covprofile -covermode=atomic -timeout=10m $(GO_PACKAGES)
+	@go test -race -coverprofile=coverage.txt -covermode=atomic -timeout=10m $(GO_PACKAGES)
 
 .PHONY: integration-test
 integration-test: ### run integration-test
@@ -64,15 +64,15 @@ trivy-scan: ## Scan Docker image for vulnerabilities using Trivy
 
 .PHONY: coverage
 coverage: ## Generate global code coverage report
-	go test -coverprofile=covprofile ./cmd/... ./internal/... ./pkg/...
-	go tool cover -html=covprofile -o coverage.html
+	go test -coverprofile=coverage.txt ./cmd/... ./internal/... ./pkg/...
+	go tool cover -html=coverage.txt -o coverage.html
 
 .PHONY: clean
 clean: ## Remove temporary and generated files
 	rm -f ./permify
 	rm -f ./pkg/development/wasm/main.wasm
 	rm -f ./pkg/development/wasm/play.wasm
-	rm -f covprofile coverage.html trivy-report.json
+	rm -f coverage.txt coverage.html trivy-report.json
 	docker rmi -f permify-image || true
 
 .PHONY: wasm-build
