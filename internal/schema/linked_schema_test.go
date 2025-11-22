@@ -1822,4 +1822,481 @@ var _ = Describe("linked schema", func() {
 			}))
 		})
 	})
+
+	Context("BuildRelationPathChain", func() {
+		It("should find direct relation path", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity document {
+				relation viewer @user
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			path, err := g.BuildRelationPathChain("document", "user")
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(path).Should(HaveLen(1))
+			Expect(path[0].Type).Should(Equal("document"))
+			Expect(path[0].Relation).Should(Equal("viewer"))
+		})
+
+		It("should find multi-hop path", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity organization {
+				relation admin @user
+			}
+			entity document {
+				relation org @organization
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			path, err := g.BuildRelationPathChain("document", "user")
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(path).Should(HaveLen(2))
+			Expect(path[0].Type).Should(Equal("document"))
+			Expect(path[0].Relation).Should(Equal("org"))
+			Expect(path[1].Type).Should(Equal("organization"))
+			Expect(path[1].Relation).Should(Equal("admin"))
+		})
+
+		It("should return error when no path found", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity document {
+				relation viewer @user
+			}
+			entity isolated {
+				relation owner @user
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			path, err := g.BuildRelationPathChain("document", "isolated")
+
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(Equal("no path found between entity types"))
+			Expect(path).Should(BeNil())
+		})
+
+		It("should find path in complex multi-level schema", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity organization {
+				relation admin @user
+			}
+			entity container {
+				relation parent @organization
+			}
+			entity document {
+				relation container @container
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			path, err := g.BuildRelationPathChain("document", "user")
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(path).Should(HaveLen(3))
+			Expect(path[0].Type).Should(Equal("document"))
+			Expect(path[0].Relation).Should(Equal("container"))
+			Expect(path[1].Type).Should(Equal("container"))
+			Expect(path[1].Relation).Should(Equal("parent"))
+			Expect(path[2].Type).Should(Equal("organization"))
+			Expect(path[2].Relation).Should(Equal("admin"))
+		})
+
+		It("should handle self-referential relation (same source and target entity type)", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity account {
+				relation admin @user @account#admin
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			path, err := g.BuildRelationPathChain("account", "account")
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(path).Should(HaveLen(1))
+			Expect(path[0].Type).Should(Equal("account"))
+			Expect(path[0].Relation).Should(Equal("admin"))
+		})
+
+		It("should handle non-existent source entity", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity document {
+				relation viewer @user
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			path, err := g.BuildRelationPathChain("nonexistent", "user")
+
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(Equal("no path found between entity types"))
+			Expect(path).Should(BeNil())
+		})
+
+		It("should handle non-existent target entity", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity document {
+				relation viewer @user
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			path, err := g.BuildRelationPathChain("document", "nonexistent")
+
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(Equal("no path found between entity types"))
+			Expect(path).Should(BeNil())
+		})
+	})
+
+	Context("GetSubjectRelationForPathWalk", func() {
+		It("should return empty string for simple relation without relation name", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity document {
+				relation viewer @user
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			relation := g.GetSubjectRelationForPathWalk("document", "viewer", "user")
+
+			Expect(relation).Should(Equal(""))
+		})
+
+		It("should return relation for complex relation with relation name", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity group {
+				relation member @user
+			}
+			entity document {
+				relation viewer @user @group#member
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			relation := g.GetSubjectRelationForPathWalk("document", "viewer", "group")
+
+			Expect(relation).Should(Equal("member"))
+		})
+
+		It("should return empty string for non-existent entity", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity document {
+				relation viewer @user
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			relation := g.GetSubjectRelationForPathWalk("nonexistent", "viewer", "user")
+
+			Expect(relation).Should(Equal(""))
+		})
+
+		It("should return empty string for non-existent relation", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity document {
+				relation viewer @user
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			relation := g.GetSubjectRelationForPathWalk("document", "nonexistent", "user")
+
+			Expect(relation).Should(Equal(""))
+		})
+
+		It("should return empty string when target entity type not found in relation references", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity organization {
+				relation admin @user
+			}
+			entity document {
+				relation viewer @user
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			relation := g.GetSubjectRelationForPathWalk("document", "viewer", "organization")
+
+			Expect(relation).Should(Equal(""))
+		})
+
+		It("should return correct relation for multiple relation references", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity group {
+				relation member @user
+				relation admin @user
+			}
+			entity document {
+				relation viewer @user @group#member @group#admin
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			relation := g.GetSubjectRelationForPathWalk("document", "viewer", "group")
+
+			Expect(relation).Should(Equal("member"))
+		})
+	})
+
+	Context("Attribute Reference", func() {
+		It("should return AttributeLinkedEntrance for direct attribute reference", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity document {
+				relation viewer @user
+				attribute public boolean
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			schema := NewSchemaFromEntityAndRuleDefinitions(a, nil)
+			// Manually set attribute as reference to test the attribute reference case
+			docDef := schema.EntityDefinitions["document"]
+			docDef.References["public"] = base.EntityDefinition_REFERENCE_ATTRIBUTE
+
+			g := NewLinkedGraph(schema)
+
+			ent, err := g.LinkedEntrances(&base.Entrance{
+				Type:  "document",
+				Value: "public",
+			}, &base.Entrance{
+				Type:  "user",
+				Value: "",
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ent).Should(Equal([]*LinkedEntrance{
+				{
+					Kind: AttributeLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "document",
+						Value: "public",
+					},
+					TupleSetRelation: "",
+				},
+			}))
+		})
+
+		It("should return error when attribute not found", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity document {
+				relation viewer @user
+				attribute public boolean
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			schema := NewSchemaFromEntityAndRuleDefinitions(a, nil)
+			// Manually set nonexistent attribute as reference to test the attribute reference case
+			// This will trigger the attribute reference case but attribute won't be found
+			docDef := schema.EntityDefinitions["document"]
+			docDef.References["nonexistent_attribute"] = base.EntityDefinition_REFERENCE_ATTRIBUTE
+
+			g := NewLinkedGraph(schema)
+
+			ent, err := g.LinkedEntrances(&base.Entrance{
+				Type:  "document",
+				Value: "nonexistent_attribute",
+			}, &base.Entrance{
+				Type:  "user",
+				Value: "",
+			})
+
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(Equal("attribute not found"))
+			Expect(ent).Should(BeNil())
+		})
+
+		It("should return AttributeLinkedEntrance for multiple attributes", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity document {
+				relation viewer @user
+				attribute public boolean
+				attribute published boolean
+				attribute archived boolean
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			schema := NewSchemaFromEntityAndRuleDefinitions(a, nil)
+			// Manually set attribute as reference to test the attribute reference case
+			docDef := schema.EntityDefinitions["document"]
+			docDef.References["published"] = base.EntityDefinition_REFERENCE_ATTRIBUTE
+
+			g := NewLinkedGraph(schema)
+
+			ent, err := g.LinkedEntrances(&base.Entrance{
+				Type:  "document",
+				Value: "published",
+			}, &base.Entrance{
+				Type:  "user",
+				Value: "",
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ent).Should(Equal([]*LinkedEntrance{
+				{
+					Kind: AttributeLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "document",
+						Value: "published",
+					},
+					TupleSetRelation: "",
+				},
+			}))
+		})
+
+		It("should return AttributeLinkedEntrance for different attribute types", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity document {
+				relation viewer @user
+				attribute public boolean
+				attribute count integer
+				attribute name string
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			schema := NewSchemaFromEntityAndRuleDefinitions(a, nil)
+			// Manually set attribute as reference to test the attribute reference case
+			docDef := schema.EntityDefinitions["document"]
+			docDef.References["count"] = base.EntityDefinition_REFERENCE_ATTRIBUTE
+
+			g := NewLinkedGraph(schema)
+
+			ent, err := g.LinkedEntrances(&base.Entrance{
+				Type:  "document",
+				Value: "count",
+			}, &base.Entrance{
+				Type:  "user",
+				Value: "",
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ent).Should(Equal([]*LinkedEntrance{
+				{
+					Kind: AttributeLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "document",
+						Value: "count",
+					},
+					TupleSetRelation: "",
+				},
+			}))
+		})
+	})
 })
