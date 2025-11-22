@@ -39,10 +39,10 @@
     <a href="https://github.com/Permify/permify" target="_blank"><img src="https://img.shields.io/github/license/Permify/permify?style=for-the-badge" alt="Permify Licence" /></a>&nbsp;
     <a href="https://discord.gg/n6KfzYxhPp" target="_blank"><img src="https://img.shields.io/discord/950799928047833088?style=for-the-badge&logo=discord&label=DISCORD" alt="Permify Discord Channel" /></a>&nbsp;
     <a href="https://github.com/Permify/permify/pkgs/container/permify" target="_blank"><img src="https://img.shields.io/github/v/release/permify/permify?include_prereleases&style=for-the-badge" alt="Permify Release" /></a>&nbsp;
-    <a href="https://img.shields.io/github/commit-activity/m/Permify/permify?style=for-the-badge" target="_blank"><img src="https://img.shields.io/github/commit-activity/m/Permify/permify?style=for-the-badge" alt="Permify Commit Activity" /></a>&nbsp;
-    <a href="https://img.shields.io/github/actions/workflow/status/Permify/permify/release.yml?style=for-the-badge" target="_blank"><img src="https://img.shields.io/github/actions/workflow/status/Permify/permify/release.yml?style=for-the-badge" alt="GitHub Workflow Status" /></a>&nbsp;
+    <a href="https://github.com/Permify/permify/commits" target="_blank"><img src="https://img.shields.io/github/commit-activity/m/Permify/permify?style=for-the-badge&logo=github" alt="Permify Commit Activity" /></a>&nbsp;
+    <a href="https://github.com/Permify/permify/actions/workflows/release.yml" target="_blank"><img src="https://img.shields.io/github/actions/workflow/status/Permify/permify/release.yml?style=for-the-badge&logo=github-actions" alt="GitHub Workflow Status" /></a>&nbsp;
     <a href="https://scrutinizer-ci.com/g/Permify/permify/?branch=master" target="_blank"><img src="https://img.shields.io/scrutinizer/quality/g/Permify/permify/master?style=for-the-badge" alt="Scrutinizer code quality (GitHub/Bitbucket)" /></a>&nbsp;
-    <a href='https://coveralls.io/github/Permify/permify?branch=master'><img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/Permify/permify?style=for-the-badge"></a>&nbsp; <!-- Code coverage -->
+    <a href="https://codecov.io/gh/Permify/permify" target="_blank"><img src="https://img.shields.io/codecov/c/github/Permify/permify?style=for-the-badge&logo=codecov" alt="Codecov" /></a>&nbsp; <!-- Code coverage -->
     <a href="https://gurubase.io/g/permify" target="_blank"><img src="https://img.shields.io/badge/Gurubase-Ask%20AI-006BFF?style=for-the-badge" alt="Gurubase - Ask AI" /></a> <!-- AI assistant -->
 </p>
 
