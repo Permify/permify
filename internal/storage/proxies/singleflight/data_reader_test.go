@@ -2,6 +2,7 @@ package singleflight
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -10,6 +11,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/storage"
+	"github.com/Permify/permify/pkg/database"
+	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
 )
 
@@ -45,6 +48,15 @@ func (m *MockDataReader) HeadSnapshot(ctx context.Context, tenantID string) (tok
 	return token.NoopToken{Value: "snapshot-" + tenantID}, nil
 }
 
+// ErrorMockDataReader is a mock that returns errors for testing error handling
+type ErrorMockDataReader struct {
+	storage.NoopDataReader
+}
+
+func (m *ErrorMockDataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.SnapToken, error) {
+	return nil, errors.New("delegate error")
+}
+
 func GetCallCount(m *MockDataReader, tenantID string) int64 {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -65,6 +77,107 @@ var _ = Describe("Singleflight DataReader", func() {
 		mockDelegate = NewMockDataReader()
 		reader = NewDataReader(mockDelegate)
 		ctx = context.Background()
+	})
+
+	Describe("NewDataReader", func() {
+		It("should create a new DataReader with delegate", func() {
+			delegate := storage.NewNoopRelationshipReader()
+			reader := NewDataReader(delegate)
+
+			Expect(reader).ShouldNot(BeNil())
+			Expect(reader.delegate).Should(Equal(delegate))
+		})
+
+		It("should create a new DataReader with nil delegate", func() {
+			reader := NewDataReader(nil)
+
+			Expect(reader).ShouldNot(BeNil())
+			Expect(reader.delegate).Should(BeNil())
+		})
+	})
+
+	Describe("QueryRelationships", func() {
+		It("should delegate to underlying DataReader", func() {
+			delegate := storage.NewNoopRelationshipReader()
+			reader := NewDataReader(delegate)
+
+			filter := &base.TupleFilter{}
+			iterator, err := reader.QueryRelationships(ctx, "tenant1", filter, "token", database.CursorPagination{})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(iterator).ShouldNot(BeNil())
+		})
+	})
+
+	Describe("ReadRelationships", func() {
+		It("should delegate to underlying DataReader", func() {
+			delegate := storage.NewNoopRelationshipReader()
+			reader := NewDataReader(delegate)
+
+			filter := &base.TupleFilter{}
+			collection, ct, err := reader.ReadRelationships(ctx, "tenant1", filter, "token", database.Pagination{})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(collection).ShouldNot(BeNil())
+			Expect(ct).ShouldNot(BeNil())
+		})
+	})
+
+	Describe("QuerySingleAttribute", func() {
+		It("should delegate to underlying DataReader", func() {
+			delegate := storage.NewNoopRelationshipReader()
+			reader := NewDataReader(delegate)
+
+			filter := &base.AttributeFilter{}
+			attribute, err := reader.QuerySingleAttribute(ctx, "tenant1", filter, "token")
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(attribute).ShouldNot(BeNil())
+		})
+	})
+
+	Describe("QueryAttributes", func() {
+		It("should delegate to underlying DataReader", func() {
+			delegate := storage.NewNoopRelationshipReader()
+			reader := NewDataReader(delegate)
+
+			filter := &base.AttributeFilter{}
+			iterator, err := reader.QueryAttributes(ctx, "tenant1", filter, "token", database.CursorPagination{})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(iterator).ShouldNot(BeNil())
+		})
+	})
+
+	Describe("ReadAttributes", func() {
+		It("should delegate to underlying DataReader", func() {
+			delegate := storage.NewNoopRelationshipReader()
+			reader := NewDataReader(delegate)
+
+			filter := &base.AttributeFilter{}
+			collection, ct, err := reader.ReadAttributes(ctx, "tenant1", filter, "token", database.Pagination{})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(collection).ShouldNot(BeNil())
+			Expect(ct).ShouldNot(BeNil())
+		})
+	})
+
+	Describe("QueryUniqueSubjectReferences", func() {
+		It("should delegate to underlying DataReader", func() {
+			delegate := storage.NewNoopRelationshipReader()
+			reader := NewDataReader(delegate)
+
+			subjectRef := &base.RelationReference{
+				Type:     "user",
+				Relation: "member",
+			}
+			ids, ct, err := reader.QueryUniqueSubjectReferences(ctx, "tenant1", subjectRef, []string{}, "token", database.Pagination{})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ids).ShouldNot(BeNil())
+			Expect(ct).ShouldNot(BeNil())
+		})
 	})
 
 	Describe("HeadSnapshot", func() {
@@ -176,6 +289,55 @@ var _ = Describe("Singleflight DataReader", func() {
 			// Should have 2 calls to the delegate
 			callCount := GetCallCount(mock, tenantID)
 			Expect(callCount).To(Equal(int64(2)))
+		})
+
+		It("should propagate errors from delegate", func() {
+			errorDelegate := &ErrorMockDataReader{}
+			errorReader := NewDataReader(errorDelegate)
+
+			_, err := errorReader.HeadSnapshot(ctx, "tenant1")
+
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(Equal("delegate error"))
+		})
+
+		It("should handle context cancellation", func() {
+			cancelledCtx, cancel := context.WithCancel(ctx)
+			cancel() // Cancel immediately
+
+			_, err := reader.HeadSnapshot(cancelledCtx, "tenant1")
+
+			// Context cancellation behavior depends on singleflight implementation
+			// We just verify it doesn't panic
+			_ = err
+		})
+
+		It("should handle concurrent requests with errors", func() {
+			errorDelegate := &ErrorMockDataReader{}
+			errorReader := NewDataReader(errorDelegate)
+			tenantID := "tenant1"
+			numConcurrentRequests := 5
+
+			var wg sync.WaitGroup
+			wg.Add(numConcurrentRequests)
+
+			errorCount := int64(0)
+
+			// Launch concurrent requests that will all fail
+			for i := 0; i < numConcurrentRequests; i++ {
+				go func() {
+					defer wg.Done()
+					_, err := errorReader.HeadSnapshot(ctx, tenantID)
+					if err != nil {
+						atomic.AddInt64(&errorCount, 1)
+					}
+				}()
+			}
+
+			wg.Wait()
+
+			// All requests should receive the error
+			Expect(atomic.LoadInt64(&errorCount)).To(Equal(int64(numConcurrentRequests)))
 		})
 	})
 })
