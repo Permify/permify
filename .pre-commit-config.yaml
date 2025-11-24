@@ -24,3 +24,7 @@ repos:
   rev: v2.17.2
   hooks:
   - id: pylint
+- repo: https://github.com/jumanjihouse/pre-commit-hooks
+  rev: 3.0.0
+  hooks:
+  - id: shellcheck
