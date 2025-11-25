@@ -288,17 +288,58 @@ var _ = Describe("TenantWriter", func() {
 				))
 			})
 
-			It("should handle batch execution error", func() {
+			It("should handle batch execution error during table deletion", func() {
 				ctx := context.Background()
 
-				// Create a tenantWriter with a closed database to trigger batch execution error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				// Create a tenant first
+				tenantID := "batch-exec-error-tenant"
+				_, err := tenantWriter.CreateTenant(ctx, tenantID, "Batch Exec Error Tenant")
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(closedDB)
+				// Create a separate database instance for this test
+				separateDB := testinstance.PostgresDB("14")
+				separateWriter := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
 
-				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				// Create tenant in separate DB
+				_, err = separateWriter.CreateTenant(ctx, tenantID, "Batch Exec Error Tenant")
+				Expect(err).ShouldNot(HaveOccurred())
+
+				// Close the database to trigger batch execution error
+				// This will test the br.Exec() error path in the loop (line 101)
+				err = separateDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+
+				err = writerWithClosedDB.DeleteTenant(ctx, tenantID)
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle batch execution error during tenant deletion", func() {
+				ctx := context.Background()
+
+				// Create a separate database instance for this test
+				separateDB := testinstance.PostgresDB("14")
+				separateWriter := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+
+				// Create a tenant first
+				tenantID := "batch-exec-tenant-error"
+				_, err := separateWriter.CreateTenant(ctx, tenantID, "Batch Exec Tenant Error")
+				Expect(err).ShouldNot(HaveOccurred())
+
+				// Close the database to trigger batch execution error
+				// This will test the br.Exec() error path for tenant deletion (line 111)
+				err = separateDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+
+				err = writerWithClosedDB.DeleteTenant(ctx, tenantID)
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
@@ -345,17 +386,26 @@ var _ = Describe("TenantWriter", func() {
 				))
 			})
 
-			It("should handle batch close error", func() {
+			It("should handle batch close error after exec error", func() {
 				ctx := context.Background()
 
-				// Create a tenantWriter with a closed database to trigger batch close error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				// Create a separate database instance for this test
+				separateDB := testinstance.PostgresDB("14")
+				separateWriter := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+
+				// Create a tenant first
+				tenantID := "batch-close-error-tenant"
+				_, err := separateWriter.CreateTenant(ctx, tenantID, "Batch Close Error Tenant")
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(closedDB)
+				// Close the database to trigger batch close error
+				// This will test the br.Close() error path after br.Exec() error (lines 103, 113)
+				err = separateDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
 
-				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+
+				err = writerWithClosedDB.DeleteTenant(ctx, tenantID)
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
@@ -364,17 +414,54 @@ var _ = Describe("TenantWriter", func() {
 				))
 			})
 
-			It("should handle final commit error", func() {
+			It("should handle batch close error after successful execution", func() {
 				ctx := context.Background()
 
-				// Create a tenantWriter with a closed database to trigger final commit error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				// Create a separate database instance for this test
+				separateDB := testinstance.PostgresDB("14")
+				separateWriter := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+
+				// Create a tenant first
+				tenantID := "batch-close-success-error-tenant"
+				_, err := separateWriter.CreateTenant(ctx, tenantID, "Batch Close Success Error Tenant")
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(closedDB)
+				// Close the database to trigger batch close error
+				// This will test the br.Close() error path after successful execution (line 119)
+				err = separateDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
 
-				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
+				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+
+				err = writerWithClosedDB.DeleteTenant(ctx, tenantID)
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(Or(
+					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
+					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
+				))
+			})
+
+			It("should handle commit error after successful batch operations", func() {
+				ctx := context.Background()
+
+				// Create a separate database instance for this test
+				separateDB := testinstance.PostgresDB("14")
+				separateWriter := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+
+				// Create a tenant first
+				tenantID := "commit-error-tenant"
+				_, err := separateWriter.CreateTenant(ctx, tenantID, "Commit Error Tenant")
+				Expect(err).ShouldNot(HaveOccurred())
+
+				// Close the database to trigger commit error
+				// This will test the tx.Commit() error path (line 123)
+				err = separateDB.Close()
+				Expect(err).ShouldNot(HaveOccurred())
+
+				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+
+				err = writerWithClosedDB.DeleteTenant(ctx, tenantID)
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
