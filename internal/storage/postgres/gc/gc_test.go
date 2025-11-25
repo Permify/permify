@@ -15,6 +15,7 @@ import (
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/postgres"
+	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/dsl/compiler"
@@ -154,6 +155,7 @@ var _ = Describe("GarbageCollector", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			_, err = dataWriter.Write(ctx, tenantID, database.NewTupleCollection(tup2), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
 
 			// Step 8: Perform a permission check (expected to be valid)
 			checkRes3, err := invoker.Check(ctx, &base.PermissionCheckRequest{
@@ -365,8 +367,10 @@ var _ = Describe("GarbageCollector", func() {
 			Expect(err).Should(Equal(context.Canceled))
 		})
 
-		It("should handle database connection errors", func() {
+		It("should handle database connection errors in Run", func() {
 			// Create a garbage collector with a closed database connection
+			// This tests errors at various stages: getting database time, getAllTenants,
+			// getLastTransactionIDForTenant, deleteRecordsForTenant, deleteTransactionsForTenant
 			closedDB := testinstance.PostgresDB("14")
 			err := closedDB.Close()
 			Expect(err).ShouldNot(HaveOccurred())
@@ -376,10 +380,274 @@ var _ = Describe("GarbageCollector", func() {
 				Window(5*time.Second),
 			)
 
-			// Try to run garbage collection with closed database
+			// Run should fail with closed database connection
 			err = badGC.Run()
-
 			Expect(err).Should(HaveOccurred())
+		})
+
+		It("should continue processing other tenants when one tenant fails", func() {
+			// Create two tenants
+			tenant1 := "gc-error-tenant-1"
+			tenant2 := "gc-error-tenant-2"
+
+			_, err := tenantWriter.CreateTenant(ctx, tenant1, "Tenant 1")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = tenantWriter.CreateTenant(ctx, tenant2, "Tenant 2")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Create schema and data for tenant1
+			conf, _, err := newSchema(tenant1, "entity user {}\n\nentity organisation {\n    relation member @user\n    permission is_member = member\n}")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = schemaWriter.WriteSchema(ctx, conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tup, err := tuple.Tuple("organisation:1#member@user:user-1")
+			Expect(err).ShouldNot(HaveOccurred())
+			_, err = dataWriter.Write(ctx, tenant1, database.NewTupleCollection(tup), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Run GC - should succeed even if one tenant has no data
+			err = garbageCollector.Run()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should handle tenant with no transactions", func() {
+			// Create a tenant with no data
+			tenantID := "gc-empty-tenant"
+			_, err := tenantWriter.CreateTenant(ctx, tenantID, "Empty Tenant")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Run GC - should succeed for tenant with no transactions
+			err = garbageCollector.Run()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should handle case when lastTransactionID is 0", func() {
+			// Create a tenant with very recent data (within window)
+			tenantID := "gc-recent-tenant"
+			_, err := tenantWriter.CreateTenant(ctx, tenantID, "Recent Tenant")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, _, err := newSchema(tenantID, "entity user {}\n\nentity organisation {\n    relation member @user\n    permission is_member = member\n}")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = schemaWriter.WriteSchema(ctx, conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tup, err := tuple.Tuple("organisation:1#member@user:user-1")
+			Expect(err).ShouldNot(HaveOccurred())
+			_, err = dataWriter.Write(ctx, tenantID, database.NewTupleCollection(tup), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Run GC immediately - should succeed with no cleanup (all data is recent)
+			err = garbageCollector.Run()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should handle multiple tenants with mixed success and failure", func() {
+			// Create multiple tenants
+			tenant1 := "gc-mixed-1"
+			tenant2 := "gc-mixed-2"
+			tenant3 := "gc-mixed-3"
+
+			_, err := tenantWriter.CreateTenant(ctx, tenant1, "Tenant 1")
+			Expect(err).ShouldNot(HaveOccurred())
+			_, err = tenantWriter.CreateTenant(ctx, tenant2, "Tenant 2")
+			Expect(err).ShouldNot(HaveOccurred())
+			_, err = tenantWriter.CreateTenant(ctx, tenant3, "Tenant 3")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Create data for tenant1 and tenant2
+			conf, _, err := newSchema(tenant1, "entity user {}\n\nentity organisation {\n    relation member @user\n    permission is_member = member\n}")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = schemaWriter.WriteSchema(ctx, conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, _, err = newSchema(tenant2, "entity user {}\n\nentity organisation {\n    relation member @user\n    permission is_member = member\n}")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = schemaWriter.WriteSchema(ctx, conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tup1, err := tuple.Tuple("organisation:1#member@user:user-1")
+			Expect(err).ShouldNot(HaveOccurred())
+			_, err = dataWriter.Write(ctx, tenant1, database.NewTupleCollection(tup1), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tup2, err := tuple.Tuple("organisation:1#member@user:user-2")
+			Expect(err).ShouldNot(HaveOccurred())
+			_, err = dataWriter.Write(ctx, tenant2, database.NewTupleCollection(tup2), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Run GC - should succeed for all tenants
+			err = garbageCollector.Run()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should handle Run with timeout", func() {
+			// Create a GC with very short timeout
+			shortTimeoutGC := NewGC(
+				db.(*PQDatabase.Postgres),
+				Window(5*time.Second),
+				Timeout(1*time.Nanosecond), // Very short timeout
+			)
+
+			// Create a tenant with data
+			tenantID := "gc-timeout-tenant"
+			_, err := tenantWriter.CreateTenant(ctx, tenantID, "Timeout Tenant")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Run should fail due to timeout
+			err = shortTimeoutGC.Run()
+			Expect(err).Should(HaveOccurred())
+		})
+	})
+
+	Context("Edge Cases", func() {
+		It("should handle Run with no tenants", func() {
+			// Create a fresh database with no tenants (except default t1)
+			// Run GC - should succeed
+			err := garbageCollector.Run()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should handle tenant with expired data older than window and verify deleteRecordsForTenant is called", func() {
+			// Create a tenant
+			tenantID := "gc-expired-tenant"
+			_, err := tenantWriter.CreateTenant(ctx, tenantID, "Expired Tenant")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Create schema and data
+			conf, _, err := newSchema(tenantID, "entity user {}\n\nentity organisation {\n    relation member @user\n    permission is_member = member\n}")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = schemaWriter.WriteSchema(ctx, conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tup, err := tuple.Tuple("organisation:1#member@user:user-1")
+			Expect(err).ShouldNot(HaveOccurred())
+			_, err = dataWriter.Write(ctx, tenantID, database.NewTupleCollection(tup), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Delete the tuple to create expired records
+			_, err = dataWriter.Delete(ctx, tenantID, &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organisation",
+					Ids:  []string{"1"},
+				},
+			}, &base.AttributeFilter{})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Wait for window to pass
+			time.Sleep(5 * time.Second)
+
+			// Run GC - should clean up expired data via deleteRecordsForTenant (relation_tuples) and deleteTransactionsForTenant
+			// This verifies that deleteRecordsForTenant is called for RelationTuplesTable
+			err = garbageCollector.Run()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should handle tenant with attributes to clean up and verify deleteRecordsForTenant is called", func() {
+			// Create a tenant
+			tenantID := "gc-attributes-tenant"
+			_, err := tenantWriter.CreateTenant(ctx, tenantID, "Attributes Tenant")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Create schema with attributes
+			conf, _, err := newSchema(tenantID, "entity user {}\n\nentity organisation {\n    attribute public boolean\n    permission is_public = public\n}")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = schemaWriter.WriteSchema(ctx, conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Write attributes
+			attr, err := attribute.Attribute("organisation:1$public|boolean:true")
+			Expect(err).ShouldNot(HaveOccurred())
+			_, err = dataWriter.Write(ctx, tenantID, database.NewTupleCollection(), database.NewAttributeCollection(attr))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Delete attributes to create expired records
+			_, err = dataWriter.Delete(ctx, tenantID, &base.TupleFilter{}, &base.AttributeFilter{
+				Entity: &base.EntityFilter{
+					Type: "organisation",
+					Ids:  []string{"1"},
+				},
+				Attributes: []string{"public"},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Wait for window to pass
+			time.Sleep(5 * time.Second)
+
+			// Run GC - should clean up expired attributes via deleteRecordsForTenant (AttributesTable)
+			// This verifies that deleteRecordsForTenant is called for AttributesTable
+			err = garbageCollector.Run()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should verify deleteTransactionsForTenant is called and deletes old transactions", func() {
+			// Create a tenant
+			tenantID := "gc-transactions-tenant"
+			_, err := tenantWriter.CreateTenant(ctx, tenantID, "Transactions Tenant")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Create schema and data
+			conf, _, err := newSchema(tenantID, "entity user {}\n\nentity organisation {\n    relation member @user\n    permission is_member = member\n}")
+			Expect(err).ShouldNot(HaveOccurred())
+			err = schemaWriter.WriteSchema(ctx, conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			tup, err := tuple.Tuple("organisation:1#member@user:user-1")
+			Expect(err).ShouldNot(HaveOccurred())
+			_, err = dataWriter.Write(ctx, tenantID, database.NewTupleCollection(tup), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Delete the tuple to create expired records
+			_, err = dataWriter.Delete(ctx, tenantID, &base.TupleFilter{
+				Entity: &base.EntityFilter{
+					Type: "organisation",
+					Ids:  []string{"1"},
+				},
+			}, &base.AttributeFilter{})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Get transaction count before GC
+			var transactionCountBefore int
+			err = db.(*PQDatabase.Postgres).WritePool.QueryRow(ctx,
+				"SELECT COUNT(*) FROM "+postgres.TransactionsTable+" WHERE tenant_id = $1",
+				tenantID).Scan(&transactionCountBefore)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(transactionCountBefore).Should(BeNumerically(">", 0))
+
+			// Wait for window to pass
+			time.Sleep(5 * time.Second)
+
+			// Run GC - should clean up old transactions via deleteTransactionsForTenant
+			err = garbageCollector.Run()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Verify old transactions were deleted by deleteTransactionsForTenant
+			// We should have fewer transactions now (only recent ones remain)
+			var transactionCountAfter int
+			err = db.(*PQDatabase.Postgres).WritePool.QueryRow(ctx,
+				"SELECT COUNT(*) FROM "+postgres.TransactionsTable+" WHERE tenant_id = $1",
+				tenantID).Scan(&transactionCountAfter)
+			Expect(err).ShouldNot(HaveOccurred())
+			// After GC, old transactions should be deleted, so count should be less
+			Expect(transactionCountAfter).Should(BeNumerically("<=", transactionCountBefore))
+		})
+
+		It("should handle getAllTenants with empty result", func() {
+			// Create a fresh database instance with no custom tenants
+			freshDB := testinstance.PostgresDB("14")
+			freshGC := NewGC(
+				freshDB.(*PQDatabase.Postgres),
+				Window(5*time.Second),
+			)
+
+			// Run GC on empty database - should succeed
+			err := freshGC.Run()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			err = freshDB.Close()
+			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})
 })

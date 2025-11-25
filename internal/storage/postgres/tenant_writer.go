@@ -5,12 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
-
-	"go.opentelemetry.io/otel/codes"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -41,21 +39,20 @@ func (w *TenantWriter) CreateTenant(ctx context.Context, id, name string) (resul
 	defer span.End()
 
 	slog.DebugContext(ctx, "creating new tenant", slog.Any("id", id), slog.Any("name", name))
-	// Insert tenant into database
+
 	var createdAt time.Time
 	err = w.database.WritePool.QueryRow(ctx, utils.InsertTenantTemplate, id, name).Scan(&createdAt)
 	if err != nil {
-		if strings.Contains(err.Error(), "duplicate key value") {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, err.Error())
-			slog.ErrorContext(ctx, "error encountered", slog.Any("error", err))
+		// Check for unique constraint violation (PostgreSQL error code 23505)
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			return nil, errors.New(base.ErrorCode_ERROR_CODE_UNIQUE_CONSTRAINT.String())
 		}
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
 	slog.DebugContext(ctx, "successfully created Tenant", slog.Any("id", id), slog.Any("name", name), slog.Any("created_at", createdAt))
-	// Return tenant object
+
 	return &base.Tenant{
 		Id:        id,
 		Name:      name,
@@ -69,8 +66,8 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (err e
 	defer span.End()
 
 	slog.DebugContext(ctx, "deleting tenant", slog.Any("tenant_id", tenantID))
-	// Begin transaction for deletion
-	tx, err := w.database.WritePool.Begin(ctx)
+
+	tx, err := w.database.WritePool.BeginTx(ctx, w.txOptions)
 	if err != nil {
 		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
@@ -78,6 +75,7 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (err e
 
 	// Check if tenant exists first
 	var exists bool
+	// Use parameterized query with constant table name for safety
 	err = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM "+TenantsTable+" WHERE id = $1)", tenantID).Scan(&exists)
 	if err != nil {
 		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
@@ -98,40 +96,34 @@ func (w *TenantWriter) DeleteTenant(ctx context.Context, tenantID string) (err e
 	// Execute the batch of delete queries
 	br := tx.SendBatch(ctx, batch)
 
+	// Execute batch operations for related tables
 	for range tables {
-		_, err := br.Exec()
-		if err != nil {
-			originalErr := err
+		if _, err = br.Exec(); err != nil {
 			closeErr := br.Close()
 			if closeErr != nil {
-				return closeErr
+				return utils.HandleError(ctx, span, closeErr, base.ErrorCode_ERROR_CODE_EXECUTION)
 			}
-			// Don't commit on error, let defer tx.Rollback() handle it
-			return utils.HandleError(ctx, span, originalErr, base.ErrorCode_ERROR_CODE_EXECUTION)
+			return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 		}
 	}
 
 	// Execute the tenant deletion
-	_, err = br.Exec()
-	if err != nil {
-		originalErr := err
+	if _, err = br.Exec(); err != nil {
 		closeErr := br.Close()
 		if closeErr != nil {
-			return closeErr
+			return utils.HandleError(ctx, span, closeErr, base.ErrorCode_ERROR_CODE_EXECUTION)
 		}
-		// Don't commit on error, let defer tx.Rollback() handle it
-		return utils.HandleError(ctx, span, originalErr, base.ErrorCode_ERROR_CODE_EXECUTION)
-	}
-
-	err = br.Close()
-	if err != nil {
 		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
-	err = tx.Commit(ctx)
-	if err != nil {
+	if err = br.Close(); err != nil {
 		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
+	if err = tx.Commit(ctx); err != nil {
+		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+	}
+
+	slog.DebugContext(ctx, "successfully deleted tenant", slog.Any("tenant_id", tenantID))
 	return nil
 }
