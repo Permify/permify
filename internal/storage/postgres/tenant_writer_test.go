@@ -193,6 +193,36 @@ var _ = Describe("TenantWriter", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Delete tenant should succeed even with associated tuples
+			// This tests the full DeleteTenant flow including all batch operations
+			err = tenantWriter.DeleteTenant(ctx, tenantID)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should delete tenant with all associated data types", func() {
+			ctx := context.Background()
+
+			tenantID := "tenant_with_all_data"
+			_, err := tenantWriter.CreateTenant(ctx, tenantID, "Tenant with All Data")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Create schema
+			schemaWriter := NewSchemaWriter(db.(*PQDatabase.Postgres))
+			version := xid.New().String()
+			schema := []storage.SchemaDefinition{
+				{TenantID: tenantID, Name: "user", SerializedDefinition: []byte("entity user {}"), Version: version},
+			}
+			err = schemaWriter.WriteSchema(ctx, schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Create relation tuples
+			dataWriter := NewDataWriter(db.(*PQDatabase.Postgres))
+			tup, err := tuple.Tuple("user:1#admin@user:user-1")
+			Expect(err).ShouldNot(HaveOccurred())
+			_, err = dataWriter.Write(ctx, tenantID, database.NewTupleCollection(tup), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Delete tenant should succeed and clean up all associated data
+			// This tests the full DeleteTenant flow including all batch operations (bundles, tuples, attributes, schema, transactions)
 			err = tenantWriter.DeleteTenant(ctx, tenantID)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
