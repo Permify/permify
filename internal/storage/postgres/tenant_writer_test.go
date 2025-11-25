@@ -97,8 +97,8 @@ var _ = Describe("TenantWriter", func() {
 
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(tenant.CreatedAt).ShouldNot(BeNil())
-			Expect(tenant.CreatedAt.AsTime().After(beforeCreate.Add(-1 * time.Second))).Should(BeTrue())
-			Expect(tenant.CreatedAt.AsTime().Before(afterCreate.Add(1 * time.Second))).Should(BeTrue())
+			Expect(tenant.CreatedAt.AsTime()).Should(BeTemporally(">=", beforeCreate.Add(-1*time.Second)))
+			Expect(tenant.CreatedAt.AsTime()).Should(BeTemporally("<=", afterCreate.Add(1*time.Second)))
 		})
 
 		It("should create multiple tenants with different IDs", func() {
@@ -115,11 +115,6 @@ var _ = Describe("TenantWriter", func() {
 			tenant3, err := tenantWriter.CreateTenant(ctx, "multi_tenant_3", "Tenant 3")
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(tenant3.Id).Should(Equal("multi_tenant_3"))
-
-			// Verify all tenants are distinct
-			Expect(tenant1.Id).ShouldNot(Equal(tenant2.Id))
-			Expect(tenant2.Id).ShouldNot(Equal(tenant3.Id))
-			Expect(tenant1.Id).ShouldNot(Equal(tenant3.Id))
 		})
 
 		It("should create tenant with long name", func() {
@@ -175,6 +170,14 @@ var _ = Describe("TenantWriter", func() {
 			// Delete tenant should succeed even with associated schema
 			err = tenantWriter.DeleteTenant(ctx, tenantID)
 			Expect(err).ShouldNot(HaveOccurred())
+
+			// Verify schema data was actually deleted by checking database directly
+			var schemaCount int
+			err = db.(*PQDatabase.Postgres).WritePool.QueryRow(ctx,
+				"SELECT COUNT(*) FROM "+SchemaDefinitionTable+" WHERE tenant_id = $1",
+				tenantID).Scan(&schemaCount)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(schemaCount).Should(Equal(0))
 		})
 
 		It("should delete tenant with associated relation tuples", func() {
@@ -281,12 +284,12 @@ var _ = Describe("TenantWriter", func() {
 			It("should handle execution error", func() {
 				ctx := context.Background()
 
-				// Create a tenantWriter with a closed database to trigger execution error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				// Create a separate database instance and close it to trigger execution error
+				separateDB := testinstance.PostgresDB("14")
+				err := separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(closedDB)
+				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
 
 				_, err = writerWithClosedDB.CreateTenant(ctx, "test_id", "test_name")
 				Expect(err).Should(HaveOccurred())
@@ -302,12 +305,12 @@ var _ = Describe("TenantWriter", func() {
 			It("should handle transaction begin error", func() {
 				ctx := context.Background()
 
-				// Create a tenantWriter with a closed database to trigger transaction begin error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				// Create a separate database instance and close it to trigger transaction begin error
+				separateDB := testinstance.PostgresDB("14")
+				err := separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(closedDB)
+				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
 
 				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
 				Expect(err).Should(HaveOccurred())
@@ -335,7 +338,7 @@ var _ = Describe("TenantWriter", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 
 				// Close the database to trigger batch execution error
-				// This will test the br.Exec() error path in the loop (line 101)
+				// This tests the batch execution error path during table deletion loop
 				err = separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
@@ -363,7 +366,7 @@ var _ = Describe("TenantWriter", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 
 				// Close the database to trigger batch execution error
-				// This will test the br.Exec() error path for tenant deletion (line 111)
+				// This tests the batch execution error path during tenant deletion
 				err = separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
@@ -378,34 +381,16 @@ var _ = Describe("TenantWriter", func() {
 				))
 			})
 
-			It("should handle commit error after batch execution", func() {
+			It("should handle database connection errors", func() {
 				ctx := context.Background()
 
-				// Create a tenantWriter with a closed database to trigger commit error after batch execution
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				// Create a separate database instance and close it to trigger connection errors
+				// This tests errors at various stages: transaction begin, query row, batch execution, commit
+				separateDB := testinstance.PostgresDB("14")
+				err := separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(closedDB)
-
-				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
-				Expect(err).Should(HaveOccurred())
-				Expect(err.Error()).Should(Or(
-					Equal(base.ErrorCode_ERROR_CODE_EXECUTION.String()),
-					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
-					Equal(base.ErrorCode_ERROR_CODE_SCAN.String()),
-				))
-			})
-
-			It("should handle query row error", func() {
-				ctx := context.Background()
-
-				// Create a tenantWriter with a closed database to trigger query row error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
-				Expect(err).ShouldNot(HaveOccurred())
-
-				writerWithClosedDB := NewTenantWriter(closedDB)
+				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
 
 				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
 				Expect(err).Should(HaveOccurred())
@@ -429,7 +414,7 @@ var _ = Describe("TenantWriter", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 
 				// Close the database to trigger batch close error
-				// This will test the br.Close() error path after br.Exec() error (lines 103, 113)
+				// This tests the batch close error path after batch execution error
 				err = separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
@@ -457,7 +442,7 @@ var _ = Describe("TenantWriter", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 
 				// Close the database to trigger batch close error
-				// This will test the br.Close() error path after successful execution (line 119)
+				// This tests the batch close error path after successful batch execution
 				err = separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
