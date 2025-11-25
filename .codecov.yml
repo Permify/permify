@@ -1,0 +1,32 @@
+ignore:
+  - "**/*.pb.go"
+  - "**/*.pb.validate.go"
+  - "docs/**"
+  - "playground/**"
+  - "sdk/**"
+  - "assets/**"
+  - "integration-test/**"
+  - "test/**"
+  - "tmp/**"
+  - "scripts/**"
+
+coverage:
+  range: "70..85"
+  round: "up"
+  precision: 2
+  status:
+    project:
+      default:
+        target: "75%"
+    patch:
+      default:
+        target: "auto"
+        threshold: "0.5%"
+        if_not_found: "success"
+
+github_checks:
+  annotations: true
+
+parsers:
+  go:
+    partials_as_hits: false
