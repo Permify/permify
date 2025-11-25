@@ -3,17 +3,17 @@ icon: cube
 title: Data Bundles
 ---
 
-## What is Data Bundles
+## What are Data Bundles
 
 Ensuring that authorization data remains in sync with the business model is an important practice when using Permify.
 
 Prior to Data Bundles, it was the responsibility of the services (such as [WriteData](../api-reference/data/write-data) API) to structure how relations are created and deleted when actions occur on resources.
 
-With the Data Bundles, you be able to bundle and model the creation and deletion of relations and attributes when specific actions occur on resources in your applications.
+With the Data Bundles, you can model the creation and deletion of relations and attributes when specific actions occur on resources in your applications.
 
-We believe this functionality will streamline managing authorization data as well as managing this in a central place increase visibility around certain actions/triggers that end up with data creation.
+This functionality streamlines managing authorization data, allows you to manage it in a central place, and increases visibility around certain actions/triggers that create data.
 
-## How Bundles Works
+## How Bundles Work
 
 Let's examine how Bundles operates with basic example.
 
@@ -57,10 +57,8 @@ Instead of using the [WriteData](../../api-reference/data/write-data) endpoint, 
 An example request of [RunBundle](../../api-reference/data/run-bundle) for this scenario:
 
 ```json
-POST /bundle
-BODY
 {
-   "name": "project_created",
+   "name": "organization_created",
    "arguments": {
        "creatorID": "564",
        "organizationID": "789",
