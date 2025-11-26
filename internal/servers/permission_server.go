@@ -47,6 +47,82 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 	return response, nil
 }
 
+// BulkCheck - Performs multiple authorization checks in a single request
+func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.PermissionBulkCheckRequest) (*v1.PermissionBulkCheckResponse, error) {
+	ctx, span := internal.Tracer.Start(ctx, "permissions.bulk-check")
+	defer span.End()
+
+	// Validate tenant_id
+	if request.GetTenantId() == "" {
+		err := status.Error(GetStatus(nil), "tenant_id is required")
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		return nil, err
+	}
+
+	// Validate number of requests
+	if len(request.GetItems()) == 0 {
+		err := status.Error(GetStatus(nil), "at least one item is required")
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		return nil, err
+	}
+
+	if len(request.GetItems()) > 100 {
+		err := status.Error(GetStatus(nil), "maximum 100 items allowed")
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		return nil, err
+	}
+
+	// Process each check request
+	results := make([]*v1.PermissionCheckResponse, len(request.GetItems()))
+	for i, checkRequestItem := range request.GetItems() {
+
+		// Validate individual request
+		v := checkRequestItem.Validate()
+		if v != nil {
+			// Return error response for this check
+			results[i] = &v1.PermissionCheckResponse{
+				Can: v1.CheckResult_CHECK_RESULT_DENIED,
+				Metadata: &v1.PermissionCheckResponseMetadata{
+					CheckCount: 0,
+				},
+			}
+			continue
+		}
+
+		// Perform the check using existing Check function
+		checkRequest := &v1.PermissionCheckRequest{
+			TenantId:      request.GetTenantId(),
+			Subject:       checkRequestItem.GetSubject(),
+			Entity:        checkRequestItem.GetEntity(),
+			Permission:    checkRequestItem.GetPermission(),
+			Metadata: 	   request.GetMetadata(),
+			Context:       request.GetContext(),
+			Arguments:     request.GetArguments(),
+		}
+		response, err := r.invoker.Check(ctx, checkRequest)
+		if err != nil {
+			// Log error but don't fail the entire bulk operation
+			slog.ErrorContext(ctx, "check failed in bulk operation", "error", err.Error(), "index", i)
+			results[i] = &v1.PermissionCheckResponse{
+				Can: v1.CheckResult_CHECK_RESULT_DENIED,
+				Metadata: &v1.PermissionCheckResponseMetadata{
+					CheckCount: 0,
+				},
+			}
+			continue
+		}
+
+		results[i] = response
+	}
+
+	return &v1.PermissionBulkCheckResponse{
+		Results: results,
+	}, nil
+}
+
 // Expand - Get schema actions in a tree structure
 func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExpandRequest) (*v1.PermissionExpandResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "permissions.expand")
