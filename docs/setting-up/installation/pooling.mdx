@@ -1,0 +1,212 @@
+---
+title: Database Pooling with Pgcat
+---
+
+<Info>
+Pgcat is a PostgreSQL pooler with sharding, load balancing, and failover support. It provides server-side connection pooling, allowing multiple Permify replicas to share a centralized connection pool, reducing the total number of connections to your PostgreSQL database.
+
+For more information, see the [pgcat repository](https://github.com/postgresml/pgcat).
+</Info>
+
+Use pgcat for server-side pooling when running multiple Permify replicas or when your Postgres connection budget is tight.
+
+## When to use pgcat vs direct Postgres
+
+- pgcat (recommended): Centralized pooling/multiplexing across all Permify pods. Easier scaling, fewer server connections.
+- Direct Postgres: Use a small warm client pool in Permify to avoid cold dials during bursts.
+
+## Installation
+
+### Docker (quick start)
+
+1) Create a pgcat.toml (see “Reference pgcat configuration” below).
+2) Run:
+```shell
+docker run -d   --name pgcat   -p 6432:6432   -v $(pwd)/pgcat.toml:/etc/pgcat/pgcat.toml   postgresml/pgcat:latest
+```
+
+### Kubernetes (standalone service)
+
+1) Create a ConfigMap from your pgcat.toml:
+```bash
+kubectl create configmap pgcat-config --from-file=pgcat.toml
+```
+2) Deploy pgcat:
+```jsx
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgcat
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pgcat
+  template:
+    metadata:
+      labels:
+        app: pgcat
+    spec:
+      containers:
+      - name: pgcat
+        image: postgresml/pgcat:latest
+        ports:
+        - containerPort: 6432
+        volumeMounts:
+        - name: cfg
+          mountPath: /etc/pgcat
+      volumes:
+      - name: cfg
+        configMap:
+          name: pgcat-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgcat
+spec:
+  selector:
+    app: pgcat
+  ports:
+  - port: 6432
+    targetPort: 6432
+```
+3) Update network policies/security groups so Permify pods can reach the pgcat Service.
+
+### Kubernetes (sidecar pattern)
+
+Run pgcat as a sidecar next to Permify in the same Pod for very small deployments. In most cases a shared pgcat Service is simpler to operate and scale.
+
+## Reference pgcat configuration (session mode)
+
+File: pgcat.toml
+```jsx
+[general]
+host = "0.0.0.0"
+port = 6432
+enable_prometheus_exporter = false
+prometheus_exporter_port = 9930
+connect_timeout = 5000                       # ms
+healthcheck_timeout = 1000                   # ms
+healthcheck_delay = 30000                    # ms
+shutdown_timeout = 60000                     # ms
+ban_time = 60                                # s
+log_client_connections = false
+log_client_disconnections = false
+admin_username = "postgres"
+admin_password = "ADMIN_PASSWORD"
+worker_threads = 4
+
+[pools.postgres]
+pool_mode = "session"
+default_role = "any"
+query_parser_enabled = true
+query_parser_read_write_splitting = true
+primary_reads_enabled = true
+sharding_function = "pg_bigint_hash"
+
+[pools.postgres.users.0]
+username = "postgres"
+password = "DB_USER_PASSWORD"
+pool_size = 20                               # max server connections for this user
+statement_timeout = 0
+
+[pools.postgres.shards.0]
+servers = [
+  [ "PRIMARY_HOST", 5432, "primary" ],
+  [ "REPLICA_HOST", 5432, "replica" ]
+]
+database = "permify"
+```
+Notes:
+- Keep Permify `max_connection_idle_time` lower than pgcat’s idle/server timeouts so the client drops first.
+
+## Permify → Pgcat configuration
+
+Keep the client pool small; pgcat owns the warm pool.
+
+<Note>
+**Query parameters for session mode:**
+
+- **`plan_cache_mode=force_custom_plan`**: Forces PostgreSQL to create custom plans for each execution instead of reusing generic plans. Prevents plan cache conflicts when pgcat reuses backend connections across different client sessions. See [PostgreSQL documentation](https://postgresqlco.nf/doc/en/param/plan_cache_mode/).
+
+- **`default_query_exec_mode=cache_describe`**: Configures pgx to cache only the Describe phase without creating server-side named prepared statements. Avoids prepared statement conflicts when pgcat reuses backend connections, while still optimizing the Describe round-trip.
+</Note>
+
+```jsx
+database:
+  engine: postgres
+  writer:
+    uri: postgresql://postgres:DB_USER_PASSWORD@pgcat:6432/permify?plan_cache_mode=force_custom_plan&default_query_exec_mode=cache_describe
+  reader:
+    uri: postgresql://postgres:DB_USER_PASSWORD@pgcat:6432/permify?plan_cache_mode=force_custom_plan&default_query_exec_mode=cache_describe
+
+  # pgxpool sizing
+  max_connections: 1
+  min_connections: 0
+
+  # Lifecycle / health
+  max_connection_lifetime: 3600s
+  max_connection_idle_time: 240s       # keep < pgcat’s idle/server timeout
+  max_connection_lifetime_jitter: 600s
+  health_check_period: 30s
+  connect_timeout: 10s
+```
+
+Caution (session mode):
+- Non-zero min_connections across many pods can pin backend sessions and exhaust server connection budget.
+
+## Direct Postgres (no proxy)
+
+Use a small warm client pool to reduce cold connects.
+
+```jsx
+database:
+  engine: postgres
+  uri: postgresql://postgres:DB_USER_PASSWORD@postgres:5432/permify?sslmode=require
+
+  max_connections: 15-25        # tune to workload and DB limits
+  min_connections: 1-3          # small warm pool
+  max_connection_lifetime: 30m
+  max_connection_idle_time: 5-10m
+  max_connection_lifetime_jitter: 5-10m
+  health_check_period: 30-60s
+  connect_timeout: 10s
+```
+
+## Sizing rules of thumb
+
+- With pgcat
+  - min_connections: 0
+  - max_connections: 1 per pod (raise to 2–5 only if you observe client-side waits)
+  - Ensure `pool_size x shards/users` fits Postgres `max_connections` with headroom
+
+- Direct Postgres
+  - min_connections: 1–3, max_connections sized to real concurrency/CPU
+  - Keep idle/lifetime settings reasonable to avoid thundering-herd reconnects
+
+## Monitoring
+
+Track both sides and correlate spikes:
+- pgcat: pool utilization, server connection counts, read/write routing, query latency
+- Permify: pool (in-use/total), “connect” spans, error rates
+
+Debug patterns
+- “Connect” spikes + rising pgcat server connections → proxy opening backends (cold path)
+- “Connect” spikes + Idle=0 in client pool → client pool exhaustion (no warm conns)
+
+## Troubleshooting
+
+Connect spikes with pgcat
+- Keep min_connections: 0
+- Ensure max_connection_idle_time < pgcat idle/server timeout
+- In session mode with many pods, check pool_size and server connection headroom
+
+Churn without pgcat
+- Set min_connections: 1–3
+
+## Backward compatibility
+
+- max_open_connections → deprecated, use max_connections instead (still works)
+- max_idle_connections → deprecated, use min_connections instead (still works, maps to min_connections if not set)
+
