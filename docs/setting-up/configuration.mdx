@@ -474,6 +474,40 @@ audits, decision logs, authorization model)
 | database-garbage-collection-timeout        | PERMIFY_DATABASE_GARBAGE_COLLECTION_TIMEOUT      | duration |
 | database-garbage-collection-window         | PERMIFY_DATABASE_GARBAGE_COLLECTION_WINDOW       | duration |
 
+#### Production Best Practices: Connection Pooling with pgcat
+
+For production deployments, especially when running multiple Permify instances, we **strongly recommend** using **pgcat** (PostgreSQL Connection Pooler) for server-side connection pooling. This helps manage database connections efficiently and prevents connection exhaustion.
+
+**Why use pgcat?**
+
+- **Connection Management**: pgcat manages a pool of connections to PostgreSQL, allowing multiple Permify instances to share connections efficiently
+- **Performance**: Reduces connection overhead and improves query performance
+
+**Configuration Example**
+
+When using pgcat with session mode, configure Permify to connect through pgcat instead of directly to PostgreSQL:
+
+```yaml
+database:
+  engine: postgres
+  writer:
+    uri: postgresql://postgres:password@pgcat:6432/permify?sslmode=disable
+  reader:
+    uri: postgresql://postgres:password@pgcat:6432/permify?sslmode=disable
+  max_connections: 1  # Keep low since pgcat handles pooling
+  min_connections: 0
+  min_idle_connections: 0
+  max_connection_lifetime: 300s
+  max_connection_idle_time: 60s
+```
+
+**Key Points:**
+
+- Point your `uri`, `writer.uri`, and `reader.uri` to pgcat (typically on port `6432`) instead of PostgreSQL directly
+- Set `max_connections` to a low value since pgcat manages the actual connection pool
+- For session mode with pgcat, set `min_connections` to `0` to allow the pool to shrink when not needed
+- Configure connection lifecycle settings to help with connection cycling and prevent connection exhaustion
+
 </Accordion>
 
 <Accordion title="service | Service Configurations">
