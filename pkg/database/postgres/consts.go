@@ -2,9 +2,9 @@ package postgres
 
 const (
 	_defaultMaxConnections              = 0 // 0 = use pgxpool default (unlimited). Set explicitly to override.
-	_defaultMaxIdleConnections          = 0 // Deprecated: Use _defaultMinConns instead. Kept for backward compatibility (maps to MinConnections if MinConnections is not set).
+	_defaultMaxIdleConnections          = 0 // Deprecated: Use _defaultMinConnections instead. Kept for backward compatibility (maps to MinConnections if MinConnections is not set).
 	_defaultMinConnections              = 0 // 0 = use pgxpool default (no minimum). Set explicitly to override.
-	_defaultMinIdleConnections          = 0 // 0 = use pgxpool default (no minimum idle). Set explicitly to override.
+	_defaultMinIdleConnections          = 1 // Maintain at least one idle connection by default (matches internal/config DefaultConfig). Set explicitly to override if different.
 	_defaultMaxDataPerWrite             = 1000
 	_defaultMaxRetries                  = 10
 	_defaultWatchBufferSize             = 100
