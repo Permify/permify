@@ -491,9 +491,9 @@ When using pgcat with session mode, configure Permify to connect through pgcat i
 database:
   engine: postgres
   writer:
-    uri: postgresql://postgres:password@pgcat:6432/permify?sslmode=disable
+    uri: postgresql://postgres:password@pgcat:6432/permify??plan_cache_mode=force_custom_plan&default_query_exec_mode=cache_describe
   reader:
-    uri: postgresql://postgres:password@pgcat:6432/permify?sslmode=disable
+    uri: postgresql://postgres:password@pgcat:6432/permify??plan_cache_mode=force_custom_plan&default_query_exec_mode=cache_describe
   max_connections: 1  # Keep low since pgcat handles pooling
   min_connections: 0
   min_idle_connections: 0

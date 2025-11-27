@@ -314,7 +314,7 @@
             "setting-up/installation/google",
             "setting-up/installation/helm",
             "setting-up/installation/kubernetes",
-            "setting-up/installation/production-deployment"
+            "setting-up/installation/pooling"
           ]
         }
       ]
