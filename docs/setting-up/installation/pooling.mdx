@@ -1,6 +1,12 @@
 ---
-title: Database Pooling with pgcat
+title: Database Pooling with Pgcat
 ---
+
+<Info>
+Pgcat is a PostgreSQL pooler with sharding, load balancing, and failover support. It provides server-side connection pooling, allowing multiple Permify replicas to share a centralized connection pool, reducing the total number of connections to your PostgreSQL database.
+
+For more information, see the [pgcat repository](https://github.com/postgresml/pgcat).
+</Info>
 
 Use pgcat for server-side pooling when running multiple Permify replicas or when your Postgres connection budget is tight.
 
@@ -115,9 +121,17 @@ database = "permify"
 Notes:
 - Keep Permify `max_connection_idle_time` lower than pgcat’s idle/server timeouts so the client drops first.
 
-## Permify → pgcat configuration
+## Permify → Pgcat configuration
 
 Keep the client pool small; pgcat owns the warm pool.
+
+<Note>
+**Query parameters for session mode:**
+
+- **`plan_cache_mode=force_custom_plan`**: Forces PostgreSQL to create custom plans for each execution instead of reusing generic plans. Prevents plan cache conflicts when pgcat reuses backend connections across different client sessions. See [PostgreSQL documentation](https://postgresqlco.nf/doc/en/param/plan_cache_mode/).
+
+- **`default_query_exec_mode=cache_describe`**: Configures pgx to cache only the Describe phase without creating server-side named prepared statements. Avoids prepared statement conflicts when pgcat reuses backend connections, while still optimizing the Describe round-trip.
+</Note>
 
 ```jsx
 database:
@@ -149,7 +163,7 @@ Use a small warm client pool to reduce cold connects.
 ```jsx
 database:
   engine: postgres
-  uri: postgresql://postgres:DB_USER_PASSWORD@postgres:5432/permify?permify?sslmode=require
+  uri: postgresql://postgres:DB_USER_PASSWORD@postgres:5432/permify?sslmode=require
 
   max_connections: 15-25        # tune to workload and DB limits
   min_connections: 1-3          # small warm pool
