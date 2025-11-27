@@ -64,15 +64,15 @@ func NewWithSeparateURIs(writerUri, readerUri string, opts ...Option) (*Postgres
 // new - Creates new postgresql db instance
 func newDB(writerUri, readerUri string, opts ...Option) (*Postgres, error) {
 	pg := &Postgres{
-		maxConnections:              _defaultMaxConns,
+		maxConnections:              _defaultMaxConnections,
 		maxIdleConnections:          _defaultMaxIdleConnections,
-		minConnections:              _defaultMinConns,
+		minConnections:              _defaultMinConnections,
 		minIdleConnections:          _defaultMinIdleConnections,
 		maxDataPerWrite:             _defaultMaxDataPerWrite,
 		maxRetries:                  _defaultMaxRetries,
 		watchBufferSize:             _defaultWatchBufferSize,
 		healthCheckPeriod:           _defaultHealthCheckPeriod,
-		maxConnectionLifetimeJitter: _defaultMaxConnLifetimeJitter,
+		maxConnectionLifetimeJitter: _defaultMaxConnectionLifetimeJitter,
 		connectTimeout:              _defaultConnectTimeout,
 	}
 

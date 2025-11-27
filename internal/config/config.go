@@ -361,7 +361,7 @@ func DefaultConfig() *Config {
 			MaxOpenConnections:          20,                // Deprecated: Use MaxConnections instead. Kept for backward compatibility.
 			MaxIdleConnections:          1,                 // Deprecated: Kept for backward compatibility (maps to MinConnections if MinConnections is not set)
 			MinConnections:              0,                 // Min connections in pool (0 = pgx default, use MaxIdleConnections for backward compatibility if set)
-			MinIdleConnections:          0,                 // Min idle connections (0 = pgx default, must be explicitly set if needed)
+			MinIdleConnections:          1,                 // Min idle connections in the pool (maps to pgxpool MinIdleConns). Default set to 1 for better production performance.
 			MaxConnectionLifetime:       time.Second * 300, // Connection lifetime
 			MaxConnectionIdleTime:       time.Second * 60,  // Connection idle time
 			HealthCheckPeriod:           0,                 // Use pgxpool default (1 minute)
