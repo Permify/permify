@@ -289,6 +289,198 @@ func (x *PermissionCheckResponseMetadata) GetCheckCount() int32 {
 	return 0
 }
 
+// BULK CHECK
+type PermissionBulkCheckRequestItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Entity on which the permission needs to be checked, required.
+	Entity *Entity `protobuf:"bytes,1,opt,name=entity,proto3" json:"entity,omitempty"`
+	// Name of the permission or relation, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
+	Permission string `protobuf:"bytes,2,opt,name=permission,proto3" json:"permission,omitempty"`
+	// Subject for which the permission needs to be checked, required.
+	Subject       *Subject `protobuf:"bytes,3,opt,name=subject,proto3" json:"subject,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PermissionBulkCheckRequestItem) Reset() {
+	*x = PermissionBulkCheckRequestItem{}
+	mi := &file_base_v1_service_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PermissionBulkCheckRequestItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PermissionBulkCheckRequestItem) ProtoMessage() {}
+
+func (x *PermissionBulkCheckRequestItem) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_service_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PermissionBulkCheckRequestItem.ProtoReflect.Descriptor instead.
+func (*PermissionBulkCheckRequestItem) Descriptor() ([]byte, []int) {
+	return file_base_v1_service_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *PermissionBulkCheckRequestItem) GetEntity() *Entity {
+	if x != nil {
+		return x.Entity
+	}
+	return nil
+}
+
+func (x *PermissionBulkCheckRequestItem) GetPermission() string {
+	if x != nil {
+		return x.Permission
+	}
+	return ""
+}
+
+func (x *PermissionBulkCheckRequestItem) GetSubject() *Subject {
+	if x != nil {
+		return x.Subject
+	}
+	return nil
+}
+
+// PermissionBulkCheckRequest is the request message for the BulkCheck method in the Permission service.
+type PermissionBulkCheckRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
+	TenantId string `protobuf:"bytes,1,opt,name=tenant_id,proto3" json:"tenant_id,omitempty"`
+	// Metadata associated with this request, required.
+	Metadata *PermissionCheckRequestMetadata `protobuf:"bytes,2,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// List of permission check requests, maximum 100 items.
+	Items []*PermissionBulkCheckRequestItem `protobuf:"bytes,3,rep,name=items,proto3" json:"items,omitempty"`
+	// Context associated with this request.
+	Context *Context `protobuf:"bytes,4,opt,name=context,proto3" json:"context,omitempty"`
+	// Additional arguments associated with this request.
+	Arguments     []*Argument `protobuf:"bytes,5,rep,name=arguments,proto3" json:"arguments,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PermissionBulkCheckRequest) Reset() {
+	*x = PermissionBulkCheckRequest{}
+	mi := &file_base_v1_service_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PermissionBulkCheckRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PermissionBulkCheckRequest) ProtoMessage() {}
+
+func (x *PermissionBulkCheckRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_service_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PermissionBulkCheckRequest.ProtoReflect.Descriptor instead.
+func (*PermissionBulkCheckRequest) Descriptor() ([]byte, []int) {
+	return file_base_v1_service_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *PermissionBulkCheckRequest) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *PermissionBulkCheckRequest) GetMetadata() *PermissionCheckRequestMetadata {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *PermissionBulkCheckRequest) GetItems() []*PermissionBulkCheckRequestItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *PermissionBulkCheckRequest) GetContext() *Context {
+	if x != nil {
+		return x.Context
+	}
+	return nil
+}
+
+func (x *PermissionBulkCheckRequest) GetArguments() []*Argument {
+	if x != nil {
+		return x.Arguments
+	}
+	return nil
+}
+
+// PermissionBulkCheckResponse is the response message for the BulkCheck method in the Permission service.
+type PermissionBulkCheckResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// List of permission check responses corresponding to each request.
+	Results       []*PermissionCheckResponse `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PermissionBulkCheckResponse) Reset() {
+	*x = PermissionBulkCheckResponse{}
+	mi := &file_base_v1_service_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PermissionBulkCheckResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PermissionBulkCheckResponse) ProtoMessage() {}
+
+func (x *PermissionBulkCheckResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_service_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PermissionBulkCheckResponse.ProtoReflect.Descriptor instead.
+func (*PermissionBulkCheckResponse) Descriptor() ([]byte, []int) {
+	return file_base_v1_service_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *PermissionBulkCheckResponse) GetResults() []*PermissionCheckResponse {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
 // PermissionExpandRequest is the request message for the Expand method in the Permission service.
 type PermissionExpandRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -310,7 +502,7 @@ type PermissionExpandRequest struct {
 
 func (x *PermissionExpandRequest) Reset() {
 	*x = PermissionExpandRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[4]
+	mi := &file_base_v1_service_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -322,7 +514,7 @@ func (x *PermissionExpandRequest) String() string {
 func (*PermissionExpandRequest) ProtoMessage() {}
 
 func (x *PermissionExpandRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[4]
+	mi := &file_base_v1_service_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -335,7 +527,7 @@ func (x *PermissionExpandRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionExpandRequest.ProtoReflect.Descriptor instead.
 func (*PermissionExpandRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{4}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *PermissionExpandRequest) GetTenantId() string {
@@ -393,7 +585,7 @@ type PermissionExpandRequestMetadata struct {
 
 func (x *PermissionExpandRequestMetadata) Reset() {
 	*x = PermissionExpandRequestMetadata{}
-	mi := &file_base_v1_service_proto_msgTypes[5]
+	mi := &file_base_v1_service_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -405,7 +597,7 @@ func (x *PermissionExpandRequestMetadata) String() string {
 func (*PermissionExpandRequestMetadata) ProtoMessage() {}
 
 func (x *PermissionExpandRequestMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[5]
+	mi := &file_base_v1_service_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -418,7 +610,7 @@ func (x *PermissionExpandRequestMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionExpandRequestMetadata.ProtoReflect.Descriptor instead.
 func (*PermissionExpandRequestMetadata) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{5}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *PermissionExpandRequestMetadata) GetSchemaVersion() string {
@@ -446,7 +638,7 @@ type PermissionExpandResponse struct {
 
 func (x *PermissionExpandResponse) Reset() {
 	*x = PermissionExpandResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[6]
+	mi := &file_base_v1_service_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -458,7 +650,7 @@ func (x *PermissionExpandResponse) String() string {
 func (*PermissionExpandResponse) ProtoMessage() {}
 
 func (x *PermissionExpandResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[6]
+	mi := &file_base_v1_service_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -471,7 +663,7 @@ func (x *PermissionExpandResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionExpandResponse.ProtoReflect.Descriptor instead.
 func (*PermissionExpandResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{6}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *PermissionExpandResponse) GetTree() *Expand {
@@ -511,7 +703,7 @@ type PermissionLookupEntityRequest struct {
 
 func (x *PermissionLookupEntityRequest) Reset() {
 	*x = PermissionLookupEntityRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[7]
+	mi := &file_base_v1_service_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -523,7 +715,7 @@ func (x *PermissionLookupEntityRequest) String() string {
 func (*PermissionLookupEntityRequest) ProtoMessage() {}
 
 func (x *PermissionLookupEntityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[7]
+	mi := &file_base_v1_service_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -536,7 +728,7 @@ func (x *PermissionLookupEntityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionLookupEntityRequest.ProtoReflect.Descriptor instead.
 func (*PermissionLookupEntityRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{7}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *PermissionLookupEntityRequest) GetTenantId() string {
@@ -617,7 +809,7 @@ type PermissionLookupEntityRequestMetadata struct {
 
 func (x *PermissionLookupEntityRequestMetadata) Reset() {
 	*x = PermissionLookupEntityRequestMetadata{}
-	mi := &file_base_v1_service_proto_msgTypes[8]
+	mi := &file_base_v1_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -629,7 +821,7 @@ func (x *PermissionLookupEntityRequestMetadata) String() string {
 func (*PermissionLookupEntityRequestMetadata) ProtoMessage() {}
 
 func (x *PermissionLookupEntityRequestMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[8]
+	mi := &file_base_v1_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -642,7 +834,7 @@ func (x *PermissionLookupEntityRequestMetadata) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use PermissionLookupEntityRequestMetadata.ProtoReflect.Descriptor instead.
 func (*PermissionLookupEntityRequestMetadata) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{8}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *PermissionLookupEntityRequestMetadata) GetSchemaVersion() string {
@@ -679,7 +871,7 @@ type PermissionLookupEntityResponse struct {
 
 func (x *PermissionLookupEntityResponse) Reset() {
 	*x = PermissionLookupEntityResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[9]
+	mi := &file_base_v1_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -691,7 +883,7 @@ func (x *PermissionLookupEntityResponse) String() string {
 func (*PermissionLookupEntityResponse) ProtoMessage() {}
 
 func (x *PermissionLookupEntityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[9]
+	mi := &file_base_v1_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -704,7 +896,7 @@ func (x *PermissionLookupEntityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionLookupEntityResponse.ProtoReflect.Descriptor instead.
 func (*PermissionLookupEntityResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{9}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *PermissionLookupEntityResponse) GetEntityIds() []string {
@@ -734,7 +926,7 @@ type PermissionLookupEntityStreamResponse struct {
 
 func (x *PermissionLookupEntityStreamResponse) Reset() {
 	*x = PermissionLookupEntityStreamResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[10]
+	mi := &file_base_v1_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -746,7 +938,7 @@ func (x *PermissionLookupEntityStreamResponse) String() string {
 func (*PermissionLookupEntityStreamResponse) ProtoMessage() {}
 
 func (x *PermissionLookupEntityStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[10]
+	mi := &file_base_v1_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -759,7 +951,7 @@ func (x *PermissionLookupEntityStreamResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use PermissionLookupEntityStreamResponse.ProtoReflect.Descriptor instead.
 func (*PermissionLookupEntityStreamResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{10}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *PermissionLookupEntityStreamResponse) GetEntityId() string {
@@ -801,7 +993,7 @@ type PermissionEntityFilterRequest struct {
 
 func (x *PermissionEntityFilterRequest) Reset() {
 	*x = PermissionEntityFilterRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[11]
+	mi := &file_base_v1_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -813,7 +1005,7 @@ func (x *PermissionEntityFilterRequest) String() string {
 func (*PermissionEntityFilterRequest) ProtoMessage() {}
 
 func (x *PermissionEntityFilterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[11]
+	mi := &file_base_v1_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -826,7 +1018,7 @@ func (x *PermissionEntityFilterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionEntityFilterRequest.ProtoReflect.Descriptor instead.
 func (*PermissionEntityFilterRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{11}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *PermissionEntityFilterRequest) GetTenantId() string {
@@ -893,7 +1085,7 @@ type PermissionEntityFilterRequestMetadata struct {
 
 func (x *PermissionEntityFilterRequestMetadata) Reset() {
 	*x = PermissionEntityFilterRequestMetadata{}
-	mi := &file_base_v1_service_proto_msgTypes[12]
+	mi := &file_base_v1_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -905,7 +1097,7 @@ func (x *PermissionEntityFilterRequestMetadata) String() string {
 func (*PermissionEntityFilterRequestMetadata) ProtoMessage() {}
 
 func (x *PermissionEntityFilterRequestMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[12]
+	mi := &file_base_v1_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -918,7 +1110,7 @@ func (x *PermissionEntityFilterRequestMetadata) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use PermissionEntityFilterRequestMetadata.ProtoReflect.Descriptor instead.
 func (*PermissionEntityFilterRequestMetadata) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{12}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *PermissionEntityFilterRequestMetadata) GetSchemaVersion() string {
@@ -971,7 +1163,7 @@ type PermissionLookupSubjectRequest struct {
 
 func (x *PermissionLookupSubjectRequest) Reset() {
 	*x = PermissionLookupSubjectRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[13]
+	mi := &file_base_v1_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -983,7 +1175,7 @@ func (x *PermissionLookupSubjectRequest) String() string {
 func (*PermissionLookupSubjectRequest) ProtoMessage() {}
 
 func (x *PermissionLookupSubjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[13]
+	mi := &file_base_v1_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -996,7 +1188,7 @@ func (x *PermissionLookupSubjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionLookupSubjectRequest.ProtoReflect.Descriptor instead.
 func (*PermissionLookupSubjectRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{13}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *PermissionLookupSubjectRequest) GetTenantId() string {
@@ -1077,7 +1269,7 @@ type PermissionLookupSubjectRequestMetadata struct {
 
 func (x *PermissionLookupSubjectRequestMetadata) Reset() {
 	*x = PermissionLookupSubjectRequestMetadata{}
-	mi := &file_base_v1_service_proto_msgTypes[14]
+	mi := &file_base_v1_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1089,7 +1281,7 @@ func (x *PermissionLookupSubjectRequestMetadata) String() string {
 func (*PermissionLookupSubjectRequestMetadata) ProtoMessage() {}
 
 func (x *PermissionLookupSubjectRequestMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[14]
+	mi := &file_base_v1_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1102,7 +1294,7 @@ func (x *PermissionLookupSubjectRequestMetadata) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use PermissionLookupSubjectRequestMetadata.ProtoReflect.Descriptor instead.
 func (*PermissionLookupSubjectRequestMetadata) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{14}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *PermissionLookupSubjectRequestMetadata) GetSchemaVersion() string {
@@ -1139,7 +1331,7 @@ type PermissionLookupSubjectResponse struct {
 
 func (x *PermissionLookupSubjectResponse) Reset() {
 	*x = PermissionLookupSubjectResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[15]
+	mi := &file_base_v1_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1151,7 +1343,7 @@ func (x *PermissionLookupSubjectResponse) String() string {
 func (*PermissionLookupSubjectResponse) ProtoMessage() {}
 
 func (x *PermissionLookupSubjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[15]
+	mi := &file_base_v1_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1164,7 +1356,7 @@ func (x *PermissionLookupSubjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionLookupSubjectResponse.ProtoReflect.Descriptor instead.
 func (*PermissionLookupSubjectResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{15}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *PermissionLookupSubjectResponse) GetSubjectIds() []string {
@@ -1200,7 +1392,7 @@ type PermissionSubjectPermissionRequest struct {
 
 func (x *PermissionSubjectPermissionRequest) Reset() {
 	*x = PermissionSubjectPermissionRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[16]
+	mi := &file_base_v1_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1212,7 +1404,7 @@ func (x *PermissionSubjectPermissionRequest) String() string {
 func (*PermissionSubjectPermissionRequest) ProtoMessage() {}
 
 func (x *PermissionSubjectPermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[16]
+	mi := &file_base_v1_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1225,7 +1417,7 @@ func (x *PermissionSubjectPermissionRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use PermissionSubjectPermissionRequest.ProtoReflect.Descriptor instead.
 func (*PermissionSubjectPermissionRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{16}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *PermissionSubjectPermissionRequest) GetTenantId() string {
@@ -1280,7 +1472,7 @@ type PermissionSubjectPermissionRequestMetadata struct {
 
 func (x *PermissionSubjectPermissionRequestMetadata) Reset() {
 	*x = PermissionSubjectPermissionRequestMetadata{}
-	mi := &file_base_v1_service_proto_msgTypes[17]
+	mi := &file_base_v1_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1292,7 +1484,7 @@ func (x *PermissionSubjectPermissionRequestMetadata) String() string {
 func (*PermissionSubjectPermissionRequestMetadata) ProtoMessage() {}
 
 func (x *PermissionSubjectPermissionRequestMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[17]
+	mi := &file_base_v1_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1305,7 +1497,7 @@ func (x *PermissionSubjectPermissionRequestMetadata) ProtoReflect() protoreflect
 
 // Deprecated: Use PermissionSubjectPermissionRequestMetadata.ProtoReflect.Descriptor instead.
 func (*PermissionSubjectPermissionRequestMetadata) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{17}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *PermissionSubjectPermissionRequestMetadata) GetSchemaVersion() string {
@@ -1347,7 +1539,7 @@ type PermissionSubjectPermissionResponse struct {
 
 func (x *PermissionSubjectPermissionResponse) Reset() {
 	*x = PermissionSubjectPermissionResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[18]
+	mi := &file_base_v1_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1359,7 +1551,7 @@ func (x *PermissionSubjectPermissionResponse) String() string {
 func (*PermissionSubjectPermissionResponse) ProtoMessage() {}
 
 func (x *PermissionSubjectPermissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[18]
+	mi := &file_base_v1_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1372,7 +1564,7 @@ func (x *PermissionSubjectPermissionResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use PermissionSubjectPermissionResponse.ProtoReflect.Descriptor instead.
 func (*PermissionSubjectPermissionResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{18}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *PermissionSubjectPermissionResponse) GetResults() map[string]CheckResult {
@@ -1396,7 +1588,7 @@ type WatchRequest struct {
 
 func (x *WatchRequest) Reset() {
 	*x = WatchRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[19]
+	mi := &file_base_v1_service_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1408,7 +1600,7 @@ func (x *WatchRequest) String() string {
 func (*WatchRequest) ProtoMessage() {}
 
 func (x *WatchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[19]
+	mi := &file_base_v1_service_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1421,7 +1613,7 @@ func (x *WatchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchRequest.ProtoReflect.Descriptor instead.
 func (*WatchRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{19}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *WatchRequest) GetTenantId() string {
@@ -1450,7 +1642,7 @@ type WatchResponse struct {
 
 func (x *WatchResponse) Reset() {
 	*x = WatchResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[20]
+	mi := &file_base_v1_service_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1462,7 +1654,7 @@ func (x *WatchResponse) String() string {
 func (*WatchResponse) ProtoMessage() {}
 
 func (x *WatchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[20]
+	mi := &file_base_v1_service_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1475,7 +1667,7 @@ func (x *WatchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchResponse.ProtoReflect.Descriptor instead.
 func (*WatchResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{20}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *WatchResponse) GetChanges() *DataChanges {
@@ -1500,7 +1692,7 @@ type SchemaWriteRequest struct {
 
 func (x *SchemaWriteRequest) Reset() {
 	*x = SchemaWriteRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[21]
+	mi := &file_base_v1_service_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1512,7 +1704,7 @@ func (x *SchemaWriteRequest) String() string {
 func (*SchemaWriteRequest) ProtoMessage() {}
 
 func (x *SchemaWriteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[21]
+	mi := &file_base_v1_service_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1525,7 +1717,7 @@ func (x *SchemaWriteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchemaWriteRequest.ProtoReflect.Descriptor instead.
 func (*SchemaWriteRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{21}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *SchemaWriteRequest) GetTenantId() string {
@@ -1554,7 +1746,7 @@ type SchemaWriteResponse struct {
 
 func (x *SchemaWriteResponse) Reset() {
 	*x = SchemaWriteResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[22]
+	mi := &file_base_v1_service_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1566,7 +1758,7 @@ func (x *SchemaWriteResponse) String() string {
 func (*SchemaWriteResponse) ProtoMessage() {}
 
 func (x *SchemaWriteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[22]
+	mi := &file_base_v1_service_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1579,7 +1771,7 @@ func (x *SchemaWriteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchemaWriteResponse.ProtoReflect.Descriptor instead.
 func (*SchemaWriteResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{22}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *SchemaWriteResponse) GetSchemaVersion() string {
@@ -1606,7 +1798,7 @@ type SchemaPartialWriteRequest struct {
 
 func (x *SchemaPartialWriteRequest) Reset() {
 	*x = SchemaPartialWriteRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[23]
+	mi := &file_base_v1_service_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1618,7 +1810,7 @@ func (x *SchemaPartialWriteRequest) String() string {
 func (*SchemaPartialWriteRequest) ProtoMessage() {}
 
 func (x *SchemaPartialWriteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[23]
+	mi := &file_base_v1_service_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1631,7 +1823,7 @@ func (x *SchemaPartialWriteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchemaPartialWriteRequest.ProtoReflect.Descriptor instead.
 func (*SchemaPartialWriteRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{23}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *SchemaPartialWriteRequest) GetTenantId() string {
@@ -1667,7 +1859,7 @@ type SchemaPartialWriteRequestMetadata struct {
 
 func (x *SchemaPartialWriteRequestMetadata) Reset() {
 	*x = SchemaPartialWriteRequestMetadata{}
-	mi := &file_base_v1_service_proto_msgTypes[24]
+	mi := &file_base_v1_service_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1679,7 +1871,7 @@ func (x *SchemaPartialWriteRequestMetadata) String() string {
 func (*SchemaPartialWriteRequestMetadata) ProtoMessage() {}
 
 func (x *SchemaPartialWriteRequestMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[24]
+	mi := &file_base_v1_service_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1692,7 +1884,7 @@ func (x *SchemaPartialWriteRequestMetadata) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use SchemaPartialWriteRequestMetadata.ProtoReflect.Descriptor instead.
 func (*SchemaPartialWriteRequestMetadata) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{24}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *SchemaPartialWriteRequestMetadata) GetSchemaVersion() string {
@@ -1714,7 +1906,7 @@ type SchemaPartialWriteResponse struct {
 
 func (x *SchemaPartialWriteResponse) Reset() {
 	*x = SchemaPartialWriteResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[25]
+	mi := &file_base_v1_service_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1726,7 +1918,7 @@ func (x *SchemaPartialWriteResponse) String() string {
 func (*SchemaPartialWriteResponse) ProtoMessage() {}
 
 func (x *SchemaPartialWriteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[25]
+	mi := &file_base_v1_service_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1739,7 +1931,7 @@ func (x *SchemaPartialWriteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchemaPartialWriteResponse.ProtoReflect.Descriptor instead.
 func (*SchemaPartialWriteResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{25}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *SchemaPartialWriteResponse) GetSchemaVersion() string {
@@ -1764,7 +1956,7 @@ type SchemaReadRequest struct {
 
 func (x *SchemaReadRequest) Reset() {
 	*x = SchemaReadRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[26]
+	mi := &file_base_v1_service_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1776,7 +1968,7 @@ func (x *SchemaReadRequest) String() string {
 func (*SchemaReadRequest) ProtoMessage() {}
 
 func (x *SchemaReadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[26]
+	mi := &file_base_v1_service_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1789,7 +1981,7 @@ func (x *SchemaReadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchemaReadRequest.ProtoReflect.Descriptor instead.
 func (*SchemaReadRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{26}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *SchemaReadRequest) GetTenantId() string {
@@ -1818,7 +2010,7 @@ type SchemaReadRequestMetadata struct {
 
 func (x *SchemaReadRequestMetadata) Reset() {
 	*x = SchemaReadRequestMetadata{}
-	mi := &file_base_v1_service_proto_msgTypes[27]
+	mi := &file_base_v1_service_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1830,7 +2022,7 @@ func (x *SchemaReadRequestMetadata) String() string {
 func (*SchemaReadRequestMetadata) ProtoMessage() {}
 
 func (x *SchemaReadRequestMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[27]
+	mi := &file_base_v1_service_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1843,7 +2035,7 @@ func (x *SchemaReadRequestMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchemaReadRequestMetadata.ProtoReflect.Descriptor instead.
 func (*SchemaReadRequestMetadata) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{27}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *SchemaReadRequestMetadata) GetSchemaVersion() string {
@@ -1865,7 +2057,7 @@ type SchemaReadResponse struct {
 
 func (x *SchemaReadResponse) Reset() {
 	*x = SchemaReadResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[28]
+	mi := &file_base_v1_service_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1877,7 +2069,7 @@ func (x *SchemaReadResponse) String() string {
 func (*SchemaReadResponse) ProtoMessage() {}
 
 func (x *SchemaReadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[28]
+	mi := &file_base_v1_service_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1890,7 +2082,7 @@ func (x *SchemaReadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchemaReadResponse.ProtoReflect.Descriptor instead.
 func (*SchemaReadResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{28}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *SchemaReadResponse) GetSchema() *SchemaDefinition {
@@ -1919,7 +2111,7 @@ type SchemaListRequest struct {
 
 func (x *SchemaListRequest) Reset() {
 	*x = SchemaListRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[29]
+	mi := &file_base_v1_service_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1931,7 +2123,7 @@ func (x *SchemaListRequest) String() string {
 func (*SchemaListRequest) ProtoMessage() {}
 
 func (x *SchemaListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[29]
+	mi := &file_base_v1_service_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1944,7 +2136,7 @@ func (x *SchemaListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchemaListRequest.ProtoReflect.Descriptor instead.
 func (*SchemaListRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{29}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *SchemaListRequest) GetTenantId() string {
@@ -1984,7 +2176,7 @@ type SchemaListResponse struct {
 
 func (x *SchemaListResponse) Reset() {
 	*x = SchemaListResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[30]
+	mi := &file_base_v1_service_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1996,7 +2188,7 @@ func (x *SchemaListResponse) String() string {
 func (*SchemaListResponse) ProtoMessage() {}
 
 func (x *SchemaListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[30]
+	mi := &file_base_v1_service_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2009,7 +2201,7 @@ func (x *SchemaListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchemaListResponse.ProtoReflect.Descriptor instead.
 func (*SchemaListResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{30}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *SchemaListResponse) GetHead() string {
@@ -2044,7 +2236,7 @@ type SchemaList struct {
 
 func (x *SchemaList) Reset() {
 	*x = SchemaList{}
-	mi := &file_base_v1_service_proto_msgTypes[31]
+	mi := &file_base_v1_service_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2056,7 +2248,7 @@ func (x *SchemaList) String() string {
 func (*SchemaList) ProtoMessage() {}
 
 func (x *SchemaList) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[31]
+	mi := &file_base_v1_service_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2069,7 +2261,7 @@ func (x *SchemaList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchemaList.ProtoReflect.Descriptor instead.
 func (*SchemaList) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{31}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *SchemaList) GetVersion() string {
@@ -2105,7 +2297,7 @@ type DataWriteRequest struct {
 
 func (x *DataWriteRequest) Reset() {
 	*x = DataWriteRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[32]
+	mi := &file_base_v1_service_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2117,7 +2309,7 @@ func (x *DataWriteRequest) String() string {
 func (*DataWriteRequest) ProtoMessage() {}
 
 func (x *DataWriteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[32]
+	mi := &file_base_v1_service_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2130,7 +2322,7 @@ func (x *DataWriteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DataWriteRequest.ProtoReflect.Descriptor instead.
 func (*DataWriteRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{32}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *DataWriteRequest) GetTenantId() string {
@@ -2173,7 +2365,7 @@ type DataWriteRequestMetadata struct {
 
 func (x *DataWriteRequestMetadata) Reset() {
 	*x = DataWriteRequestMetadata{}
-	mi := &file_base_v1_service_proto_msgTypes[33]
+	mi := &file_base_v1_service_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2185,7 +2377,7 @@ func (x *DataWriteRequestMetadata) String() string {
 func (*DataWriteRequestMetadata) ProtoMessage() {}
 
 func (x *DataWriteRequestMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[33]
+	mi := &file_base_v1_service_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2198,7 +2390,7 @@ func (x *DataWriteRequestMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DataWriteRequestMetadata.ProtoReflect.Descriptor instead.
 func (*DataWriteRequestMetadata) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{33}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *DataWriteRequestMetadata) GetSchemaVersion() string {
@@ -2220,7 +2412,7 @@ type DataWriteResponse struct {
 
 func (x *DataWriteResponse) Reset() {
 	*x = DataWriteResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[34]
+	mi := &file_base_v1_service_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2232,7 +2424,7 @@ func (x *DataWriteResponse) String() string {
 func (*DataWriteResponse) ProtoMessage() {}
 
 func (x *DataWriteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[34]
+	mi := &file_base_v1_service_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2245,7 +2437,7 @@ func (x *DataWriteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DataWriteResponse.ProtoReflect.Descriptor instead.
 func (*DataWriteResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{34}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *DataWriteResponse) GetSnapToken() string {
@@ -2270,7 +2462,7 @@ type RelationshipWriteRequest struct {
 
 func (x *RelationshipWriteRequest) Reset() {
 	*x = RelationshipWriteRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[35]
+	mi := &file_base_v1_service_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2282,7 +2474,7 @@ func (x *RelationshipWriteRequest) String() string {
 func (*RelationshipWriteRequest) ProtoMessage() {}
 
 func (x *RelationshipWriteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[35]
+	mi := &file_base_v1_service_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2295,7 +2487,7 @@ func (x *RelationshipWriteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RelationshipWriteRequest.ProtoReflect.Descriptor instead.
 func (*RelationshipWriteRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{35}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *RelationshipWriteRequest) GetTenantId() string {
@@ -2329,7 +2521,7 @@ type RelationshipWriteRequestMetadata struct {
 
 func (x *RelationshipWriteRequestMetadata) Reset() {
 	*x = RelationshipWriteRequestMetadata{}
-	mi := &file_base_v1_service_proto_msgTypes[36]
+	mi := &file_base_v1_service_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2341,7 +2533,7 @@ func (x *RelationshipWriteRequestMetadata) String() string {
 func (*RelationshipWriteRequestMetadata) ProtoMessage() {}
 
 func (x *RelationshipWriteRequestMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[36]
+	mi := &file_base_v1_service_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2354,7 +2546,7 @@ func (x *RelationshipWriteRequestMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RelationshipWriteRequestMetadata.ProtoReflect.Descriptor instead.
 func (*RelationshipWriteRequestMetadata) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{36}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *RelationshipWriteRequestMetadata) GetSchemaVersion() string {
@@ -2374,7 +2566,7 @@ type RelationshipWriteResponse struct {
 
 func (x *RelationshipWriteResponse) Reset() {
 	*x = RelationshipWriteResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[37]
+	mi := &file_base_v1_service_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2386,7 +2578,7 @@ func (x *RelationshipWriteResponse) String() string {
 func (*RelationshipWriteResponse) ProtoMessage() {}
 
 func (x *RelationshipWriteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[37]
+	mi := &file_base_v1_service_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2399,7 +2591,7 @@ func (x *RelationshipWriteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RelationshipWriteResponse.ProtoReflect.Descriptor instead.
 func (*RelationshipWriteResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{37}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *RelationshipWriteResponse) GetSnapToken() string {
@@ -2430,7 +2622,7 @@ type RelationshipReadRequest struct {
 
 func (x *RelationshipReadRequest) Reset() {
 	*x = RelationshipReadRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[38]
+	mi := &file_base_v1_service_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2442,7 +2634,7 @@ func (x *RelationshipReadRequest) String() string {
 func (*RelationshipReadRequest) ProtoMessage() {}
 
 func (x *RelationshipReadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[38]
+	mi := &file_base_v1_service_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2455,7 +2647,7 @@ func (x *RelationshipReadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RelationshipReadRequest.ProtoReflect.Descriptor instead.
 func (*RelationshipReadRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{38}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *RelationshipReadRequest) GetTenantId() string {
@@ -2505,7 +2697,7 @@ type RelationshipReadRequestMetadata struct {
 
 func (x *RelationshipReadRequestMetadata) Reset() {
 	*x = RelationshipReadRequestMetadata{}
-	mi := &file_base_v1_service_proto_msgTypes[39]
+	mi := &file_base_v1_service_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2517,7 +2709,7 @@ func (x *RelationshipReadRequestMetadata) String() string {
 func (*RelationshipReadRequestMetadata) ProtoMessage() {}
 
 func (x *RelationshipReadRequestMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[39]
+	mi := &file_base_v1_service_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2530,7 +2722,7 @@ func (x *RelationshipReadRequestMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RelationshipReadRequestMetadata.ProtoReflect.Descriptor instead.
 func (*RelationshipReadRequestMetadata) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{39}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *RelationshipReadRequestMetadata) GetSnapToken() string {
@@ -2554,7 +2746,7 @@ type RelationshipReadResponse struct {
 
 func (x *RelationshipReadResponse) Reset() {
 	*x = RelationshipReadResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[40]
+	mi := &file_base_v1_service_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2566,7 +2758,7 @@ func (x *RelationshipReadResponse) String() string {
 func (*RelationshipReadResponse) ProtoMessage() {}
 
 func (x *RelationshipReadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[40]
+	mi := &file_base_v1_service_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2579,7 +2771,7 @@ func (x *RelationshipReadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RelationshipReadResponse.ProtoReflect.Descriptor instead.
 func (*RelationshipReadResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{40}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *RelationshipReadResponse) GetTuples() []*Tuple {
@@ -2617,7 +2809,7 @@ type AttributeReadRequest struct {
 
 func (x *AttributeReadRequest) Reset() {
 	*x = AttributeReadRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[41]
+	mi := &file_base_v1_service_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2629,7 +2821,7 @@ func (x *AttributeReadRequest) String() string {
 func (*AttributeReadRequest) ProtoMessage() {}
 
 func (x *AttributeReadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[41]
+	mi := &file_base_v1_service_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2642,7 +2834,7 @@ func (x *AttributeReadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttributeReadRequest.ProtoReflect.Descriptor instead.
 func (*AttributeReadRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{41}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *AttributeReadRequest) GetTenantId() string {
@@ -2692,7 +2884,7 @@ type AttributeReadRequestMetadata struct {
 
 func (x *AttributeReadRequestMetadata) Reset() {
 	*x = AttributeReadRequestMetadata{}
-	mi := &file_base_v1_service_proto_msgTypes[42]
+	mi := &file_base_v1_service_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2704,7 +2896,7 @@ func (x *AttributeReadRequestMetadata) String() string {
 func (*AttributeReadRequestMetadata) ProtoMessage() {}
 
 func (x *AttributeReadRequestMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[42]
+	mi := &file_base_v1_service_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2717,7 +2909,7 @@ func (x *AttributeReadRequestMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttributeReadRequestMetadata.ProtoReflect.Descriptor instead.
 func (*AttributeReadRequestMetadata) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{42}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *AttributeReadRequestMetadata) GetSnapToken() string {
@@ -2741,7 +2933,7 @@ type AttributeReadResponse struct {
 
 func (x *AttributeReadResponse) Reset() {
 	*x = AttributeReadResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[43]
+	mi := &file_base_v1_service_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2753,7 +2945,7 @@ func (x *AttributeReadResponse) String() string {
 func (*AttributeReadResponse) ProtoMessage() {}
 
 func (x *AttributeReadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[43]
+	mi := &file_base_v1_service_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2766,7 +2958,7 @@ func (x *AttributeReadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttributeReadResponse.ProtoReflect.Descriptor instead.
 func (*AttributeReadResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{43}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *AttributeReadResponse) GetAttributes() []*Attribute {
@@ -2799,7 +2991,7 @@ type DataDeleteRequest struct {
 
 func (x *DataDeleteRequest) Reset() {
 	*x = DataDeleteRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[44]
+	mi := &file_base_v1_service_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2811,7 +3003,7 @@ func (x *DataDeleteRequest) String() string {
 func (*DataDeleteRequest) ProtoMessage() {}
 
 func (x *DataDeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[44]
+	mi := &file_base_v1_service_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2824,7 +3016,7 @@ func (x *DataDeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DataDeleteRequest.ProtoReflect.Descriptor instead.
 func (*DataDeleteRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{44}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *DataDeleteRequest) GetTenantId() string {
@@ -2860,7 +3052,7 @@ type DataDeleteResponse struct {
 
 func (x *DataDeleteResponse) Reset() {
 	*x = DataDeleteResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[45]
+	mi := &file_base_v1_service_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2872,7 +3064,7 @@ func (x *DataDeleteResponse) String() string {
 func (*DataDeleteResponse) ProtoMessage() {}
 
 func (x *DataDeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[45]
+	mi := &file_base_v1_service_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2885,7 +3077,7 @@ func (x *DataDeleteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DataDeleteResponse.ProtoReflect.Descriptor instead.
 func (*DataDeleteResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{45}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *DataDeleteResponse) GetSnapToken() string {
@@ -2906,7 +3098,7 @@ type RelationshipDeleteRequest struct {
 
 func (x *RelationshipDeleteRequest) Reset() {
 	*x = RelationshipDeleteRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[46]
+	mi := &file_base_v1_service_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2918,7 +3110,7 @@ func (x *RelationshipDeleteRequest) String() string {
 func (*RelationshipDeleteRequest) ProtoMessage() {}
 
 func (x *RelationshipDeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[46]
+	mi := &file_base_v1_service_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2931,7 +3123,7 @@ func (x *RelationshipDeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RelationshipDeleteRequest.ProtoReflect.Descriptor instead.
 func (*RelationshipDeleteRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{46}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *RelationshipDeleteRequest) GetTenantId() string {
@@ -2958,7 +3150,7 @@ type RelationshipDeleteResponse struct {
 
 func (x *RelationshipDeleteResponse) Reset() {
 	*x = RelationshipDeleteResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[47]
+	mi := &file_base_v1_service_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2970,7 +3162,7 @@ func (x *RelationshipDeleteResponse) String() string {
 func (*RelationshipDeleteResponse) ProtoMessage() {}
 
 func (x *RelationshipDeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[47]
+	mi := &file_base_v1_service_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2983,7 +3175,7 @@ func (x *RelationshipDeleteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RelationshipDeleteResponse.ProtoReflect.Descriptor instead.
 func (*RelationshipDeleteResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{47}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *RelationshipDeleteResponse) GetSnapToken() string {
@@ -3008,7 +3200,7 @@ type BundleRunRequest struct {
 
 func (x *BundleRunRequest) Reset() {
 	*x = BundleRunRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[48]
+	mi := &file_base_v1_service_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3020,7 +3212,7 @@ func (x *BundleRunRequest) String() string {
 func (*BundleRunRequest) ProtoMessage() {}
 
 func (x *BundleRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[48]
+	mi := &file_base_v1_service_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3033,7 +3225,7 @@ func (x *BundleRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BundleRunRequest.ProtoReflect.Descriptor instead.
 func (*BundleRunRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{48}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *BundleRunRequest) GetTenantId() string {
@@ -3068,7 +3260,7 @@ type BundleRunResponse struct {
 
 func (x *BundleRunResponse) Reset() {
 	*x = BundleRunResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[49]
+	mi := &file_base_v1_service_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3080,7 +3272,7 @@ func (x *BundleRunResponse) String() string {
 func (*BundleRunResponse) ProtoMessage() {}
 
 func (x *BundleRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[49]
+	mi := &file_base_v1_service_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3093,7 +3285,7 @@ func (x *BundleRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BundleRunResponse.ProtoReflect.Descriptor instead.
 func (*BundleRunResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{49}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *BundleRunResponse) GetSnapToken() string {
@@ -3115,7 +3307,7 @@ type BundleWriteRequest struct {
 
 func (x *BundleWriteRequest) Reset() {
 	*x = BundleWriteRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[50]
+	mi := &file_base_v1_service_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3127,7 +3319,7 @@ func (x *BundleWriteRequest) String() string {
 func (*BundleWriteRequest) ProtoMessage() {}
 
 func (x *BundleWriteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[50]
+	mi := &file_base_v1_service_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3140,7 +3332,7 @@ func (x *BundleWriteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BundleWriteRequest.ProtoReflect.Descriptor instead.
 func (*BundleWriteRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{50}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *BundleWriteRequest) GetTenantId() string {
@@ -3168,7 +3360,7 @@ type BundleWriteResponse struct {
 
 func (x *BundleWriteResponse) Reset() {
 	*x = BundleWriteResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[51]
+	mi := &file_base_v1_service_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3180,7 +3372,7 @@ func (x *BundleWriteResponse) String() string {
 func (*BundleWriteResponse) ProtoMessage() {}
 
 func (x *BundleWriteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[51]
+	mi := &file_base_v1_service_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3193,7 +3385,7 @@ func (x *BundleWriteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BundleWriteResponse.ProtoReflect.Descriptor instead.
 func (*BundleWriteResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{51}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *BundleWriteResponse) GetNames() []string {
@@ -3213,7 +3405,7 @@ type BundleReadRequest struct {
 
 func (x *BundleReadRequest) Reset() {
 	*x = BundleReadRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[52]
+	mi := &file_base_v1_service_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3225,7 +3417,7 @@ func (x *BundleReadRequest) String() string {
 func (*BundleReadRequest) ProtoMessage() {}
 
 func (x *BundleReadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[52]
+	mi := &file_base_v1_service_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3238,7 +3430,7 @@ func (x *BundleReadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BundleReadRequest.ProtoReflect.Descriptor instead.
 func (*BundleReadRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{52}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *BundleReadRequest) GetTenantId() string {
@@ -3264,7 +3456,7 @@ type BundleReadResponse struct {
 
 func (x *BundleReadResponse) Reset() {
 	*x = BundleReadResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[53]
+	mi := &file_base_v1_service_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3276,7 +3468,7 @@ func (x *BundleReadResponse) String() string {
 func (*BundleReadResponse) ProtoMessage() {}
 
 func (x *BundleReadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[53]
+	mi := &file_base_v1_service_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3289,7 +3481,7 @@ func (x *BundleReadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BundleReadResponse.ProtoReflect.Descriptor instead.
 func (*BundleReadResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{53}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *BundleReadResponse) GetBundle() *DataBundle {
@@ -3311,7 +3503,7 @@ type BundleDeleteRequest struct {
 
 func (x *BundleDeleteRequest) Reset() {
 	*x = BundleDeleteRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[54]
+	mi := &file_base_v1_service_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3323,7 +3515,7 @@ func (x *BundleDeleteRequest) String() string {
 func (*BundleDeleteRequest) ProtoMessage() {}
 
 func (x *BundleDeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[54]
+	mi := &file_base_v1_service_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3336,7 +3528,7 @@ func (x *BundleDeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BundleDeleteRequest.ProtoReflect.Descriptor instead.
 func (*BundleDeleteRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{54}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *BundleDeleteRequest) GetTenantId() string {
@@ -3362,7 +3554,7 @@ type BundleDeleteResponse struct {
 
 func (x *BundleDeleteResponse) Reset() {
 	*x = BundleDeleteResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[55]
+	mi := &file_base_v1_service_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3374,7 +3566,7 @@ func (x *BundleDeleteResponse) String() string {
 func (*BundleDeleteResponse) ProtoMessage() {}
 
 func (x *BundleDeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[55]
+	mi := &file_base_v1_service_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3387,7 +3579,7 @@ func (x *BundleDeleteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BundleDeleteResponse.ProtoReflect.Descriptor instead.
 func (*BundleDeleteResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{55}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *BundleDeleteResponse) GetName() string {
@@ -3410,7 +3602,7 @@ type TenantCreateRequest struct {
 
 func (x *TenantCreateRequest) Reset() {
 	*x = TenantCreateRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[56]
+	mi := &file_base_v1_service_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3422,7 +3614,7 @@ func (x *TenantCreateRequest) String() string {
 func (*TenantCreateRequest) ProtoMessage() {}
 
 func (x *TenantCreateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[56]
+	mi := &file_base_v1_service_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3435,7 +3627,7 @@ func (x *TenantCreateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantCreateRequest.ProtoReflect.Descriptor instead.
 func (*TenantCreateRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{56}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *TenantCreateRequest) GetId() string {
@@ -3463,7 +3655,7 @@ type TenantCreateResponse struct {
 
 func (x *TenantCreateResponse) Reset() {
 	*x = TenantCreateResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[57]
+	mi := &file_base_v1_service_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3475,7 +3667,7 @@ func (x *TenantCreateResponse) String() string {
 func (*TenantCreateResponse) ProtoMessage() {}
 
 func (x *TenantCreateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[57]
+	mi := &file_base_v1_service_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3488,7 +3680,7 @@ func (x *TenantCreateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantCreateResponse.ProtoReflect.Descriptor instead.
 func (*TenantCreateResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{57}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *TenantCreateResponse) GetTenant() *Tenant {
@@ -3509,7 +3701,7 @@ type TenantDeleteRequest struct {
 
 func (x *TenantDeleteRequest) Reset() {
 	*x = TenantDeleteRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[58]
+	mi := &file_base_v1_service_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3521,7 +3713,7 @@ func (x *TenantDeleteRequest) String() string {
 func (*TenantDeleteRequest) ProtoMessage() {}
 
 func (x *TenantDeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[58]
+	mi := &file_base_v1_service_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3534,7 +3726,7 @@ func (x *TenantDeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantDeleteRequest.ProtoReflect.Descriptor instead.
 func (*TenantDeleteRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{58}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *TenantDeleteRequest) GetId() string {
@@ -3555,7 +3747,7 @@ type TenantDeleteResponse struct {
 
 func (x *TenantDeleteResponse) Reset() {
 	*x = TenantDeleteResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[59]
+	mi := &file_base_v1_service_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3567,7 +3759,7 @@ func (x *TenantDeleteResponse) String() string {
 func (*TenantDeleteResponse) ProtoMessage() {}
 
 func (x *TenantDeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[59]
+	mi := &file_base_v1_service_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3580,7 +3772,7 @@ func (x *TenantDeleteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantDeleteResponse.ProtoReflect.Descriptor instead.
 func (*TenantDeleteResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{59}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *TenantDeleteResponse) GetTenantId() string {
@@ -3605,7 +3797,7 @@ type TenantListRequest struct {
 
 func (x *TenantListRequest) Reset() {
 	*x = TenantListRequest{}
-	mi := &file_base_v1_service_proto_msgTypes[60]
+	mi := &file_base_v1_service_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3617,7 +3809,7 @@ func (x *TenantListRequest) String() string {
 func (*TenantListRequest) ProtoMessage() {}
 
 func (x *TenantListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[60]
+	mi := &file_base_v1_service_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3630,7 +3822,7 @@ func (x *TenantListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantListRequest.ProtoReflect.Descriptor instead.
 func (*TenantListRequest) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{60}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *TenantListRequest) GetPageSize() uint32 {
@@ -3660,7 +3852,7 @@ type TenantListResponse struct {
 
 func (x *TenantListResponse) Reset() {
 	*x = TenantListResponse{}
-	mi := &file_base_v1_service_proto_msgTypes[61]
+	mi := &file_base_v1_service_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3672,7 +3864,7 @@ func (x *TenantListResponse) String() string {
 func (*TenantListResponse) ProtoMessage() {}
 
 func (x *TenantListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_service_proto_msgTypes[61]
+	mi := &file_base_v1_service_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3685,7 +3877,7 @@ func (x *TenantListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantListResponse.ProtoReflect.Descriptor instead.
 func (*TenantListResponse) Descriptor() ([]byte, []int) {
-	return file_base_v1_service_proto_rawDescGZIP(), []int{61}
+	return file_base_v1_service_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *TenantListResponse) GetTenants() []*Tenant {
@@ -3727,7 +3919,22 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\x03can\x18\x01 \x01(\x0e2\x14.base.v1.CheckResultR\x03can\x12D\n" +
 	"\bmetadata\x18\x02 \x01(\v2(.base.v1.PermissionCheckResponseMetadataR\bmetadata\"C\n" +
 	"\x1fPermissionCheckResponseMetadata\x12 \n" +
-	"\vcheck_count\x18\x01 \x01(\x05R\vcheck_count\"\xe5\x04\n" +
+	"\vcheck_count\x18\x01 \x01(\x05R\vcheck_count\"\x94\x02\n" +
+	"\x1ePermissionBulkCheckRequestItem\x12D\n" +
+	"\x06entity\x18\x01 \x01(\v2\x0f.base.v1.EntityB\x1b\x92A\x10J\x0e\"repository:1\"\xfaB\x05\x8a\x01\x02\x10\x01R\x06entity\x12v\n" +
+	"\n" +
+	"permission\x18\x02 \x01(\tBV\x92A624The action the user wants to perform on the resource\xfaB\x1ar\x18(@2\x11^[a-zA-Z_]{1,64}$\xd0\x01\x00R\n" +
+	"permission\x124\n" +
+	"\asubject\x18\x03 \x01(\v2\x10.base.v1.SubjectB\b\xfaB\x05\x8a\x01\x02\x10\x01R\asubject\"\xdb\x05\n" +
+	"\x1aPermissionBulkCheckRequest\x12\xaa\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12M\n" +
+	"\bmetadata\x18\x02 \x01(\v2'.base.v1.PermissionCheckRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x12I\n" +
+	"\x05items\x18\x03 \x03(\v2'.base.v1.PermissionBulkCheckRequestItemB\n" +
+	"\xfaB\a\x92\x01\x04\b\x01\x10dR\x05items\x12\xc4\x01\n" +
+	"\acontext\x18\x04 \x01(\v2\x10.base.v1.ContextB\x97\x01\x92A\x93\x012\x90\x01Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)R\acontext\x12/\n" +
+	"\targuments\x18\x05 \x03(\v2\x11.base.v1.ArgumentR\targuments\"Y\n" +
+	"\x1bPermissionBulkCheckResponse\x12:\n" +
+	"\aresults\x18\x01 \x03(\v2 .base.v1.PermissionCheckResponseR\aresults\"\xe5\x04\n" +
 	"\x17PermissionExpandRequest\x12\xaa\x02\n" +
 	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12N\n" +
 	"\bmetadata\x18\x02 \x01(\v2(.base.v1.PermissionExpandRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x121\n" +
@@ -3982,7 +4189,7 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\x10continuous_token\x18\x02 \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x01R\x10continuous_token\"k\n" +
 	"\x12TenantListResponse\x12)\n" +
 	"\atenants\x18\x01 \x03(\v2\x0f.base.v1.TenantR\atenants\x12*\n" +
-	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token2\x93L\n" +
+	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token2\xafN\n" +
 	"\n" +
 	"Permission\x12\xe8\r\n" +
 	"\x05Check\x12\x1f.base.v1.PermissionCheckRequest\x1a .base.v1.PermissionCheckResponse\"\x9b\r\x92A\xe3\f\n" +
@@ -4071,7 +4278,10 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"    \"id\": \"1\",\n" +
 	"    \"relation\": \"\"\n" +
 	"  }\n" +
-	"}'\x82\xd3\xe4\x93\x02.:\x01*\")/v1/tenants/{tenant_id}/permissions/check\x12\xb4\t\n" +
+	"}'\x82\xd3\xe4\x93\x02.:\x01*\")/v1/tenants/{tenant_id}/permissions/check\x12\x99\x02\n" +
+	"\tBulkCheck\x12#.base.v1.PermissionBulkCheckRequest\x1a$.base.v1.PermissionBulkCheckResponse\"\xc0\x01\x92A\x83\x01\n" +
+	"\n" +
+	"Permission\x12\x0ebulk check api\x1aMCheck multiple permissions in a single request. Maximum 100 requests allowed.*\x16permissions.bulk-check\x82\xd3\xe4\x93\x023:\x01*\"./v1/tenants/{tenant_id}/permissions/bulk-check\x12\xb4\t\n" +
 	"\x06Expand\x12 .base.v1.PermissionExpandRequest\x1a!.base.v1.PermissionExpandResponse\"\xe4\b\x92A\xab\b\n" +
 	"\n" +
 	"Permission\x12\n" +
@@ -5379,208 +5589,220 @@ func file_base_v1_service_proto_rawDescGZIP() []byte {
 	return file_base_v1_service_proto_rawDescData
 }
 
-var file_base_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 67)
+var file_base_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 70)
 var file_base_v1_service_proto_goTypes = []any{
 	(*PermissionCheckRequest)(nil),                     // 0: base.v1.PermissionCheckRequest
 	(*PermissionCheckRequestMetadata)(nil),             // 1: base.v1.PermissionCheckRequestMetadata
 	(*PermissionCheckResponse)(nil),                    // 2: base.v1.PermissionCheckResponse
 	(*PermissionCheckResponseMetadata)(nil),            // 3: base.v1.PermissionCheckResponseMetadata
-	(*PermissionExpandRequest)(nil),                    // 4: base.v1.PermissionExpandRequest
-	(*PermissionExpandRequestMetadata)(nil),            // 5: base.v1.PermissionExpandRequestMetadata
-	(*PermissionExpandResponse)(nil),                   // 6: base.v1.PermissionExpandResponse
-	(*PermissionLookupEntityRequest)(nil),              // 7: base.v1.PermissionLookupEntityRequest
-	(*PermissionLookupEntityRequestMetadata)(nil),      // 8: base.v1.PermissionLookupEntityRequestMetadata
-	(*PermissionLookupEntityResponse)(nil),             // 9: base.v1.PermissionLookupEntityResponse
-	(*PermissionLookupEntityStreamResponse)(nil),       // 10: base.v1.PermissionLookupEntityStreamResponse
-	(*PermissionEntityFilterRequest)(nil),              // 11: base.v1.PermissionEntityFilterRequest
-	(*PermissionEntityFilterRequestMetadata)(nil),      // 12: base.v1.PermissionEntityFilterRequestMetadata
-	(*PermissionLookupSubjectRequest)(nil),             // 13: base.v1.PermissionLookupSubjectRequest
-	(*PermissionLookupSubjectRequestMetadata)(nil),     // 14: base.v1.PermissionLookupSubjectRequestMetadata
-	(*PermissionLookupSubjectResponse)(nil),            // 15: base.v1.PermissionLookupSubjectResponse
-	(*PermissionSubjectPermissionRequest)(nil),         // 16: base.v1.PermissionSubjectPermissionRequest
-	(*PermissionSubjectPermissionRequestMetadata)(nil), // 17: base.v1.PermissionSubjectPermissionRequestMetadata
-	(*PermissionSubjectPermissionResponse)(nil),        // 18: base.v1.PermissionSubjectPermissionResponse
-	(*WatchRequest)(nil),                               // 19: base.v1.WatchRequest
-	(*WatchResponse)(nil),                              // 20: base.v1.WatchResponse
-	(*SchemaWriteRequest)(nil),                         // 21: base.v1.SchemaWriteRequest
-	(*SchemaWriteResponse)(nil),                        // 22: base.v1.SchemaWriteResponse
-	(*SchemaPartialWriteRequest)(nil),                  // 23: base.v1.SchemaPartialWriteRequest
-	(*SchemaPartialWriteRequestMetadata)(nil),          // 24: base.v1.SchemaPartialWriteRequestMetadata
-	(*SchemaPartialWriteResponse)(nil),                 // 25: base.v1.SchemaPartialWriteResponse
-	(*SchemaReadRequest)(nil),                          // 26: base.v1.SchemaReadRequest
-	(*SchemaReadRequestMetadata)(nil),                  // 27: base.v1.SchemaReadRequestMetadata
-	(*SchemaReadResponse)(nil),                         // 28: base.v1.SchemaReadResponse
-	(*SchemaListRequest)(nil),                          // 29: base.v1.SchemaListRequest
-	(*SchemaListResponse)(nil),                         // 30: base.v1.SchemaListResponse
-	(*SchemaList)(nil),                                 // 31: base.v1.SchemaList
-	(*DataWriteRequest)(nil),                           // 32: base.v1.DataWriteRequest
-	(*DataWriteRequestMetadata)(nil),                   // 33: base.v1.DataWriteRequestMetadata
-	(*DataWriteResponse)(nil),                          // 34: base.v1.DataWriteResponse
-	(*RelationshipWriteRequest)(nil),                   // 35: base.v1.RelationshipWriteRequest
-	(*RelationshipWriteRequestMetadata)(nil),           // 36: base.v1.RelationshipWriteRequestMetadata
-	(*RelationshipWriteResponse)(nil),                  // 37: base.v1.RelationshipWriteResponse
-	(*RelationshipReadRequest)(nil),                    // 38: base.v1.RelationshipReadRequest
-	(*RelationshipReadRequestMetadata)(nil),            // 39: base.v1.RelationshipReadRequestMetadata
-	(*RelationshipReadResponse)(nil),                   // 40: base.v1.RelationshipReadResponse
-	(*AttributeReadRequest)(nil),                       // 41: base.v1.AttributeReadRequest
-	(*AttributeReadRequestMetadata)(nil),               // 42: base.v1.AttributeReadRequestMetadata
-	(*AttributeReadResponse)(nil),                      // 43: base.v1.AttributeReadResponse
-	(*DataDeleteRequest)(nil),                          // 44: base.v1.DataDeleteRequest
-	(*DataDeleteResponse)(nil),                         // 45: base.v1.DataDeleteResponse
-	(*RelationshipDeleteRequest)(nil),                  // 46: base.v1.RelationshipDeleteRequest
-	(*RelationshipDeleteResponse)(nil),                 // 47: base.v1.RelationshipDeleteResponse
-	(*BundleRunRequest)(nil),                           // 48: base.v1.BundleRunRequest
-	(*BundleRunResponse)(nil),                          // 49: base.v1.BundleRunResponse
-	(*BundleWriteRequest)(nil),                         // 50: base.v1.BundleWriteRequest
-	(*BundleWriteResponse)(nil),                        // 51: base.v1.BundleWriteResponse
-	(*BundleReadRequest)(nil),                          // 52: base.v1.BundleReadRequest
-	(*BundleReadResponse)(nil),                         // 53: base.v1.BundleReadResponse
-	(*BundleDeleteRequest)(nil),                        // 54: base.v1.BundleDeleteRequest
-	(*BundleDeleteResponse)(nil),                       // 55: base.v1.BundleDeleteResponse
-	(*TenantCreateRequest)(nil),                        // 56: base.v1.TenantCreateRequest
-	(*TenantCreateResponse)(nil),                       // 57: base.v1.TenantCreateResponse
-	(*TenantDeleteRequest)(nil),                        // 58: base.v1.TenantDeleteRequest
-	(*TenantDeleteResponse)(nil),                       // 59: base.v1.TenantDeleteResponse
-	(*TenantListRequest)(nil),                          // 60: base.v1.TenantListRequest
-	(*TenantListResponse)(nil),                         // 61: base.v1.TenantListResponse
-	nil,                                                // 62: base.v1.PermissionLookupEntityRequest.ScopeEntry
-	nil,                                                // 63: base.v1.PermissionEntityFilterRequest.ScopeEntry
-	nil,                                                // 64: base.v1.PermissionSubjectPermissionResponse.ResultsEntry
-	nil,                                                // 65: base.v1.SchemaPartialWriteRequest.PartialsEntry
-	nil,                                                // 66: base.v1.BundleRunRequest.ArgumentsEntry
-	(*Entity)(nil),                                     // 67: base.v1.Entity
-	(*Subject)(nil),                                    // 68: base.v1.Subject
-	(*Context)(nil),                                    // 69: base.v1.Context
-	(*Argument)(nil),                                   // 70: base.v1.Argument
-	(CheckResult)(0),                                   // 71: base.v1.CheckResult
-	(*Expand)(nil),                                     // 72: base.v1.Expand
-	(*Entrance)(nil),                                   // 73: base.v1.Entrance
-	(*RelationReference)(nil),                          // 74: base.v1.RelationReference
-	(*DataChanges)(nil),                                // 75: base.v1.DataChanges
-	(*SchemaDefinition)(nil),                           // 76: base.v1.SchemaDefinition
-	(*Tuple)(nil),                                      // 77: base.v1.Tuple
-	(*Attribute)(nil),                                  // 78: base.v1.Attribute
-	(*TupleFilter)(nil),                                // 79: base.v1.TupleFilter
-	(*AttributeFilter)(nil),                            // 80: base.v1.AttributeFilter
-	(*DataBundle)(nil),                                 // 81: base.v1.DataBundle
-	(*Tenant)(nil),                                     // 82: base.v1.Tenant
-	(*StringArrayValue)(nil),                           // 83: base.v1.StringArrayValue
-	(*Partials)(nil),                                   // 84: base.v1.Partials
+	(*PermissionBulkCheckRequestItem)(nil),             // 4: base.v1.PermissionBulkCheckRequestItem
+	(*PermissionBulkCheckRequest)(nil),                 // 5: base.v1.PermissionBulkCheckRequest
+	(*PermissionBulkCheckResponse)(nil),                // 6: base.v1.PermissionBulkCheckResponse
+	(*PermissionExpandRequest)(nil),                    // 7: base.v1.PermissionExpandRequest
+	(*PermissionExpandRequestMetadata)(nil),            // 8: base.v1.PermissionExpandRequestMetadata
+	(*PermissionExpandResponse)(nil),                   // 9: base.v1.PermissionExpandResponse
+	(*PermissionLookupEntityRequest)(nil),              // 10: base.v1.PermissionLookupEntityRequest
+	(*PermissionLookupEntityRequestMetadata)(nil),      // 11: base.v1.PermissionLookupEntityRequestMetadata
+	(*PermissionLookupEntityResponse)(nil),             // 12: base.v1.PermissionLookupEntityResponse
+	(*PermissionLookupEntityStreamResponse)(nil),       // 13: base.v1.PermissionLookupEntityStreamResponse
+	(*PermissionEntityFilterRequest)(nil),              // 14: base.v1.PermissionEntityFilterRequest
+	(*PermissionEntityFilterRequestMetadata)(nil),      // 15: base.v1.PermissionEntityFilterRequestMetadata
+	(*PermissionLookupSubjectRequest)(nil),             // 16: base.v1.PermissionLookupSubjectRequest
+	(*PermissionLookupSubjectRequestMetadata)(nil),     // 17: base.v1.PermissionLookupSubjectRequestMetadata
+	(*PermissionLookupSubjectResponse)(nil),            // 18: base.v1.PermissionLookupSubjectResponse
+	(*PermissionSubjectPermissionRequest)(nil),         // 19: base.v1.PermissionSubjectPermissionRequest
+	(*PermissionSubjectPermissionRequestMetadata)(nil), // 20: base.v1.PermissionSubjectPermissionRequestMetadata
+	(*PermissionSubjectPermissionResponse)(nil),        // 21: base.v1.PermissionSubjectPermissionResponse
+	(*WatchRequest)(nil),                               // 22: base.v1.WatchRequest
+	(*WatchResponse)(nil),                              // 23: base.v1.WatchResponse
+	(*SchemaWriteRequest)(nil),                         // 24: base.v1.SchemaWriteRequest
+	(*SchemaWriteResponse)(nil),                        // 25: base.v1.SchemaWriteResponse
+	(*SchemaPartialWriteRequest)(nil),                  // 26: base.v1.SchemaPartialWriteRequest
+	(*SchemaPartialWriteRequestMetadata)(nil),          // 27: base.v1.SchemaPartialWriteRequestMetadata
+	(*SchemaPartialWriteResponse)(nil),                 // 28: base.v1.SchemaPartialWriteResponse
+	(*SchemaReadRequest)(nil),                          // 29: base.v1.SchemaReadRequest
+	(*SchemaReadRequestMetadata)(nil),                  // 30: base.v1.SchemaReadRequestMetadata
+	(*SchemaReadResponse)(nil),                         // 31: base.v1.SchemaReadResponse
+	(*SchemaListRequest)(nil),                          // 32: base.v1.SchemaListRequest
+	(*SchemaListResponse)(nil),                         // 33: base.v1.SchemaListResponse
+	(*SchemaList)(nil),                                 // 34: base.v1.SchemaList
+	(*DataWriteRequest)(nil),                           // 35: base.v1.DataWriteRequest
+	(*DataWriteRequestMetadata)(nil),                   // 36: base.v1.DataWriteRequestMetadata
+	(*DataWriteResponse)(nil),                          // 37: base.v1.DataWriteResponse
+	(*RelationshipWriteRequest)(nil),                   // 38: base.v1.RelationshipWriteRequest
+	(*RelationshipWriteRequestMetadata)(nil),           // 39: base.v1.RelationshipWriteRequestMetadata
+	(*RelationshipWriteResponse)(nil),                  // 40: base.v1.RelationshipWriteResponse
+	(*RelationshipReadRequest)(nil),                    // 41: base.v1.RelationshipReadRequest
+	(*RelationshipReadRequestMetadata)(nil),            // 42: base.v1.RelationshipReadRequestMetadata
+	(*RelationshipReadResponse)(nil),                   // 43: base.v1.RelationshipReadResponse
+	(*AttributeReadRequest)(nil),                       // 44: base.v1.AttributeReadRequest
+	(*AttributeReadRequestMetadata)(nil),               // 45: base.v1.AttributeReadRequestMetadata
+	(*AttributeReadResponse)(nil),                      // 46: base.v1.AttributeReadResponse
+	(*DataDeleteRequest)(nil),                          // 47: base.v1.DataDeleteRequest
+	(*DataDeleteResponse)(nil),                         // 48: base.v1.DataDeleteResponse
+	(*RelationshipDeleteRequest)(nil),                  // 49: base.v1.RelationshipDeleteRequest
+	(*RelationshipDeleteResponse)(nil),                 // 50: base.v1.RelationshipDeleteResponse
+	(*BundleRunRequest)(nil),                           // 51: base.v1.BundleRunRequest
+	(*BundleRunResponse)(nil),                          // 52: base.v1.BundleRunResponse
+	(*BundleWriteRequest)(nil),                         // 53: base.v1.BundleWriteRequest
+	(*BundleWriteResponse)(nil),                        // 54: base.v1.BundleWriteResponse
+	(*BundleReadRequest)(nil),                          // 55: base.v1.BundleReadRequest
+	(*BundleReadResponse)(nil),                         // 56: base.v1.BundleReadResponse
+	(*BundleDeleteRequest)(nil),                        // 57: base.v1.BundleDeleteRequest
+	(*BundleDeleteResponse)(nil),                       // 58: base.v1.BundleDeleteResponse
+	(*TenantCreateRequest)(nil),                        // 59: base.v1.TenantCreateRequest
+	(*TenantCreateResponse)(nil),                       // 60: base.v1.TenantCreateResponse
+	(*TenantDeleteRequest)(nil),                        // 61: base.v1.TenantDeleteRequest
+	(*TenantDeleteResponse)(nil),                       // 62: base.v1.TenantDeleteResponse
+	(*TenantListRequest)(nil),                          // 63: base.v1.TenantListRequest
+	(*TenantListResponse)(nil),                         // 64: base.v1.TenantListResponse
+	nil,                                                // 65: base.v1.PermissionLookupEntityRequest.ScopeEntry
+	nil,                                                // 66: base.v1.PermissionEntityFilterRequest.ScopeEntry
+	nil,                                                // 67: base.v1.PermissionSubjectPermissionResponse.ResultsEntry
+	nil,                                                // 68: base.v1.SchemaPartialWriteRequest.PartialsEntry
+	nil,                                                // 69: base.v1.BundleRunRequest.ArgumentsEntry
+	(*Entity)(nil),                                     // 70: base.v1.Entity
+	(*Subject)(nil),                                    // 71: base.v1.Subject
+	(*Context)(nil),                                    // 72: base.v1.Context
+	(*Argument)(nil),                                   // 73: base.v1.Argument
+	(CheckResult)(0),                                   // 74: base.v1.CheckResult
+	(*Expand)(nil),                                     // 75: base.v1.Expand
+	(*Entrance)(nil),                                   // 76: base.v1.Entrance
+	(*RelationReference)(nil),                          // 77: base.v1.RelationReference
+	(*DataChanges)(nil),                                // 78: base.v1.DataChanges
+	(*SchemaDefinition)(nil),                           // 79: base.v1.SchemaDefinition
+	(*Tuple)(nil),                                      // 80: base.v1.Tuple
+	(*Attribute)(nil),                                  // 81: base.v1.Attribute
+	(*TupleFilter)(nil),                                // 82: base.v1.TupleFilter
+	(*AttributeFilter)(nil),                            // 83: base.v1.AttributeFilter
+	(*DataBundle)(nil),                                 // 84: base.v1.DataBundle
+	(*Tenant)(nil),                                     // 85: base.v1.Tenant
+	(*StringArrayValue)(nil),                           // 86: base.v1.StringArrayValue
+	(*Partials)(nil),                                   // 87: base.v1.Partials
 }
 var file_base_v1_service_proto_depIdxs = []int32{
 	1,  // 0: base.v1.PermissionCheckRequest.metadata:type_name -> base.v1.PermissionCheckRequestMetadata
-	67, // 1: base.v1.PermissionCheckRequest.entity:type_name -> base.v1.Entity
-	68, // 2: base.v1.PermissionCheckRequest.subject:type_name -> base.v1.Subject
-	69, // 3: base.v1.PermissionCheckRequest.context:type_name -> base.v1.Context
-	70, // 4: base.v1.PermissionCheckRequest.arguments:type_name -> base.v1.Argument
-	71, // 5: base.v1.PermissionCheckResponse.can:type_name -> base.v1.CheckResult
+	70, // 1: base.v1.PermissionCheckRequest.entity:type_name -> base.v1.Entity
+	71, // 2: base.v1.PermissionCheckRequest.subject:type_name -> base.v1.Subject
+	72, // 3: base.v1.PermissionCheckRequest.context:type_name -> base.v1.Context
+	73, // 4: base.v1.PermissionCheckRequest.arguments:type_name -> base.v1.Argument
+	74, // 5: base.v1.PermissionCheckResponse.can:type_name -> base.v1.CheckResult
 	3,  // 6: base.v1.PermissionCheckResponse.metadata:type_name -> base.v1.PermissionCheckResponseMetadata
-	5,  // 7: base.v1.PermissionExpandRequest.metadata:type_name -> base.v1.PermissionExpandRequestMetadata
-	67, // 8: base.v1.PermissionExpandRequest.entity:type_name -> base.v1.Entity
-	69, // 9: base.v1.PermissionExpandRequest.context:type_name -> base.v1.Context
-	70, // 10: base.v1.PermissionExpandRequest.arguments:type_name -> base.v1.Argument
-	72, // 11: base.v1.PermissionExpandResponse.tree:type_name -> base.v1.Expand
-	8,  // 12: base.v1.PermissionLookupEntityRequest.metadata:type_name -> base.v1.PermissionLookupEntityRequestMetadata
-	68, // 13: base.v1.PermissionLookupEntityRequest.subject:type_name -> base.v1.Subject
-	69, // 14: base.v1.PermissionLookupEntityRequest.context:type_name -> base.v1.Context
-	62, // 15: base.v1.PermissionLookupEntityRequest.scope:type_name -> base.v1.PermissionLookupEntityRequest.ScopeEntry
-	12, // 16: base.v1.PermissionEntityFilterRequest.metadata:type_name -> base.v1.PermissionEntityFilterRequestMetadata
-	73, // 17: base.v1.PermissionEntityFilterRequest.entrance:type_name -> base.v1.Entrance
-	68, // 18: base.v1.PermissionEntityFilterRequest.subject:type_name -> base.v1.Subject
-	69, // 19: base.v1.PermissionEntityFilterRequest.context:type_name -> base.v1.Context
-	63, // 20: base.v1.PermissionEntityFilterRequest.scope:type_name -> base.v1.PermissionEntityFilterRequest.ScopeEntry
-	14, // 21: base.v1.PermissionLookupSubjectRequest.metadata:type_name -> base.v1.PermissionLookupSubjectRequestMetadata
-	67, // 22: base.v1.PermissionLookupSubjectRequest.entity:type_name -> base.v1.Entity
-	74, // 23: base.v1.PermissionLookupSubjectRequest.subject_reference:type_name -> base.v1.RelationReference
-	69, // 24: base.v1.PermissionLookupSubjectRequest.context:type_name -> base.v1.Context
-	70, // 25: base.v1.PermissionLookupSubjectRequest.arguments:type_name -> base.v1.Argument
-	17, // 26: base.v1.PermissionSubjectPermissionRequest.metadata:type_name -> base.v1.PermissionSubjectPermissionRequestMetadata
-	67, // 27: base.v1.PermissionSubjectPermissionRequest.entity:type_name -> base.v1.Entity
-	68, // 28: base.v1.PermissionSubjectPermissionRequest.subject:type_name -> base.v1.Subject
-	69, // 29: base.v1.PermissionSubjectPermissionRequest.context:type_name -> base.v1.Context
-	64, // 30: base.v1.PermissionSubjectPermissionResponse.results:type_name -> base.v1.PermissionSubjectPermissionResponse.ResultsEntry
-	75, // 31: base.v1.WatchResponse.changes:type_name -> base.v1.DataChanges
-	24, // 32: base.v1.SchemaPartialWriteRequest.metadata:type_name -> base.v1.SchemaPartialWriteRequestMetadata
-	65, // 33: base.v1.SchemaPartialWriteRequest.partials:type_name -> base.v1.SchemaPartialWriteRequest.PartialsEntry
-	27, // 34: base.v1.SchemaReadRequest.metadata:type_name -> base.v1.SchemaReadRequestMetadata
-	76, // 35: base.v1.SchemaReadResponse.schema:type_name -> base.v1.SchemaDefinition
-	31, // 36: base.v1.SchemaListResponse.schemas:type_name -> base.v1.SchemaList
-	33, // 37: base.v1.DataWriteRequest.metadata:type_name -> base.v1.DataWriteRequestMetadata
-	77, // 38: base.v1.DataWriteRequest.tuples:type_name -> base.v1.Tuple
-	78, // 39: base.v1.DataWriteRequest.attributes:type_name -> base.v1.Attribute
-	36, // 40: base.v1.RelationshipWriteRequest.metadata:type_name -> base.v1.RelationshipWriteRequestMetadata
-	77, // 41: base.v1.RelationshipWriteRequest.tuples:type_name -> base.v1.Tuple
-	39, // 42: base.v1.RelationshipReadRequest.metadata:type_name -> base.v1.RelationshipReadRequestMetadata
-	79, // 43: base.v1.RelationshipReadRequest.filter:type_name -> base.v1.TupleFilter
-	77, // 44: base.v1.RelationshipReadResponse.tuples:type_name -> base.v1.Tuple
-	42, // 45: base.v1.AttributeReadRequest.metadata:type_name -> base.v1.AttributeReadRequestMetadata
-	80, // 46: base.v1.AttributeReadRequest.filter:type_name -> base.v1.AttributeFilter
-	78, // 47: base.v1.AttributeReadResponse.attributes:type_name -> base.v1.Attribute
-	79, // 48: base.v1.DataDeleteRequest.tuple_filter:type_name -> base.v1.TupleFilter
-	80, // 49: base.v1.DataDeleteRequest.attribute_filter:type_name -> base.v1.AttributeFilter
-	79, // 50: base.v1.RelationshipDeleteRequest.filter:type_name -> base.v1.TupleFilter
-	66, // 51: base.v1.BundleRunRequest.arguments:type_name -> base.v1.BundleRunRequest.ArgumentsEntry
-	81, // 52: base.v1.BundleWriteRequest.bundles:type_name -> base.v1.DataBundle
-	81, // 53: base.v1.BundleReadResponse.bundle:type_name -> base.v1.DataBundle
-	82, // 54: base.v1.TenantCreateResponse.tenant:type_name -> base.v1.Tenant
-	82, // 55: base.v1.TenantListResponse.tenants:type_name -> base.v1.Tenant
-	83, // 56: base.v1.PermissionLookupEntityRequest.ScopeEntry.value:type_name -> base.v1.StringArrayValue
-	83, // 57: base.v1.PermissionEntityFilterRequest.ScopeEntry.value:type_name -> base.v1.StringArrayValue
-	71, // 58: base.v1.PermissionSubjectPermissionResponse.ResultsEntry.value:type_name -> base.v1.CheckResult
-	84, // 59: base.v1.SchemaPartialWriteRequest.PartialsEntry.value:type_name -> base.v1.Partials
-	0,  // 60: base.v1.Permission.Check:input_type -> base.v1.PermissionCheckRequest
-	4,  // 61: base.v1.Permission.Expand:input_type -> base.v1.PermissionExpandRequest
-	7,  // 62: base.v1.Permission.LookupEntity:input_type -> base.v1.PermissionLookupEntityRequest
-	7,  // 63: base.v1.Permission.LookupEntityStream:input_type -> base.v1.PermissionLookupEntityRequest
-	13, // 64: base.v1.Permission.LookupSubject:input_type -> base.v1.PermissionLookupSubjectRequest
-	16, // 65: base.v1.Permission.SubjectPermission:input_type -> base.v1.PermissionSubjectPermissionRequest
-	19, // 66: base.v1.Watch.Watch:input_type -> base.v1.WatchRequest
-	21, // 67: base.v1.Schema.Write:input_type -> base.v1.SchemaWriteRequest
-	23, // 68: base.v1.Schema.PartialWrite:input_type -> base.v1.SchemaPartialWriteRequest
-	26, // 69: base.v1.Schema.Read:input_type -> base.v1.SchemaReadRequest
-	29, // 70: base.v1.Schema.List:input_type -> base.v1.SchemaListRequest
-	32, // 71: base.v1.Data.Write:input_type -> base.v1.DataWriteRequest
-	35, // 72: base.v1.Data.WriteRelationships:input_type -> base.v1.RelationshipWriteRequest
-	38, // 73: base.v1.Data.ReadRelationships:input_type -> base.v1.RelationshipReadRequest
-	41, // 74: base.v1.Data.ReadAttributes:input_type -> base.v1.AttributeReadRequest
-	44, // 75: base.v1.Data.Delete:input_type -> base.v1.DataDeleteRequest
-	46, // 76: base.v1.Data.DeleteRelationships:input_type -> base.v1.RelationshipDeleteRequest
-	48, // 77: base.v1.Data.RunBundle:input_type -> base.v1.BundleRunRequest
-	50, // 78: base.v1.Bundle.Write:input_type -> base.v1.BundleWriteRequest
-	52, // 79: base.v1.Bundle.Read:input_type -> base.v1.BundleReadRequest
-	54, // 80: base.v1.Bundle.Delete:input_type -> base.v1.BundleDeleteRequest
-	56, // 81: base.v1.Tenancy.Create:input_type -> base.v1.TenantCreateRequest
-	58, // 82: base.v1.Tenancy.Delete:input_type -> base.v1.TenantDeleteRequest
-	60, // 83: base.v1.Tenancy.List:input_type -> base.v1.TenantListRequest
-	2,  // 84: base.v1.Permission.Check:output_type -> base.v1.PermissionCheckResponse
-	6,  // 85: base.v1.Permission.Expand:output_type -> base.v1.PermissionExpandResponse
-	9,  // 86: base.v1.Permission.LookupEntity:output_type -> base.v1.PermissionLookupEntityResponse
-	10, // 87: base.v1.Permission.LookupEntityStream:output_type -> base.v1.PermissionLookupEntityStreamResponse
-	15, // 88: base.v1.Permission.LookupSubject:output_type -> base.v1.PermissionLookupSubjectResponse
-	18, // 89: base.v1.Permission.SubjectPermission:output_type -> base.v1.PermissionSubjectPermissionResponse
-	20, // 90: base.v1.Watch.Watch:output_type -> base.v1.WatchResponse
-	22, // 91: base.v1.Schema.Write:output_type -> base.v1.SchemaWriteResponse
-	25, // 92: base.v1.Schema.PartialWrite:output_type -> base.v1.SchemaPartialWriteResponse
-	28, // 93: base.v1.Schema.Read:output_type -> base.v1.SchemaReadResponse
-	30, // 94: base.v1.Schema.List:output_type -> base.v1.SchemaListResponse
-	34, // 95: base.v1.Data.Write:output_type -> base.v1.DataWriteResponse
-	37, // 96: base.v1.Data.WriteRelationships:output_type -> base.v1.RelationshipWriteResponse
-	40, // 97: base.v1.Data.ReadRelationships:output_type -> base.v1.RelationshipReadResponse
-	43, // 98: base.v1.Data.ReadAttributes:output_type -> base.v1.AttributeReadResponse
-	45, // 99: base.v1.Data.Delete:output_type -> base.v1.DataDeleteResponse
-	47, // 100: base.v1.Data.DeleteRelationships:output_type -> base.v1.RelationshipDeleteResponse
-	49, // 101: base.v1.Data.RunBundle:output_type -> base.v1.BundleRunResponse
-	51, // 102: base.v1.Bundle.Write:output_type -> base.v1.BundleWriteResponse
-	53, // 103: base.v1.Bundle.Read:output_type -> base.v1.BundleReadResponse
-	55, // 104: base.v1.Bundle.Delete:output_type -> base.v1.BundleDeleteResponse
-	57, // 105: base.v1.Tenancy.Create:output_type -> base.v1.TenantCreateResponse
-	59, // 106: base.v1.Tenancy.Delete:output_type -> base.v1.TenantDeleteResponse
-	61, // 107: base.v1.Tenancy.List:output_type -> base.v1.TenantListResponse
-	84, // [84:108] is the sub-list for method output_type
-	60, // [60:84] is the sub-list for method input_type
-	60, // [60:60] is the sub-list for extension type_name
-	60, // [60:60] is the sub-list for extension extendee
-	0,  // [0:60] is the sub-list for field type_name
+	70, // 7: base.v1.PermissionBulkCheckRequestItem.entity:type_name -> base.v1.Entity
+	71, // 8: base.v1.PermissionBulkCheckRequestItem.subject:type_name -> base.v1.Subject
+	1,  // 9: base.v1.PermissionBulkCheckRequest.metadata:type_name -> base.v1.PermissionCheckRequestMetadata
+	4,  // 10: base.v1.PermissionBulkCheckRequest.items:type_name -> base.v1.PermissionBulkCheckRequestItem
+	72, // 11: base.v1.PermissionBulkCheckRequest.context:type_name -> base.v1.Context
+	73, // 12: base.v1.PermissionBulkCheckRequest.arguments:type_name -> base.v1.Argument
+	2,  // 13: base.v1.PermissionBulkCheckResponse.results:type_name -> base.v1.PermissionCheckResponse
+	8,  // 14: base.v1.PermissionExpandRequest.metadata:type_name -> base.v1.PermissionExpandRequestMetadata
+	70, // 15: base.v1.PermissionExpandRequest.entity:type_name -> base.v1.Entity
+	72, // 16: base.v1.PermissionExpandRequest.context:type_name -> base.v1.Context
+	73, // 17: base.v1.PermissionExpandRequest.arguments:type_name -> base.v1.Argument
+	75, // 18: base.v1.PermissionExpandResponse.tree:type_name -> base.v1.Expand
+	11, // 19: base.v1.PermissionLookupEntityRequest.metadata:type_name -> base.v1.PermissionLookupEntityRequestMetadata
+	71, // 20: base.v1.PermissionLookupEntityRequest.subject:type_name -> base.v1.Subject
+	72, // 21: base.v1.PermissionLookupEntityRequest.context:type_name -> base.v1.Context
+	65, // 22: base.v1.PermissionLookupEntityRequest.scope:type_name -> base.v1.PermissionLookupEntityRequest.ScopeEntry
+	15, // 23: base.v1.PermissionEntityFilterRequest.metadata:type_name -> base.v1.PermissionEntityFilterRequestMetadata
+	76, // 24: base.v1.PermissionEntityFilterRequest.entrance:type_name -> base.v1.Entrance
+	71, // 25: base.v1.PermissionEntityFilterRequest.subject:type_name -> base.v1.Subject
+	72, // 26: base.v1.PermissionEntityFilterRequest.context:type_name -> base.v1.Context
+	66, // 27: base.v1.PermissionEntityFilterRequest.scope:type_name -> base.v1.PermissionEntityFilterRequest.ScopeEntry
+	17, // 28: base.v1.PermissionLookupSubjectRequest.metadata:type_name -> base.v1.PermissionLookupSubjectRequestMetadata
+	70, // 29: base.v1.PermissionLookupSubjectRequest.entity:type_name -> base.v1.Entity
+	77, // 30: base.v1.PermissionLookupSubjectRequest.subject_reference:type_name -> base.v1.RelationReference
+	72, // 31: base.v1.PermissionLookupSubjectRequest.context:type_name -> base.v1.Context
+	73, // 32: base.v1.PermissionLookupSubjectRequest.arguments:type_name -> base.v1.Argument
+	20, // 33: base.v1.PermissionSubjectPermissionRequest.metadata:type_name -> base.v1.PermissionSubjectPermissionRequestMetadata
+	70, // 34: base.v1.PermissionSubjectPermissionRequest.entity:type_name -> base.v1.Entity
+	71, // 35: base.v1.PermissionSubjectPermissionRequest.subject:type_name -> base.v1.Subject
+	72, // 36: base.v1.PermissionSubjectPermissionRequest.context:type_name -> base.v1.Context
+	67, // 37: base.v1.PermissionSubjectPermissionResponse.results:type_name -> base.v1.PermissionSubjectPermissionResponse.ResultsEntry
+	78, // 38: base.v1.WatchResponse.changes:type_name -> base.v1.DataChanges
+	27, // 39: base.v1.SchemaPartialWriteRequest.metadata:type_name -> base.v1.SchemaPartialWriteRequestMetadata
+	68, // 40: base.v1.SchemaPartialWriteRequest.partials:type_name -> base.v1.SchemaPartialWriteRequest.PartialsEntry
+	30, // 41: base.v1.SchemaReadRequest.metadata:type_name -> base.v1.SchemaReadRequestMetadata
+	79, // 42: base.v1.SchemaReadResponse.schema:type_name -> base.v1.SchemaDefinition
+	34, // 43: base.v1.SchemaListResponse.schemas:type_name -> base.v1.SchemaList
+	36, // 44: base.v1.DataWriteRequest.metadata:type_name -> base.v1.DataWriteRequestMetadata
+	80, // 45: base.v1.DataWriteRequest.tuples:type_name -> base.v1.Tuple
+	81, // 46: base.v1.DataWriteRequest.attributes:type_name -> base.v1.Attribute
+	39, // 47: base.v1.RelationshipWriteRequest.metadata:type_name -> base.v1.RelationshipWriteRequestMetadata
+	80, // 48: base.v1.RelationshipWriteRequest.tuples:type_name -> base.v1.Tuple
+	42, // 49: base.v1.RelationshipReadRequest.metadata:type_name -> base.v1.RelationshipReadRequestMetadata
+	82, // 50: base.v1.RelationshipReadRequest.filter:type_name -> base.v1.TupleFilter
+	80, // 51: base.v1.RelationshipReadResponse.tuples:type_name -> base.v1.Tuple
+	45, // 52: base.v1.AttributeReadRequest.metadata:type_name -> base.v1.AttributeReadRequestMetadata
+	83, // 53: base.v1.AttributeReadRequest.filter:type_name -> base.v1.AttributeFilter
+	81, // 54: base.v1.AttributeReadResponse.attributes:type_name -> base.v1.Attribute
+	82, // 55: base.v1.DataDeleteRequest.tuple_filter:type_name -> base.v1.TupleFilter
+	83, // 56: base.v1.DataDeleteRequest.attribute_filter:type_name -> base.v1.AttributeFilter
+	82, // 57: base.v1.RelationshipDeleteRequest.filter:type_name -> base.v1.TupleFilter
+	69, // 58: base.v1.BundleRunRequest.arguments:type_name -> base.v1.BundleRunRequest.ArgumentsEntry
+	84, // 59: base.v1.BundleWriteRequest.bundles:type_name -> base.v1.DataBundle
+	84, // 60: base.v1.BundleReadResponse.bundle:type_name -> base.v1.DataBundle
+	85, // 61: base.v1.TenantCreateResponse.tenant:type_name -> base.v1.Tenant
+	85, // 62: base.v1.TenantListResponse.tenants:type_name -> base.v1.Tenant
+	86, // 63: base.v1.PermissionLookupEntityRequest.ScopeEntry.value:type_name -> base.v1.StringArrayValue
+	86, // 64: base.v1.PermissionEntityFilterRequest.ScopeEntry.value:type_name -> base.v1.StringArrayValue
+	74, // 65: base.v1.PermissionSubjectPermissionResponse.ResultsEntry.value:type_name -> base.v1.CheckResult
+	87, // 66: base.v1.SchemaPartialWriteRequest.PartialsEntry.value:type_name -> base.v1.Partials
+	0,  // 67: base.v1.Permission.Check:input_type -> base.v1.PermissionCheckRequest
+	5,  // 68: base.v1.Permission.BulkCheck:input_type -> base.v1.PermissionBulkCheckRequest
+	7,  // 69: base.v1.Permission.Expand:input_type -> base.v1.PermissionExpandRequest
+	10, // 70: base.v1.Permission.LookupEntity:input_type -> base.v1.PermissionLookupEntityRequest
+	10, // 71: base.v1.Permission.LookupEntityStream:input_type -> base.v1.PermissionLookupEntityRequest
+	16, // 72: base.v1.Permission.LookupSubject:input_type -> base.v1.PermissionLookupSubjectRequest
+	19, // 73: base.v1.Permission.SubjectPermission:input_type -> base.v1.PermissionSubjectPermissionRequest
+	22, // 74: base.v1.Watch.Watch:input_type -> base.v1.WatchRequest
+	24, // 75: base.v1.Schema.Write:input_type -> base.v1.SchemaWriteRequest
+	26, // 76: base.v1.Schema.PartialWrite:input_type -> base.v1.SchemaPartialWriteRequest
+	29, // 77: base.v1.Schema.Read:input_type -> base.v1.SchemaReadRequest
+	32, // 78: base.v1.Schema.List:input_type -> base.v1.SchemaListRequest
+	35, // 79: base.v1.Data.Write:input_type -> base.v1.DataWriteRequest
+	38, // 80: base.v1.Data.WriteRelationships:input_type -> base.v1.RelationshipWriteRequest
+	41, // 81: base.v1.Data.ReadRelationships:input_type -> base.v1.RelationshipReadRequest
+	44, // 82: base.v1.Data.ReadAttributes:input_type -> base.v1.AttributeReadRequest
+	47, // 83: base.v1.Data.Delete:input_type -> base.v1.DataDeleteRequest
+	49, // 84: base.v1.Data.DeleteRelationships:input_type -> base.v1.RelationshipDeleteRequest
+	51, // 85: base.v1.Data.RunBundle:input_type -> base.v1.BundleRunRequest
+	53, // 86: base.v1.Bundle.Write:input_type -> base.v1.BundleWriteRequest
+	55, // 87: base.v1.Bundle.Read:input_type -> base.v1.BundleReadRequest
+	57, // 88: base.v1.Bundle.Delete:input_type -> base.v1.BundleDeleteRequest
+	59, // 89: base.v1.Tenancy.Create:input_type -> base.v1.TenantCreateRequest
+	61, // 90: base.v1.Tenancy.Delete:input_type -> base.v1.TenantDeleteRequest
+	63, // 91: base.v1.Tenancy.List:input_type -> base.v1.TenantListRequest
+	2,  // 92: base.v1.Permission.Check:output_type -> base.v1.PermissionCheckResponse
+	6,  // 93: base.v1.Permission.BulkCheck:output_type -> base.v1.PermissionBulkCheckResponse
+	9,  // 94: base.v1.Permission.Expand:output_type -> base.v1.PermissionExpandResponse
+	12, // 95: base.v1.Permission.LookupEntity:output_type -> base.v1.PermissionLookupEntityResponse
+	13, // 96: base.v1.Permission.LookupEntityStream:output_type -> base.v1.PermissionLookupEntityStreamResponse
+	18, // 97: base.v1.Permission.LookupSubject:output_type -> base.v1.PermissionLookupSubjectResponse
+	21, // 98: base.v1.Permission.SubjectPermission:output_type -> base.v1.PermissionSubjectPermissionResponse
+	23, // 99: base.v1.Watch.Watch:output_type -> base.v1.WatchResponse
+	25, // 100: base.v1.Schema.Write:output_type -> base.v1.SchemaWriteResponse
+	28, // 101: base.v1.Schema.PartialWrite:output_type -> base.v1.SchemaPartialWriteResponse
+	31, // 102: base.v1.Schema.Read:output_type -> base.v1.SchemaReadResponse
+	33, // 103: base.v1.Schema.List:output_type -> base.v1.SchemaListResponse
+	37, // 104: base.v1.Data.Write:output_type -> base.v1.DataWriteResponse
+	40, // 105: base.v1.Data.WriteRelationships:output_type -> base.v1.RelationshipWriteResponse
+	43, // 106: base.v1.Data.ReadRelationships:output_type -> base.v1.RelationshipReadResponse
+	46, // 107: base.v1.Data.ReadAttributes:output_type -> base.v1.AttributeReadResponse
+	48, // 108: base.v1.Data.Delete:output_type -> base.v1.DataDeleteResponse
+	50, // 109: base.v1.Data.DeleteRelationships:output_type -> base.v1.RelationshipDeleteResponse
+	52, // 110: base.v1.Data.RunBundle:output_type -> base.v1.BundleRunResponse
+	54, // 111: base.v1.Bundle.Write:output_type -> base.v1.BundleWriteResponse
+	56, // 112: base.v1.Bundle.Read:output_type -> base.v1.BundleReadResponse
+	58, // 113: base.v1.Bundle.Delete:output_type -> base.v1.BundleDeleteResponse
+	60, // 114: base.v1.Tenancy.Create:output_type -> base.v1.TenantCreateResponse
+	62, // 115: base.v1.Tenancy.Delete:output_type -> base.v1.TenantDeleteResponse
+	64, // 116: base.v1.Tenancy.List:output_type -> base.v1.TenantListResponse
+	92, // [92:117] is the sub-list for method output_type
+	67, // [67:92] is the sub-list for method input_type
+	67, // [67:67] is the sub-list for extension type_name
+	67, // [67:67] is the sub-list for extension extendee
+	0,  // [0:67] is the sub-list for field type_name
 }
 
 func init() { file_base_v1_service_proto_init() }
@@ -5595,7 +5817,7 @@ func file_base_v1_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_base_v1_service_proto_rawDesc), len(file_base_v1_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   67,
+			NumMessages:   70,
 			NumExtensions: 0,
 			NumServices:   6,
 		},
