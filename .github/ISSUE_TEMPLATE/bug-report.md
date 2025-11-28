@@ -3,7 +3,7 @@ name: Bug report
 about: Create a report to help us improve
 title: "[BUG]"
 labels: bug
-assignees: EgeAytin, tolgaOzen
+assignees: EgeAytin, tolgaOzen, mooreds
 
 ---
 
