@@ -18,7 +18,7 @@
     "@vercel/blob": "^2.0.0",
     "@vercel/speed-insights": "^1.0.12",
     "allotment": "^1.19.3",
-    "antd": "^5.4.7",
+    "antd": "^6.0.0",
     "axios": "^1.2.2",
     "craco-less": "^3.0.1",
     "js-yaml": "^4.1.0",
