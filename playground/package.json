@@ -22,7 +22,7 @@
     "axios": "^1.2.2",
     "craco-less": "^3.0.1",
     "js-yaml": "^4.1.0",
-    "monaco-editor": "0.54.0",
+    "monaco-editor": "0.55.1",
     "monaco-editor-webpack-plugin": "^7.1.0",
     "monaco-yaml": "^5.2.2",
     "react": "^19.0.0",
