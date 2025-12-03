@@ -97,7 +97,7 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 	for i, checkRequestItem := range checkItems {
 		wg.Add(1)
 
-		go func(checkRequestItem *v1.PermissionBulkCheckRequestItem) {
+		go func(index int, checkRequestItem *v1.PermissionBulkCheckRequestItem) {
 			defer wg.Done()
 
 			// Validate individual request
@@ -105,7 +105,7 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 			if v != nil {
 				// Return error response for this check
 				resultChannel <- ResultChannel{
-					i,
+					index,
 					&v1.PermissionCheckResponse{
 						Can: v1.CheckResult_CHECK_RESULT_DENIED,
 						Metadata: &v1.PermissionCheckResponseMetadata{
@@ -129,9 +129,9 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 			response, err := r.invoker.Check(ctx, checkRequest)
 			if err != nil {
 				// Log error but don't fail the entire bulk operation
-				slog.ErrorContext(ctx, "check failed in bulk operation", "error", err.Error(), "index", i)
+				slog.ErrorContext(ctx, "check failed in bulk operation", "error", err.Error(), "index", index)
 				resultChannel <- ResultChannel{
-					i,
+					index,
 					&v1.PermissionCheckResponse{
 						Can: v1.CheckResult_CHECK_RESULT_DENIED,
 						Metadata: &v1.PermissionCheckResponseMetadata{
@@ -142,8 +142,8 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 				return
 			}
 
-			resultChannel <- ResultChannel{i, response}
-		}(checkRequestItem)
+			resultChannel <- ResultChannel{index, response}
+		}(i, checkRequestItem)
 	}
 
 	// Once the function returns, we wait for all goroutines to finish, then close the resultChannel.
