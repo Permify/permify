@@ -5,7 +5,7 @@ Playground works with [webassembly](https://webassembly.org). You can find the s
 
 ## Running Playground Locally
 
-To get started, install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/) and build the `play.wasm` file. Run this command from the root directory:
+To get started, install [wasm-pack](https://drager.github.io/wasm-pack/installer/) and build the `play.wasm` file. Run this command from the root directory:
 
 <!-- Build step -->
 ```sh
