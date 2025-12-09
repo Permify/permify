@@ -4,7 +4,7 @@ icon: 'vial'
 title: 'Testing & Validation'
 ---
 
-Testing is critical process when building and maintaining an authorization system. This page explains how to ensure the new authorization model and related authorization data works as expected in Permify.
+Testing is a critical process when building and maintaining an authorization system. This page explains how to ensure the new authorization model and related authorization data works as expected in Permify.
 
 Assuming that you're familiar with creating an authorization model and forming relation tuples in Permify. If not, we're strongly advising you to examine them before testing.
 
@@ -40,10 +40,10 @@ If you don't know how to create Github action workflow and add a action to it, y
 
 ## Schema Validation File 
 
-Below you can examine an example schema validation yaml file. It consists 3 parts; 
-- `schema` which is the authorization model you want to test,
-- `relationships` sample data to test your model,
-- `scenarios` to test access check queries within created scenarios.
+Below, you can examine an example schema validation yaml file. It consists 3 parts; 
+- `schema` which is the authorization model you want to test
+- `relationships` which is the sample data to test your model
+- `scenarios` which is the way to actually test access check queries within created scenarios
 
 ### Defining the Schema:
 
@@ -149,9 +149,9 @@ scenarios:
           edit : ["58"]
 ```
 
-Assuming that you're well-familiar with the `schema` and `relationships` sections of the above YAML file. If not, please see the previous sections to learn how to create an authorization model (schema) and generate data (relationships) according to it.
+You should be familiar with the `schema` and `relationships` sections of the above YAML file. If not, please see the previous sections to learn how to [create an authorization model (the schema)](/getting-started/modeling) and [generate data (relationships)](/getting-started/sync-data) according to a schema.
 
-We'll continue by examining how to create scenarios.
+Next, you'll examinine how to create scenarios.
 
 ## Creating Test Scenarios
 
@@ -159,7 +159,7 @@ You can create multiple access checks at once to test whether your authorization
 
 Besides simple access checks you can also test subject filtering queries and data (entity) filtering with it.
 
-Let's deconstruct the `scenarios`,
+Let's deconstruct the `scenarios` configuration.
 
 ### Scenarios
 
@@ -187,7 +187,7 @@ checks:
        push : true
 ```
 
-Semantics for above check is: whether `user:1` can push to `repository:3`, additional to stored tuples take account that user:1 is owner of repository:3 (`repository:3#owner@user:1`). Expected result for that check it **true** - `push : true`
+Semantics for above check is: whether `user:1` can push to `repository:3`, in addition to stored tuples, take into account that user:1 is owner of repository:3 (`repository:3#owner@user:1`). Expected result for that check it **true** - `push : true`
 
 ### Depth Configuration
 
@@ -211,8 +211,8 @@ checks:
 ```
 
 **When to use depth:**
-- Use a lower depth (e.g., 3-5) for shallow permission hierarchies to improve performance
-- Use a higher depth (e.g., 20-50) for deep nested relationships
+- Use a lower depth (e.g., 3-5) for a shallow permission hierarchy to improve performance
+- Use a higher depth (e.g., 20-50) for deeply nested relationships
 - If you encounter "depth not enough" errors, increase the depth value for that specific check
 
 <Note>
@@ -228,7 +228,7 @@ You can create `entity_filters` within `scenarios` to test your data filtering q
 ```yaml
 entity_filters:
       - entity_type: "repository" # entity that you want to filter 
-        subject: "user:1" # subject that you want to perform data filtering 
+        subject: "user:1" # subject for which you want to perform data filtering 
         depth: 100 # depth limit for permission check (optional, default: 100, minimum: 3)
         context: null # additional data provided during an access check to be evaluated
         assertions: 
@@ -236,11 +236,11 @@ entity_filters:
           edit : []
 ```
 
-The major difference between `check` lies in the assertions part. Since we're performing data filtering with bulk data, instead of a true-false result, we enter the IDs of the resources that we expect to be returned
+The major difference between `entity_filters` and `checks` lies in the assertions part. Since we're performing data filtering with bulk data, instead of a true-false result, we enter the IDs of the resources that we expect to be returned.
 
 ### Subject Filtering
 
-You can create `subject_filters` within `scenarios` to test your subject filtering queries, a.k.a which users can perform action Y or have permission X on entity:Z?
+You can create `subject_filters` within `scenarios` to test your subject filtering queries, such as which users can perform action Y or have permission X on entity:Z.
 
 ```yaml
 - subject_reference: "user"
@@ -270,7 +270,7 @@ The output of the example provided above is as follows.
 
 You can also test your new authorization model in your local (Permify clone) without using [permify-validate-action] at all. 
 
-For that open up a new file and add a schema yaml file inside. Then build your project with, run `make build` command and run `./permify validate {path of your schema validation file}`. 
+For that open up a new file and add a schema yaml file inside. Then build your project, run `make build` command and run `./permify validate {path of your schema validation file}`. 
 
 If we use the above example schema validation file, after running `./permify validate {path of your schema validation file}` it gives a result on the terminal as:
 
@@ -301,7 +301,7 @@ You can find more details about our suggested workflow to handle schema changes 
 
 ## Need any help ?
 
-Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about it, [schedule a consultation call with one of our account executives](hhttps://calendly.com/d/cj79-kyf-b4z).
+Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about it, [schedule a consultation call with one of our account executives](https://calendly.com/d/cj79-kyf-b4z).
 
 
 
