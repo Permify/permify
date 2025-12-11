@@ -150,6 +150,24 @@ service Permission {
     };
   }
 
+  // BulkCheck method receives a PermissionBulkCheckRequest containing multiple check requests
+  // and returns a PermissionBulkCheckResponse with results for each request.
+  // Maximum 100 requests can be processed in a single bulk operation.
+  rpc BulkCheck(PermissionBulkCheckRequest) returns (PermissionBulkCheckResponse) {
+    // HTTP mapping for this method
+    option (google.api.http) = {
+      post: "/v1/tenants/{tenant_id}/permissions/bulk-check"
+      body: "*"
+    };
+    // OpenAPI annotations for this method
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "bulk check api"
+      tags: ["Permission"]
+      operation_id: "permissions.bulk-check"
+      description: "Check multiple permissions in a single request. Maximum 100 requests allowed."
+    };
+  }
+
   // Expand method receives a PermissionExpandRequest and returns a PermissionExpandResponse.
   // It expands relationships according to the schema provided.
   rpc Expand(PermissionExpandRequest) returns (PermissionExpandResponse) {
@@ -850,6 +868,76 @@ message PermissionCheckResponse {
 message PermissionCheckResponseMetadata {
   // The count of the checks performed.
   int32 check_count = 1 [json_name = "check_count"];
+}
+
+// BULK CHECK
+message PermissionBulkCheckRequestItem {
+  // Entity on which the permission needs to be checked, required.
+  Entity entity = 1 [
+    json_name = "entity",
+    (validate.rules).message.required = true,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example: "\"repository:1\""}
+  ];
+
+  // Name of the permission or relation, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
+  string permission = 2 [
+    json_name = "permission",
+    (validate.rules).string = {
+      pattern: "^[a-zA-Z_]{1,64}$"
+      max_bytes: 64
+      ignore_empty: false
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The action the user wants to perform on the resource"}
+  ];
+
+  // Subject for which the permission needs to be checked, required.
+  Subject subject = 3 [
+    json_name = "subject",
+    (validate.rules).message.required = true
+  ];
+}
+// PermissionBulkCheckRequest is the request message for the BulkCheck method in the Permission service.
+message PermissionBulkCheckRequest {
+  // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
+  string tenant_id = 1 [
+    json_name = "tenant_id",
+    (validate.rules).string = {
+      pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
+      max_bytes: 128
+      ignore_empty: false
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
+  ];
+
+  // Metadata associated with this request, required.
+  PermissionCheckRequestMetadata metadata = 2 [
+    json_name = "metadata",
+    (validate.rules).message.required = true
+  ];
+
+  // List of permission check requests, maximum 100 items.
+  repeated PermissionBulkCheckRequestItem items = 3 [
+    json_name = "items",
+    (validate.rules).repeated = {
+      min_items: 1
+      max_items: 100
+    }
+  ];
+
+  // Context associated with this request.
+  Context context = 4 [
+    json_name = "context",
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)"}
+  ];
+
+  // Additional arguments associated with this request.
+  repeated Argument arguments = 5 [json_name = "arguments"];
+}
+
+// PermissionBulkCheckResponse is the response message for the BulkCheck method in the Permission service.
+message PermissionBulkCheckResponse {
+  // List of permission check responses corresponding to each request.
+  repeated PermissionCheckResponse results = 1 [json_name = "results"];
 }
 
 // EXPAND
