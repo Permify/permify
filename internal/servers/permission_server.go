@@ -2,8 +2,8 @@ package servers
 
 import (
 	"context"
-	"log/slog"
 	"errors"
+	"log/slog"
 	"sync"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
@@ -84,10 +84,12 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 		return nil, err
 	}
 
-	// Create a buffered channel for BulkPermissionCheckResponses.
 	// The buffer size is equal to the number of references in the entity.
-	type ResultChannel struct {int; *v1.PermissionCheckResponse}
-	resultChannel := make(chan ResultChannel, len(checkItems))
+	type resultItem struct {
+		index    int
+		response *v1.PermissionCheckResponse
+	}
+	resultChannel := make(chan resultItem, len(checkItems))
 
 	// The WaitGroup and Mutex are used for synchronization.
 	var wg sync.WaitGroup
@@ -103,10 +105,9 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 			// Validate individual request
 			v := checkRequestItem.Validate()
 			if v != nil {
-				// Return error response for this check
-				resultChannel <- ResultChannel{
-					index,
-					&v1.PermissionCheckResponse{
+				resultChannel <- resultItem{
+					index: index,
+					response: &v1.PermissionCheckResponse{
 						Can: v1.CheckResult_CHECK_RESULT_DENIED,
 						Metadata: &v1.PermissionCheckResponseMetadata{
 							CheckCount: 0,
@@ -118,31 +119,34 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 
 			// Perform the check using existing Check function
 			checkRequest := &v1.PermissionCheckRequest{
-				TenantId:      request.GetTenantId(),
-				Subject:       checkRequestItem.GetSubject(),
-				Entity:        checkRequestItem.GetEntity(),
-				Permission:    checkRequestItem.GetPermission(),
-				Metadata: 	   request.GetMetadata(),
-				Context:       request.GetContext(),
-				Arguments:     request.GetArguments(),
+				TenantId:   request.GetTenantId(),
+				Subject:    checkRequestItem.GetSubject(),
+				Entity:     checkRequestItem.GetEntity(),
+				Permission: checkRequestItem.GetPermission(),
+				Metadata:   request.GetMetadata(),
+				Context:    request.GetContext(),
+				Arguments:  request.GetArguments(),
 			}
 			response, err := r.invoker.Check(ctx, checkRequest)
 			if err != nil {
 				// Log error but don't fail the entire bulk operation
 				slog.ErrorContext(ctx, "check failed in bulk operation", "error", err.Error(), "index", index)
-				resultChannel <- ResultChannel{
-					index,
-					&v1.PermissionCheckResponse{
+				resultChannel <- resultItem{
+					index: index,
+					response: &v1.PermissionCheckResponse{
 						Can: v1.CheckResult_CHECK_RESULT_DENIED,
 						Metadata: &v1.PermissionCheckResponseMetadata{
-							CheckCount: 0,
+							CheckCount: 1,
 						},
 					},
 				}
 				return
 			}
 
-			resultChannel <- ResultChannel{index, response}
+			resultChannel <- resultItem{index: index, response: &v1.PermissionCheckResponse{
+				Can:      response.GetCan(),
+				Metadata: response.GetMetadata(),
+			}}
 		}(i, checkRequestItem)
 	}
 
@@ -162,7 +166,7 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 			// If there's no error, we add the result to our response's Results map.
 			// We use a mutex to safely update the map since multiple goroutines may be writing to it concurrently.
 			mutex.Lock()
-			results[response.int] = response.PermissionCheckResponse
+			results[response.index] = response.response
 			mutex.Unlock()
 
 		// If the context is done (i.e., canceled or deadline exceeded), we return an empty response and an error.
