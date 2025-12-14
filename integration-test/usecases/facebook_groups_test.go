@@ -74,6 +74,62 @@ var _ = Describe("facebook-groups-test", func() {
 			}
 		})
 
+		It("Facebook Groups Sample: Bulk Checks All Scenarios", func() {
+			var bulkRequestItems []*base.PermissionBulkCheckRequestItem
+			var expectedResults []base.CheckResult
+
+			for _, scenario := range shapes.InitialFacebookGroupsShape.Scenarios {
+				for _, check := range scenario.Checks {
+					entity, err := tuple.E(check.Entity)
+					Expect(err).ShouldNot(HaveOccurred())
+					ear, err := tuple.EAR(check.Subject)
+					Expect(err).ShouldNot(HaveOccurred())
+
+					subject := &base.Subject{
+						Type:     ear.GetEntity().GetType(),
+						Id:       ear.GetEntity().GetId(),
+						Relation: ear.GetRelation(),
+					}
+
+					var contextTuples []*base.Tuple
+					for _, t := range check.Context.Tuples {
+						tup, err := tuple.Tuple(t)
+						Expect(err).ShouldNot(HaveOccurred())
+						contextTuples = append(contextTuples, tup)
+					}
+
+					for permission, expected := range check.Assertions {
+						exp := base.CheckResult_CHECK_RESULT_ALLOWED
+						if !expected {
+							exp = base.CheckResult_CHECK_RESULT_DENIED
+						}
+						item := &base.PermissionBulkCheckRequestItem{
+							Entity:     entity,
+							Permission: permission,
+							Subject:    subject,
+						}
+						bulkRequestItems = append(bulkRequestItems, item)
+						expectedResults = append(expectedResults, exp)
+					}
+				}
+			}
+
+			res, err := permissionClient.BulkCheck(ctx, &base.PermissionBulkCheckRequest{
+				TenantId: "facebook-groups",
+				Metadata: &base.PermissionCheckRequestMetadata{
+					SchemaVersion: initialFacebookGroupsSchemaVersion,
+					SnapToken:     initialFacebookGroupsSnapToken,
+					Depth:         100,
+				},
+				Items: bulkRequestItems,
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(res.GetResults()).To(HaveLen(len(expectedResults)))
+			for i, r := range res.GetResults() {
+				Expect(r.Can).Should(Equal(expectedResults[i]))
+			}
+		})
+
 		It("Facebook Groups Sample: Entity Filtering", func() {
 			for _, scenario := range shapes.InitialFacebookGroupsShape.Scenarios {
 				for _, filter := range scenario.EntityFilters {
