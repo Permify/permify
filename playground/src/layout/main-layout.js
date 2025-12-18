@@ -275,7 +275,7 @@ const MainLayout = ({children, ...rest}) => {
                                     <>
                                         <Button className="mr-8 text-white" type="link" target="_blank"
                                                 href="https://docs.permify.co/docs/playground">
-                                            How to use playground?
+                                            How to use the playground?
                                         </Button>
                                         <Button className="mr-8" target="_blank" icon={<GithubOutlined/>}
                                                 href="https://github.com/Permify/permify">

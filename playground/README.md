@@ -5,7 +5,12 @@ Playground works with [webassembly](https://webassembly.org). You can find the s
 
 ## Running Playground Locally
 
-To get started, install [wasm-pack](https://drager.github.io/wasm-pack/installer/) and build the `play.wasm` file. Run this command from the root directory:
+To get started: 
+
+* install [wasm-pack](https://drager.github.io/wasm-pack/installer/).
+* cargo install wasm-opt --locked (and make sure it is in your path)
+
+Then, build the `play.wasm` file. Run this command from the root directory:
 
 <!-- Build step -->
 ```sh
@@ -15,6 +20,7 @@ make wasm-build  # Compile WebAssembly module
 After building, start the playground from the playground directory:
 <!-- Development server -->
 ```sh  
+yarn install # once
 yarn start  # Launch development server
 ```  
 Alternatively, run it from the root directory:
@@ -35,6 +41,8 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 The page will reload if you make edits.\
 You will also see any lint errors in the console.
+
+There are 4-5 errors in due to the Monaco editor. They are annoying but do not affect functionality (they occur on production as well). Close the error message by clicking the 'x' in the upper right corner.
 
 ### `yarn test`
 
