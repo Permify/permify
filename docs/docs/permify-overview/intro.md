@@ -113,5 +113,5 @@ You can find Permify's Public Roadmap [here](https://github.com/orgs/Permify/pro
 
 ## Need any help on Authorization ?
 
-Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify or how it might fit into your authorization workflow, [schedule a consultation call with one of our account executivess](https://www.permify.co/book-demo).
+Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify or how it might fit into your authorization workflow, [schedule a consultation call with one of our account executives](https://www.permify.co/book-demo).
 
