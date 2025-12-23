@@ -86,10 +86,8 @@ Use the keyword `relation` to create an entity relation with the `name` and `typ
 
 **Relation Attributes:**
 
-TODO, can it include _ or any other character
 - **name:** the name of the relation, which can be any alphanumeric string
 - **type:** the type of the related object, which must be defined in this schema previously
-TODO is that accurate
 
 Here's an example of a relation.
 
@@ -241,7 +239,6 @@ entity repository {
 ```
 
 → Looking at the `read` action, you can see the `read` permission is limited to a user that is an `organization admin` and also has one of the following relations: `owner` of the repository, or `maintainer`, or `member` of the organization which repository belongs to.
-TODO
 
 <Note>
 The same `read` can also be defined using the **permission** keyword, as follows:
@@ -254,12 +251,10 @@ Using the `action` or `permission` keywords yields the same authorization logic.
 </Note>
 
 The `and` operation creates an intersection between relations but is not tied to specific entities.
-TODO is there a way to tie it to specific entities?
 
 For example, in the following model, users can see a repository if they are a member or admin of any organization.
 
 Let's say `user:1` is a member of `organization:1` and an admin of `organization:2`. If `repository:1` belongs to `organization:1`, then `user:1` has access to view `repository:1`.
-TODO
 
 ```perm
 entity user {}
@@ -366,7 +361,6 @@ double
 double[]
 ```
 
-TODO where are 
 ### Defining Rules
 
 Rules allow you to write conditions for the model. These are similar to functions that every software language has. They accept parameters and, based on conditions, return either a true or a false value.
@@ -395,12 +389,10 @@ rule check_ip_range(ip_range string[]) {
 <Info>
 This feature is currently in beta and available upon request. Let us know, and we’ll give you early access!
 </Info>
-TODO is this still true
 
 You can use attributes across entities with rules. Rules can also be written inside entities to create entity-specific conditionals.
 
 Below, the `check_confidentiality` rule is defined inside the `organization` entity. This rule compares the specific organization's authority level with the authority level associated with the repository.
-TODO
 
 If the organization's authority is higher than the repository's authority, the rule returns true.
 
