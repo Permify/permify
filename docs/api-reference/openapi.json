@@ -2796,7 +2796,7 @@
           "permission": {
             "type": "string",
             "description": "The action the user wants to perform on the resource. Required. Must start with a letter and can include alphanumeric and underscore, max 64 bytes.",
-            "pattern": "^[a-zA-Z_]{1,64}$",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_]{0,63}$",
             "maxLength": 64
           },
           "subject": {
