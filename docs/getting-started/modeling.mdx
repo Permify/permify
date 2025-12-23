@@ -9,7 +9,7 @@ This is facilitated by our relationship-based access control (ReBAC), which allo
 
 ## Permify Schema
 
-Permify has its own language that you can model your authorization logic with it. The language allows you to define arbitrary relations between users and objects.
+Permify has its own language that you can model your authorization logic with. The language allows you to define arbitrary relations between users and objects.
 
 You can assign users associate them with arbitrary objects representing application concepts, such as teams, organizations, or stores.
 
@@ -19,7 +19,7 @@ You can also use dynamic attributes in your authorization model, such as boolean
 
 ![modeling-authorization](https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif)
 
-You can define your entities, relations between them and access control decisions with using the Permify Schema language. It includes set-algebraic operators such as intersection and union. These allow you to specify complex access control policies in terms of user-object relations.
+You can define your entities, relations between them and access control decisions using the Permify Schema language. It includes set-algebraic operators such as intersection and union. These allow you to specify complex access control policies in terms of user-object relations.
 
 Here’s a simple breakdown of our schema.
 
@@ -29,7 +29,7 @@ Permify Schema can be created on our [playground](https://play.permify.co/) as w
 
 ## Developing a Schema
 
-This guide will show how to develop a Permify Schema from scratch with an example. It's relative simple, yet it will illustrate almost every aspect of the modeling language.
+This guide will show how to develop a Permify Schema from scratch with an example. It's relatively simple, yet it will illustrate almost every aspect of the modeling language.
 
 We'll follow a simplified version of the GitHub access control system, where teams and organizations have control over the viewing, editing, or deleting access rights for their repositories.
 
@@ -58,7 +58,7 @@ You can start developing Permify Schema on [VSCode]. You can install the extensi
 
 The first step to building Permify Schema is creating entities. An entity is an object that defines your resources which hold roles in your permission system.
 
-Think of entities as tables in your database. It is strongly recommended to ngly advice to name entities the same as the corresponding database table name. Doing so allows you to model and reason about your authorization and eliminate the possibility of error.
+Think of entities as tables in your database. It is strongly recommended to name entities the same as the corresponding database table name. Doing so allows you to model and reason about your authorization and eliminate the possibility of error.
 
 You can create entities using the `entity` keyword. Let's create some entities for our example GitHub authorization logic.
 
@@ -82,7 +82,7 @@ Entities have a number of different types of properties. These are:
 
 Relations represent relationships between entities. It's the most critical part of the schema because Permify is based on relations between resources and their permissions.
 
-Use the keyword `relation` to create a entity relation with the `name` and `type` properties.
+Use the keyword `relation` to create an entity relation with the `name` and `type` properties.
 
 **Relation Attributes:**
 
@@ -101,7 +101,7 @@ Let's turn back to our example and define relations inside our entities:
 
 ### User Entity
 
-→ The user entity is a mandatory entity in Permify. It generally will be empty, but it will used in other entities as a relation type referencing users.
+→ The user entity is a mandatory entity in Permify. It generally will be empty, but it will be used in other entities as a relation type referencing users.
 
 ```perm
 entity user {}
@@ -124,7 +124,7 @@ entity organization {
 
 ### Parent-Child Relationship
 
-→ Let's say teams can belong organizations and can have members. We model that as follows:
+→ Let's say teams can belong to organizations and can have members. We model that as follows:
 
 ```perm
 entity organization {
@@ -159,7 +159,7 @@ entity repository {
 }
 ```
 
-The owner relation indicates the creator of the repository. This is how you can defin **ownership** in a Permify schema.
+The owner relation indicates the creator of the repository. This is how you can define **ownership** in a Permify schema.
 
 ### Multiple Relation Types
 
@@ -199,7 +199,7 @@ You then can specify not only individual users but also members of an organizati
 - organization:1#viewer@user:U2
 - organization:1#viewer@organization:O1#member
 
-With `organization:1#viewer@organization:O1#member` all members of the organization O1 will have the right to perform the defined action. In this case, all members in O1 now have the `viewer` relation.
+With `organization:1#viewer@organization:O1#member`, all members of the organization O1 will have the right to perform the defined action. In this case, all members in O1 now have the `viewer` relation.
 
 These definitions prevent you from creating undesired user set relationships.
 
@@ -250,11 +250,11 @@ The same `read` can also be defined using the **permission** keyword, as follows
  permission read =  org.admin and (owner or maintainer or org.member)
 ```
 
-Using the `action` or `permission` keywords yields the same authorization logic. We have two keywords for defining an permission because most, but not all, permissions are based on actions. Learn more in our [Nested Hierarchies](/modeling-guides/rebac/impersonation) section.
+Using the `action` or `permission` keywords yields the same authorization logic. We have two keywords for defining a permission because most, but not all, permissions are based on actions. Learn more in our [Nested Hierarchies](/modeling-guides/rebac/impersonation) section.
 </Note>
 
 The `and` operation creates an intersection between relations but is not tied to specific entities.
-TODO is there a way to do tie it to specific entities?
+TODO is there a way to tie it to specific entities?
 
 For example, in the following model, users can see a repository if they are a member or admin of any organization.
 
@@ -432,7 +432,7 @@ entity repository {
 }
 ```
 
-As shown in the example, this rule is part of the the `edit` permission of the repository. This lets you check whether an organization:X has repository edit access, depending on the authority level the organization possesses relative to the repository.
+As shown in the example, this rule is part of the `edit` permission of the repository. This lets you check whether an organization:X has repository edit access, depending on the authority level the organization possesses relative to the repository.
 
 <Note>
 We designed our schema language based on [Common Expression Language (CEL)](https://github.com/google/cel-go). The syntax looks nearly identical to equivalent expressions in C++, Go, Java, and TypeScript.
@@ -470,10 +470,10 @@ You can also check out comprehensive schema examples from the [Real World Exampl
 Here is what each example focuses on,
 
 - [Google Docs]: how users can gain direct access to a document through **organizational roles** or through **inherited/nested permissions**.
-- [Facebook Groups]: how users can perform various actions based on the **roles and permissions within the groups** they belong.
+- [Facebook Groups]: how users can perform various actions based on the **roles and permissions within the groups** to which they belong.
 - [Notion]: how **one global entity (workspace) can manage access rights** in the child entities that belong to it.
-- [Instagram]: how **public/private attributes** play role in granting access to specific users.
-- [Mercury]: how **attributes and rules interact within the hierarchical relationships**.
+- [Instagram]: how **public/private attributes** can play a role in granting access to specific users.
+- [Mercury]: how **attributes and rules** interact within the hierarchical relationships.
 
 [Google Docs]: ./examples/google-docs
 [Facebook Groups]: ./examples/facebook-groups
