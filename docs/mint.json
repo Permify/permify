@@ -392,6 +392,7 @@
       "group": "Permission Service",
       "pages": [
         "api-reference/permission/check-api",
+        "api-reference/permission/bulk-check",
         "api-reference/permission/expand-api",
         "api-reference/permission/lookup-subject",
         "api-reference/permission/lookup-entity",

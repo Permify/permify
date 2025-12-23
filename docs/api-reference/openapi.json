@@ -900,6 +900,77 @@
         "x-codegen-request-body-name": "body"
       }
     },
+    "/v1/tenants/{tenant_id}/permissions/bulk-check": {
+      "post": {
+        "tags": [
+          "Permission"
+        ],
+        "summary": "bulk check api",
+        "description": "Check multiple permissions in a single request. Maximum 100 requests allowed.",
+        "operationId": "permissions.bulk-check",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "description": "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \"[a-zA-Z0-9-,]+\", max 64 bytes.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Permission.BulkCheckBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionBulkCheckResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "label": "go",
+            "lang": "go",
+            "source": "cr, err := client.Permission.BulkCheck(context.Background(), &v1.PermissionBulkCheckRequest {\n    TenantId: \"t1\",\n    Metadata: &v1.PermissionCheckRequestMetadata {\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        Depth: 20,\n    },\n    Items: []*v1.PermissionBulkCheckRequestItem{\n        {\n            Entity: &v1.Entity {\n                Type: \"repository\",\n                Id: \"1\",\n            },\n            Permission: \"edit\",\n            Subject: &v1.Subject {\n                Type: \"user\",\n                Id: \"1\",\n            },\n        },\n        {\n            Entity: &v1.Entity {\n                Type: \"repository\",\n                Id: \"2\",\n            },\n            Permission: \"view\",\n            Subject: &v1.Subject {\n                Type: \"user\",\n                Id: \"1\",\n            },\n        },\n    },\n})\nfor _, result := range cr.Results {\n    if result.Can == v1.PermissionCheckResponse_Result_RESULT_ALLOWED {\n        // RESULT_ALLOWED\n    } else {\n        // RESULT_DENIED\n    }\n}"
+          },
+          {
+            "label": "node",
+            "lang": "javascript",
+            "source": "client.permission.bulkCheck({\n    tenantId: \"t1\", \n    metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\",\n        depth: 20\n    },\n    items: [\n        {\n            entity: {\n                type: \"repository\",\n                id: \"1\"\n            },\n            permission: \"edit\",\n            subject: {\n                type: \"user\",\n                id: \"1\"\n            }\n        },\n        {\n            entity: {\n                type: \"repository\",\n                id: \"2\"\n            },\n            permission: \"view\",\n            subject: {\n                type: \"user\",\n                id: \"1\"\n            }\n        }\n    ]\n}).then((response) => {\n    response.results.forEach((result) => {\n        if (result.can === PermissionCheckResponse_Result.RESULT_ALLOWED) {\n            console.log(\"RESULT_ALLOWED\")\n        } else {\n            console.log(\"RESULT_DENIED\")\n        }\n    })\n})"
+          },
+          {
+            "label": "cURL",
+            "lang": "curl",
+            "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/permissions/bulk-check' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"metadata\": {\n    \"snap_token\": \"\",\n    \"schema_version\": \"\",\n    \"depth\": 20\n  },\n  \"items\": [\n    {\n      \"entity\": {\n        \"type\": \"repository\",\n        \"id\": \"1\"\n      },\n      \"permission\": \"edit\",\n      \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"1\",\n        \"relation\": \"\"\n      }\n    },\n    {\n      \"entity\": {\n        \"type\": \"repository\",\n        \"id\": \"2\"\n      },\n      \"permission\": \"view\",\n      \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"1\",\n        \"relation\": \"\"\n      }\n    }\n  ]\n}'"
+          }
+        ],
+        "x-codegen-request-body-name": "body"
+      }
+    },
     "/v1/tenants/{tenant_id}/permissions/expand": {
       "post": {
         "tags": [
@@ -2675,6 +2746,78 @@
           }
         },
         "description": "PermissionCheckRequest is the request message for the Check method in the Permission service."
+      },
+      "Permission.BulkCheckBody": {
+        "type": "object",
+        "required": [
+          "metadata",
+          "items"
+        ],
+        "properties": {
+          "metadata": {
+            "$ref": "#/components/schemas/PermissionCheckRequestMetadata",
+            "description": "Metadata associated with this request. Required."
+          },
+          "items": {
+            "type": "array",
+            "description": "List of permission check requests. Required. Minimum 1 item, maximum 100 items.",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/PermissionBulkCheckRequestItem"
+            }
+          },
+          "context": {
+            "$ref": "#/components/schemas/Context",
+            "description": "Contextual data that can be dynamically added to permission check requests. Optional. See details on [Contextual Data](../../operations/contextual-tuples)"
+          },
+          "arguments": {
+            "type": "array",
+            "description": "Additional arguments associated with this request. Optional.",
+            "items": {
+              "$ref": "#/components/schemas/Argument"
+            }
+          }
+        },
+        "description": "PermissionBulkCheckRequest is the request message for the BulkCheck method in the Permission service."
+      },
+      "PermissionBulkCheckRequestItem": {
+        "type": "object",
+        "required": [
+          "entity",
+          "permission",
+          "subject"
+        ],
+        "properties": {
+          "entity": {
+            "$ref": "#/components/schemas/Entity",
+            "description": "Entity on which the permission needs to be checked. Required."
+          },
+          "permission": {
+            "type": "string",
+            "description": "The action the user wants to perform on the resource. Required. Must start with a letter and can include alphanumeric and underscore, max 64 bytes.",
+            "pattern": "^[a-zA-Z_]{1,64}$",
+            "maxLength": 64
+          },
+          "subject": {
+            "$ref": "#/components/schemas/Subject",
+            "description": "Subject for which the permission needs to be checked. Required."
+          }
+        },
+        "description": "PermissionBulkCheckRequestItem represents a single permission check item in a bulk check request."
+      },
+      "PermissionBulkCheckResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "description": "List of permission check responses corresponding to each request item.",
+            "items": {
+              "$ref": "#/components/schemas/PermissionCheckResponse"
+            }
+          }
+        },
+        "description": "PermissionBulkCheckResponse is the response message for the BulkCheck method in the Permission service."
       },
       "Permission.ExpandBody": {
         "type": "object",
