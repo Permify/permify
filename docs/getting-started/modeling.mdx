@@ -86,8 +86,8 @@ Use the keyword `relation` to create an entity relation with the `name` and `typ
 
 **Relation Attributes:**
 
-- **name:** the name of the relation, which can be any alphanumeric string
-- **type:** the type of the related object, which must be defined in this schema previously
+- **name:** the name of the relation, may contain only letters and underscores and must be at most 64 characters long
+- **type:** the target entity type this relation references (e.g. user, organization, document), which must exist in the schema
 
 Here's an example of a relation.
 
@@ -233,12 +233,12 @@ entity repository {
     ..
     ..
 
-    action read =  organization.admin and (owner or maintainer or organization.member)
+    action delete =  organization.admin and (owner or maintainer or organization.member)
 
 }
 ```
 
-→ Looking at the `read` action, you can see the `read` permission is limited to a user that is an `organization admin` and also has one of the following relations: `owner` of the repository, or `maintainer`, or `member` of the organization which repository belongs to.
+→ Looking at the `delete` action, you can see the permission is limited to a user that is an `organization admin` and also has one of the following relations: `owner` of the repository, or `maintainer`, or `member` of the organization which repository belongs to.
 
 <Note>
 The same `read` can also be defined using the **permission** keyword, as follows:
