@@ -384,48 +384,6 @@ rule check_ip_range(ip_range string[]) {
 }
 ```
 
-### Using Attributes Across Entities
-
-<Info>
-This feature is currently in beta and available upon request. Let us know, and we’ll give you early access!
-</Info>
-
-You can use attributes across entities with rules. Rules can also be written inside entities to create entity-specific conditionals.
-
-Below, the `check_confidentiality` rule is defined inside the `organization` entity. This rule compares the specific organization's authority level with the authority level associated with the repository.
-
-If the organization's authority is higher than the repository's authority, the rule returns true.
-
-```
-entity user {}
-
-entity organization {
-
-    attribute authority integer
-
-    // organizational roles
-    relation admin @user
-    relation member @user
-
-    rule check_confidentiality(authority integer) {
-        this.authority >= authority
-    }
-}
-
-entity repository {
-
-    attribute authority integer
-
-    // represents repositories parent organization
-    relation parent @organization
-
-    // permissions
-    permission edit = parent.check_confidentiality(authority)
-}
-```
-
-As shown in the example, this rule is part of the `edit` permission of the repository. This lets you check whether an organization:X has repository edit access, depending on the authority level the organization possesses relative to the repository.
-
 <Note>
 We designed our schema language based on [Common Expression Language (CEL)](https://github.com/google/cel-go). The syntax looks nearly identical to equivalent expressions in C++, Go, Java, and TypeScript.
 
