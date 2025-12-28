@@ -1,0 +1,18 @@
+---
+title: Bulk Check
+openapi: post /v1/tenants/{tenant_id}/permissions/bulk-check
+---
+
+The Bulk Check API allows you to check multiple permissions in a single request, significantly reducing network overhead and improving performance when you need to verify multiple access control decisions at once.
+
+**Key Benefits:**
+
+- Check up to 100 permissions in a single API call
+- Reduce network round trips by batching multiple checks
+- All checks are evaluated against the same snapshot of your authorization data
+
+<Info>
+  The bulk check is particularly useful for UI permission checks, where you need
+  to verify access for multiple resources at once (e.g., showing/hiding buttons
+  for multiple items in a list).
+</Info>
