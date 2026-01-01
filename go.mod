@@ -38,7 +38,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/jackc/pgio v1.0.0
 	github.com/jackc/pgtype v1.14.4
-	github.com/jackc/pgx/v5 v5.7.6
+	github.com/jackc/pgx/v5 v5.8.0
 	github.com/juju/ratelimit v1.0.2
 	github.com/lestrrat-go/jwx v1.2.31
 	github.com/onsi/ginkgo/v2 v2.27.2
