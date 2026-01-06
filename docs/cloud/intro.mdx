@@ -63,7 +63,7 @@ What you can find in this tab:
 
 ## Schema Management 
 
-It’s expected that your initial schema will eventually change as your products evolves.
+It’s expected that your initial schema will eventually change as your product evolves.
 
 As new features, API endpoints, user requirements or compliance requirements are regularly rolled out, each addition often necessitates corresponding updates to your authorization model, [Permify Schema](../getting-started/modeling).
 
@@ -77,7 +77,7 @@ The **Schemas** view lists the latest configured schemas with the [WriteSchema A
 
 ### Schema Deployments
 
-One of the best practise to manage schema changes is setting up a central git repository that stores the schema YAML file. 
+Managing schema changes by setting up a central git repository that stores the schema YAML file is a best practice.
 
 This way, you can centrally check and approve every schema change before deploying it. 
 
@@ -91,7 +91,7 @@ In Permify Cloud we even streamline this management process for you with connect
 
 With **Schema Management GitOps Workflow**, you can now automatically deploy authorization models to Permify directly from your GitHub repository.  
 
-Similar deploying your Vercel application with GitHub Actions.  And we show these deployments in the **Deployments** view.
+Similar to deploying your Vercel application with GitHub Actions.  And we show these deployments in the **Deployments** view.
 
 ### How Schema Deployment Works ?
 
@@ -155,7 +155,7 @@ If all tests pass, the model is seamlessly deployed to Permify, and you can moni
 
 ### Schema Staging
 
-In above example we directly pushed our change to master branch. And this deployment records labeled as **production** by default.
+In the above example we directly pushed our change to the master branch. And this deployment record is labeled as **production** by default.
 
 If you have at least a couple of engineers who can make schema changes, you will want to have a review process for these changes.
 
@@ -227,7 +227,7 @@ To learn more how it works and how to configure it, see the [Schema Management](
 
 The **Garbage Collector** is a mechanism designed to clean up expired or idle relation tuples. 
 
-This is particularly important when schemas are changed or created frequently, as it can lead to the creation of many unused tuples within time.
+This is particularly important when schemas are changed or created frequently, as it can lead to the creation of many unused tuples over time.
 
 ![garbage-collector](https://github.com/user-attachments/assets/0b5537a3-d6e3-4ae3-b016-19fbff5c1b7f)
 
@@ -241,7 +241,7 @@ Autoscaling is by default activated in Permify Cloud.
 
 ![auto-scaling](https://github.com/user-attachments/assets/2805dc21-eb3f-457e-8ad4-225f5aaa1653)
 
-It automatically adjust resource allocation to meet demand, ensuring optimal performance and cost-efficiency.
+It automatically adjusts resource allocation to meet demand, ensuring optimal performance and cost-efficiency.
 
 ### Consistent Hashing
 

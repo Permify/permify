@@ -40,17 +40,17 @@ Here are some attributes with semantics,
 
 ## Where is the stored Authorization Data used?
 
-These relational tuples and attributes represents your authorization data. 
+These relational tuples and attributes represent your authorization data. 
 
-Permify stores your these data in a database you prefer. You can configure the database when running Permify Service with using [configuration options](../setting-up/configuration).
+Permify stores your data in a database you prefer. You can configure the database when running Permify Service using [configuration options](../setting-up/configuration).
 
-Stored data are queried and utilized in Permify APIs, including the check API, which is an access control check request used to determine whether a user's action is authorized.
+Stored data is queried and utilized in Permify APIs, including the check API, which is an access control check request used to determine whether a user's action is authorized.
 
 As an example; to decide whether a user could view a protected resource, Permify looks up the relations between that specific user and the protected resource. These relation types could be ownership, parent-child relation, a role such as an admin or manager or even an attribute.
 
 ## Creating Authorization Data
 
-Relationships and attributes can be created with an simple API call, Since these attributes and relations are live instances, meaning they can be affected by specific user actions within the application, they should be created/deleted with a simple Permify API call at runtime.
+Relationships and attributes can be created with a simple API call. Since these attributes and relations are live instances, meaning they can be affected by specific user actions within the application, they should be created/deleted with a simple Permify API call at runtime.
 
 Each relational tuple or attribute should be created according to its authorization model, [Permify Schema]. 
 
@@ -179,7 +179,7 @@ In Write Data API response you'll get a snap token of the operation.
 }
 ```
 
-This token consists of an encoded timestamp, which is used to ensure fresh results in access control checks. We're suggesting to use snap tokens in production to prevent data inconsistency and optimize the performance. See more on [Snap Tokens](../operations/snap-tokens)
+This token consists of an encoded timestamp, which is used to ensure fresh results in access control checks. We're suggesting using snap tokens in production to prevent data inconsistency and optimize performance. See more on [Snap Tokens](../operations/snap-tokens).
 
 ## More Examples
 
@@ -362,10 +362,10 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write
 <Note>
 Note: `relation: “...”` used when subject type is different from **user** entity. **#…** represents a relation that does not affect the semantics of the tuple.
 
-Simply, the usage of ... is straightforward: if you're use user entity as an subject, you should not be using the `...` If you're using another subject rather than user entity then you need to use the `...` 
+Simply, the usage of ... is straightforward: if you're using the user entity as a subject, you should not be using the `...` If you're using another subject rather than the user entity then you need to use the `...` .
 </Note>
 
-### Organization Members Are Maintainers in specific Doc
+### Organization Members Are Maintainers Of A Specific Doc
 
 **Created relational tuple:** document:1#maintainer@organization:2#member
 
@@ -459,7 +459,7 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write
 
 Permify does support audit logs for permission changes. Leveraging the [MVCC (Multi-Version Concurrency Control)](http://mbukowicz.github.io/databases/2020/05/01/snapshot-isolation-in-postgresql.html) pattern, we maintain a history of all permission data changes. This essentially provides an audit trail, allowing users to track alterations and when they occurred.
 
-In cloud version, our system supports change history auditing. It automatically generates and securely stores logs for all significant actions. These logs detail who made the change, what was changed, and when the change occurred. Furthermore, your system allows for easy searching and analysis of these logs, supporting automated alerting for suspicious activities. This comprehensive approach ensures thorough and effective auditing of all changes
+In the cloud version, our system supports change history auditing. It automatically generates and securely stores logs for all significant actions. These logs detail who made the change, what was changed, and when the change occurred. Furthermore, your system allows for easy searching and analysis of these logs, supporting automated alerting for suspicious activities. This comprehensive approach ensures thorough and effective auditing of all changes.
 
 ## Permission Baselining (Reviewing)
 

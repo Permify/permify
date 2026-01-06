@@ -10,17 +10,17 @@ To clear out, Permify doesn't handle authentication or user management. Permify 
 
 Authentication or user management solutions (AWS Cognito, Auth0, etc) only can feed Permify with user information (attributes, identities, etc) to provide more consistent authorization across your stack. 
 
-### How Access Decisions Evaluated?
+### How Are Access Decisions Evaluated?
 
 Access decisions are evaluated by stored authorization data and your authorization model, Permify Schema. 
 
-In high level, access of an subject related with the relationships or attributes created between the subject and the resource. You can define this data in Permify Schema then create and store them as relational tuples and attributes, which is basically forms your authorization data. 
+At a high level, access of a subject is related to the relationships or attributes created between the subject and the resource. You can define this data in Permify Schema then create and store them as relational tuples and attributes, which basically forms your authorization data. 
 
-Permify Engine to compute access decision in 2 steps, 
+Permify Engine computes access decisions in 2 steps, 
 1. Looking up authorization model for finding the given action's ( **edit**, **push**, **delete** etc.) relations.
 2. Walk over a graph of each relation to find whether given subject ( user or user set ) is related with the action. 
 
-Let's turn back to above authorization question ( ***"Can the user 3 edit document 12 ?"*** ) to better understand how decision evaluation works. 
+Let's turn back to the above authorization question ( ***"Can the user 3 edit document 12 ?"*** ) to better understand how decision evaluation works. 
 
 [relational tuples]: ../../getting-started/sync-data.md
 [Permify Schema]:  ../../getting-started/modeling.md
@@ -61,15 +61,15 @@ As we can see above: only users with an admin role in an organization, which `do
 
 **Q2:** Get admins of the organization where `document:12` belongs to.
 
-Since edit action consist **or** between owner and parent.admin, if Permify Engine found user:3 in results of one of these queries then it terminates the other ongoing queries and returns authorized true to the client.
+Since edit action consists of **or** between owner and parent.admin, if Permify Engine finds user:3 in the results of one of these queries then it terminates the other ongoing queries and returns authorized true to the client.
 
-Rather than **or**, if we had an **and** relation then Permify Engine waits the results of these queries to returning a decision. 
+Rather than **or**, if we had an **and** relation then Permify Engine waits for the results of these queries before returning a decision. 
 
 ### How To Manage Schema Changes?
 
-It's expected that your initial schema will eventually change as your product or system evolves
+It's expected that your initial schema will eventually change as your product or system evolves.
 
-As an example when a new feature arise and related permissions created you need to change the schema (rewrite it with adding new permission) then configure it using this Write Schema API. Afterwards, you can use the preferred version of the schema in your API requests with **schema_version**. If you do not prefer to use **schema_version** params in API calls Permify automatically gets the latest schema on API calls.
+As an example, when a new feature arises and related permissions are created, you need to change the schema (rewrite it with the new permission) then configure it using this Write Schema API. Afterwards, you can use the preferred version of the schema in your API requests with **schema_version**. If you do not prefer to use **schema_version** params in API calls Permify automatically gets the latest schema on API calls.
 
 A potential caveat of changing or creating schemas too often is the creation of many idle relation tuples. In Permify, created relation tuples are not removed from the stored database unless you delete them with the [delete API](../data/delete-data.md). For this case, we have a [garbage collector](https://github.com/Permify/permify/pull/381) which you can use to clear expired or idle relation tuples.
 
@@ -81,7 +81,7 @@ We recommend applying the following pattern to safely handle schema changes:
 - After successful deployment, you can use the newly created schema on further API calls by either specifying its schema ID or by not providing any schema ID, which will automatically retrieve the latest schema on API calls.
 
 
-### What is Preferred Deployment Pattern For Permify?
+### What is the Preferred Deployment Pattern For Permify?
 
 Permify can be deployed as a sole service that abstracts authorization logic from core applications and behaves as a single source of truth for authorization. 
 
@@ -95,7 +95,7 @@ See the [What is Authorization Service] Section for a detailed explanation of th
 
 Since multiple applications could interact with the Permify Service on that pattern, preventing bottleneck for Permify endpoints and providing high availability is important. 
 
-As shown from above schema, you can horizontally scale Permify Service with positioning Permify instances behind of a load balancer. 
+As shown in the schema above, you can horizontally scale Permify Service by positioning Permify instances behind a load balancer. 
 
 
 ### Why should I use Permify instead of IAM solutions such as Cognito, Firebase Auth or Keycloak to handle authorization?
@@ -108,9 +108,9 @@ Another point is that authorization as a service solutions are focused entirely 
 
 Also Permify leveraging Google’s Zanzibar scalable data model and unified ACL (Access Control List) approach, enables the creation of a centralized authorization service capable of handling high volumes of data and access checks across your microservices stack.
 
-Still its worth mention that if you have a basic authorization system or need, it totally makes sense to use the solutions you mentioned for handling the authorization part as well.
+Still, it's worth mentioning that if you have a basic authorization system or need, it totally makes sense to use the solutions you mentioned for handling the authorization part as well.
 
-### How Permify Works With Identity Providers (IAMs)?
+### How Does Permify Work With Identity Providers (IAMs)?
 
 Identity providers help you store and control your users’ and employees’ identities in a single place. 
 

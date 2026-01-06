@@ -8,15 +8,15 @@ Testing is a critical process when building and maintaining an authorization sys
 
 Assuming that you're familiar with creating an authorization model and forming relation tuples in Permify. If not, we're strongly advising you to examine them before testing.
 
-We provide a GitHub action repository called [permify-validate-action] for testing and validation. This repository runs the Permify validate command on the created schema validation yaml file that consists of schema (authorization model) and relationships (sample authorization data) and assertions (sample check queries and results).
+We provide a GitHub action repository called [permify-validate-action] for testing and validation. This repository runs the Permify validate command on the created schema validation YAML file that consists of schema (authorization model), relationships (sample authorization data), and assertions (sample check queries and results).
 
 <Note>
-If you don't know how to create Github action workflow and add a action to it, you can examine [related page](https://docs.github.com/en/actions/quickstart) on Github docs.
+If you don't know how to create a GitHub action workflow and add an action to it, you can examine the [related page](https://docs.github.com/en/actions/quickstart) on GitHub docs.
 </Note>
 
 ## Adding Validate Action To Your Workflow
 
-After adding [permify-validate-action] to your Github Action workflow, you need to define the schema validation yaml file as, 
+After adding [permify-validate-action] to your GitHub Action workflow, you need to define the schema validation YAML file as, 
 
 - **With local file:**
 ```yaml
@@ -35,12 +35,12 @@ steps:
 ```
 
 <Note>
-If you don't know how to create Github action workflow and add a action to it, you can examine [quickstart page](https://docs.github.com/en/actions/quickstart) on Github docs.
+If you don't know how to create a GitHub action workflow and add an action to it, you can examine the [quickstart page](https://docs.github.com/en/actions/quickstart) on GitHub docs.
 </Note>
 
 ## Schema Validation File 
 
-Below, you can examine an example schema validation yaml file. It consists of 3 parts; 
+Below, you can examine an example schema validation YAML file. It consists of 3 parts; 
 - `schema` which is the authorization model you want to test
 - `relationships` which is the sample data to test your model
 - `scenarios` which is the way to actually test access check queries within created scenarios
@@ -299,7 +299,7 @@ We recommend adding our [schema validator](https://github.com/Permify/permify-v
 
 You can find more details about our suggested workflow to handle schema changes in following [FAQS page](../permify-overview/faqs#how-to-manage-schema-changes).
 
-## Need any help ?
+## Need any help?
 
 Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about it, [schedule a consultation call with one of our account executives](https://www.permify.co/book-demo).
 

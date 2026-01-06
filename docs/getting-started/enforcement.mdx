@@ -54,13 +54,13 @@ However, since it communicates using standard protocols like gRPC and HTTP, it i
 
 You can secure APIs with our authentication methods; **Open ID Connect** or **Pre Shared Keys**. They can be configurable with flags or using configuration yaml file. See more details how to enable authentication from [Configuration Options](../../setting-up/configuration)
 
-To access the endpoints after enabling authentication, it's necessary to provide a Bearer Token for identification. If your using golang or nodeJs client library, an authentication token can be provided via interceptors. You can find details in the clients' documentation.
+To access the endpoints after enabling authentication, it's necessary to provide a Bearer Token for identification. If you're using the Golang or Node.js client library, an authentication token can be provided via interceptors. You can find details in the clients' documentation.
 
 ## Latency & Performance
 
 With the right architecture we expect **7-12 ms** latency. Depending on your load, cache usage and architecture you can get up to **30ms**.
 
-Permify implements several cache mechanisms in order to achieve low latency in scaled distributed systems. See more on the section [Cache Mechanisims](../../operations/cache)
+Permify implements several cache mechanisms in order to achieve low latency in scaled distributed systems. See more on the section [Cache Mechanisms](../../operations/cache)
 
 ## Availability of the Service
 
@@ -87,6 +87,6 @@ These credits are your sole remedy for any availability failures under our SLA.
 
 Default rate limit is set to 100 requests per second. However, users can adjust this based on their specific needs following our [documentation](https://docs.permify.co/docs/reference/configuration). We used [Token bucket](https://en.wikipedia.org/wiki/Token_bucket) algorithm for rate limiting.
 
-## Need any help ?
+## Need any help?
 
 Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a consultation call with one of our account executives](https://www.permify.co/book-demo).

@@ -16,17 +16,17 @@ In a monolithic app, you can abstract authorization from your app using [authori
 
 This approach works well until you have several applications or many services. Managing multiple authorization systems for each application is not a scalable approach, as you can imagine.
 
-So due to this, at some point, most companies tend to design these systems as abstract entities, such as a centralized engine, that cater apps that has many services. But its not an easy process for [several reasons](#building-an-centralized-authorization-is-hard).
+So due to this, at some point, most companies tend to design these systems as abstract entities, such as a centralized engine, that caters to apps that have many services. But it's not an easy process for [several reasons](#building-an-centralized-authorization-is-hard).
 
 Authorization as a service abstracts your authorization logic from your codebase and application logic, allowing you to more easily reason, test, and debug your authorization in a scalable, secure, and extendable way.
 
 Outsourcing your app's permission management has the clear advantage of saving valuable development time, but beyond that, [it also significantly enhances visibility, scalability, and flexibility](#benefits-of-using-an-authorization-service-permify) within your authorization journey.
 
-**Permify** is an **centralized authorization service** that offers a variety of binding and crafting options to secure your applications. It works in run time and respond to all authorization questions from any of your apps.
+**Permify** is a **centralized authorization service** that offers a variety of binding and crafting options to secure your applications. It works at runtime and responds to all authorization questions from any of your apps.
 
 ![authz-service](https://user-images.githubusercontent.com/34595361/196884110-147862c9-3657-4f07-831c-3e0d0e39eccf.png)
 
-## Building an Centralized Authorization is Hard
+## Building a Centralized Authorization is Hard
 
 Building a centralized authorization service yourself is a hard process, and there are several reasons for that.
 
@@ -36,9 +36,9 @@ For instance; in order to make an access check and compute a decision, you need 
 
 Loading and processing authorization data is especially painful for access checks which come from different environments and services. Also, the authorization service which will be accessed by nearly every other service must be at least as available as the rest of your stack.
 
-So for a centralized authorization service to operate smoothly, this systems needs to have to be fast, consistent, and available all times.
+So for a centralized authorization service to operate smoothly, this system needs to be fast, consistent, and available at all times.
 
-Another point is, you probably need to have an additional service to to store your authorization data model, which generally includes saving and updating essential permissions like roles, attributes or relationships. 
+Another point is, you probably need to have an additional service to store your authorization data model, which generally includes saving and updating essential permissions like roles, attributes, or relationships. 
 
 This service should manage the entirety of authorization policies, providing administrators the flexibility to adjust these policies when necessary.
 
@@ -52,9 +52,9 @@ You can get started quickly with a [simple API](../getting-started/enforcement) 
 
 ### Scale As You Wish
 
-Permify based on [Google Zanzibar], which is the global authorization system used at Google for handling authorization for hundreds of its services and products including; YouTube, Drive, Calendar, Cloud and Maps.
+Permify is based on [Google Zanzibar], which is the global authorization system used at Google for handling authorization for hundreds of its services and products including; YouTube, Drive, Calendar, Cloud and Maps.
 
-Zanzibar system achieved more than 95% of the access checks responded in 10 milliseconds and has maintained more than 99.999% availability for the 3 year period.
+The Zanzibar system achieved more than 95% of the access checks responded to in 10 milliseconds and has maintained more than 99.999% availability for the 3-year period.
 
 Permify applies proven techniques that Google used. We’re trying to make Zanzibar available to everyone to use and benefit in their applications and services
 
@@ -79,20 +79,20 @@ Permify is designed to abstract authorization logic from your code and make auth
 
 ### Be Extendable, At Any Time
 
-Products quickly changes due to never-ending user requirements as the company scales. It's so common that oldest authorization systems will fall short and needs to be changed in the road.
+Products quickly change due to never-ending user requirements as the company scales. It's so common that the oldest authorization systems will fall short and need to be changed down the road.
 
 Refactoring existing authorization systems is hard because generally these systems sit at the heart of your product.
 
 Permify has an extendable authorization language that allows you to update the current authorization model easily, securely, and without affecting production.
 
-After it's tested and ready to go, you can switch new version of your model without breaking a sweat.
+After it's tested and ready to go, you can switch to a new version of your model without breaking a sweat.
 
 ### Audit Your Authorization and Ensure Security
 
-Protect your data, prevent unauthorized access and ensure your customers security.
+Protect your data, prevent unauthorized access, and ensure your customers' security.
 
 Permify can help you with things like fraud detection, real-time transaction monitoring, and even risk assessment with various functions that can be used easily with single API calls.
 
-## Need any help on Authorization ?
+## Need any help with Authorization?
 
 Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify or how it might fit into your authorization workflow, [schedule a consultation call with one of our account executives](https://www.permify.co/book-demo).
