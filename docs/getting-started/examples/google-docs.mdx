@@ -190,7 +190,7 @@ Finally, let's check some permissions and test our authorization logic.
     }
 ```
 
-According to what we have defined for the edit action, managers and admins of the organization that the document belongs to can edit the product database. In this context, Permify engine will check whether subject `user:ashley` has any direct or indirect manager relation within `document:product_database`. Consecutively it will check whether `user:ashley` has admin relation in the Acme Org - `organization:acme#document@document:product_database`.
+According to what we have defined for the edit action, managers and admins of the organization that the document belongs to can edit the product database. In this context, Permify engine will check whether the subject `user:ashley` has any direct or indirect manager relation within `document:product_database`. Consecutively it will check whether `user:ashley` has admin relation in the Acme Org - `organization:acme#document@document:product_database`.
 
 Ashley doesn't have any administrative relation in Acme Org but she is the manager in group tech (`group:tech#manager@user:ashley`) and we have defined that manager of group tech is manager of product_database with the tuple (`document:product_database#manager@group:tech#manager`). Therefore, the **user:ashley edit document:product_database** check request should yield **true** response.
 </Accordion>
