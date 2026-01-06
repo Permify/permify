@@ -59,7 +59,7 @@ This schema consists of 3 entities,
   entity user {}
 ```
 
-- `organization`, represents organization that user and repositories belongs. 
+- `organization`, represents the organization that users and repositories belong to. 
 
 - `repository`, represents a repository in a github.
 
@@ -125,7 +125,7 @@ entity repository {
 } 
 ```
 
-Since `parent` represents the parent organization of a repository. It can reach repositories parent organization relations with comma. So, 
+Since `parent` represents the parent organization of a repository, it can reach the repository's parent organization relations with a comma. So, 
 
 - ``parent.admin``
 indicates admin role on organization
@@ -287,7 +287,7 @@ entity project {
 
 This schema consists of 4 entities, 
 
-- `user`, represents users. This entity is empty because its only responsible for referencing users.
+- `user`, represents users. This entity is empty because it's only responsible for referencing users.
 
 ```perm
   entity user {}
@@ -418,6 +418,6 @@ project:35#team@team:34#....
 
 **--> represents project 54 is in team 34**
 
-## Need any help on Authorization ?
+## Need any help with Authorization?
 
 Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify in your app or have any questions about this example, [schedule a consultation call with one of our account executives](https://www.permify.co/book-demo). Alternatively you can join our [discord community](https://discord.com/invite/MJbUjwskdH) to discuss.

@@ -90,18 +90,18 @@ entity organization {
 } 
 ```
 
-We have 2 entities these are **"user"** and **"organization"**. Entities represents your main tables. We strongly advise naming entities the same as your original database entities. 
+We have 2 entities, these are **"user"** and **"organization"**. Entities represent your main tables. We strongly advise naming entities the same as your original database entities. 
 
-Lets roll back our example, 
+Let's roll back to our example, 
 
 - The `user` entity represents users. This entity is empty because it's only responsible for referencing users.
 
-- The `organization` entity has its own relations (`admin` and `member`) which related with user entity. This entity also  has 2 actions, respectively:
+- The `organization` entity has its own relations (`admin` and `member`) which are related to the user entity. This entity also has 2 actions, respectively:
   - Organization member and admin can view files.
   - Only admins can edit files.
 
 <Note>
-For implementation sake we'll not dive more deep about modeling but you can find more information about modeling on [Modeling Authorization with Permify] section. Also you can check out [Real World Examples] section to better understand some familiar use cases modeled with Permify Schema. 
+For implementation's sake we'll not dive deeper into modeling but you can find more information about modeling in the [Modeling Authorization with Permify] section. Also you can check out the [Real World Examples] section to better understand some familiar use cases modeled with Permify Schema. 
 
 [Modeling Authorization with Permify]: ../getting-started/modeling
 [Real World Examples]: ../getting-started/examples/intro
@@ -109,10 +109,10 @@ For implementation sake we'll not dive more deep about modeling but you can find
 
 ### Configuring Schema via API 
 
-After modeling completed, you need to send Permify Schema - authorization model - to [Write Schema API](../../api-reference/schema/write-schema) for configuration of your authorization model on Permify authorization service.
+After modeling is completed, you need to send Permify Schema - the authorization model - to [Write Schema API](../../api-reference/schema/write-schema) for configuration of your authorization model on the Permify authorization service.
 
 <Warning>
-You'll see **tenant_id** parameter almost all Permify APIs including Write Schema. With version 0.3.x Permify became a tenancy based authorization infrastructure, and supports multi-tenancy by default so its a mandatory parameter when doing any operations.
+You'll see the **tenant_id** parameter in almost all Permify APIs including Write Schema. With version 0.3.x Permify became a tenancy-based authorization infrastructure, and supports multi-tenancy by default so it's a mandatory parameter when doing any operations.
 
 We provide a pre-inserted tenant - **t1** - for ones that don't need/want to use multi-tenancy. So, we will be passing **t1** to all tenant id parameters throughout this guidance.
 </Warning>
@@ -131,7 +131,7 @@ We provide a pre-inserted tenant - **t1** - for ones that don't need/want to use
 
 ## Store Authorization Data
 
-After you completed configuration of your authorization model via Permify Schema. Its time to add authorizations data to see Permify in action. 
+After you completed configuration of your authorization model via Permify Schema, it's time to add authorization data to see Permify in action. 
 
 You can write relationships and attributes as ACLs by using [Write Data API](../../api-reference/data/write-data)
 
@@ -188,9 +188,9 @@ But in this tutorial Permify Service running default configurations on local, so
 
 ## Perform Access Check
 
-Finally we're ready to control authorization. Access decision results computed according to relational tuples and the stored model, [Permify Schema] action conditions.
+Finally we're ready to control authorization. Access decision results are computed according to relational tuples and the stored model, [Permify Schema] action conditions.
 
-Lets get back to our example and perform an example access check via [Check API]. We want to check whether an specific user has an access to view files in a organization.
+Let's get back to our example and perform an example access check via [Check API]. We want to check whether a specific user has access to view files in an organization.
 
 [Check API]: ../../../api-reference/permission/check-api
 [Permify Schema]: ../getting-started/modeling
@@ -241,10 +241,10 @@ Lets get back to our example and perform an example access check via [Check API]
 }
 ```
 
-See [Access Control Check] section for learn how access checks works and access decisions evaluated in Permify
+See [Access Control Check] section to learn how access checks work and how access decisions are evaluated in Permify
 
 [Access Control Check]: ../../api-reference/permission/check-api
 
-## Need any help ?
+## Need any help?
 
 Our team is happy to help you get started with Permify. If you struggle with installation or have any questions, [schedule a consultation call with one of our account executives](https://www.permify.co/book-demo). Alternatively you can join our [discord community](https://discord.com/invite/MJbUjwskdH) to discuss.

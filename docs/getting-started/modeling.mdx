@@ -13,7 +13,7 @@ Permify has its own language that you can model your authorization logic with it
 
 ![modeling-authorization](https://raw.githubusercontent.com/Permify/permify/master/assets/permify-dsl.gif)
 
-You can define your entities, relations between them and access control decisions with using Permify Schema. It includes set-algebraic operators such as intersection and union for specifying potentially complex access control policies in terms of those user-object relations.
+You can define your entities, relations between them, and access control decisions using Permify Schema. It includes set-algebraic operators such as intersection and union for specifying potentially complex access control policies in terms of those user-object relations.
 
 Here’s a simple breakdown of our schema.
 
@@ -27,7 +27,7 @@ This guide will show how to develop a Permify Schema from scratch with a simple 
 
 We'll follow a simplified version of the GitHub access control system, where teams and organizations have control over the viewing, editing, or deleting access rights of repositories.
 
-Before start I want to share the full implementation of simple Github access control example with using Permify Schema.
+Before starting I want to share the full implementation of a simple GitHub access control example using Permify Schema.
 
 <iframe
   src="https://play.permify.co/?s=s-d1Qkf1d4y6RsxkugbIDYhxdYxfNRlm&t=f"
@@ -66,16 +66,16 @@ entity team {}
 entity repository {}
 ```
 
-Entities has 2 different attributes. These are;
+Entities have 2 different attributes. These are;
 
 - **relations**
 - **actions or permissions**
 
 ## Defining Relations
 
-Relations represent relationships between entities. It's probably the most critical part of the schema because Permify mostly based on relations between resources and their permissions.
+Relations represent relationships between entities. It's probably the most critical part of the schema because Permify is mostly based on relations between resources and their permissions.
 
-Keyword **_relation_** need to used to create a entity relation with name and type attributes.
+The keyword **_relation_** needs to be used to create an entity relation with name and type attributes.
 
 **Relation Attributes:**
 
@@ -88,11 +88,11 @@ An example relation takes form of,
 relation [name] @[type]
 ```
 
-Lets turn back to our example and define our relations inside our entities:
+Let's turn back to our example and define our relations inside our entities:
 
 ### User Entity
 
-→ The user entity is a mandatory entity in Permify. It generally will be empty but it will used a lot in other entities as a relation type to referencing users.
+→ The user entity is a mandatory entity in Permify. It generally will be empty but it will be used a lot in other entities as a relation type for referencing users.
 
 ```perm
 entity user {}
@@ -137,7 +137,7 @@ The parent relation is indicating the organization the team belongs to. This way
 
 ### Ownership
 
-In Github workflow, organizations and users can have multiple repositories, so each repository is related with an organization and with users. We can define repository relations as as follows.
+In GitHub workflow, organizations and users can have multiple repositories, so each repository is related to an organization and to users. We can define repository relations as follows.
 
 ```perm
 entity repository {
@@ -160,12 +160,12 @@ As you can see we have new syntax above,
     relation maintainer @user @team#member
 ```
 
-When we look at the maintainer relation, it indicates that the maintainer can be an `user` as well as this user can be a `team member`.
+When we look at the maintainer relation, it indicates that the maintainer can be a `user` as well as this user can be a `team member`.
 
 <Note>
 You can use **#** to reach entities relation. When we look at the `@team#member` it specifies that if the user has a relation with the team, this relation can only be the `member`. We called that feature locking, because it basically locks the relation type according to the prefixed entity.
 
-Actual purpose of feature locking is to giving ability to specify the sets of users that can be assigned.
+The actual purpose of feature locking is to give the ability to specify the sets of users that can be assigned.
 
 For example:
 
@@ -198,7 +198,7 @@ You can think of these definitions as a precaution taken against creating undesi
 
 </Note>
 
-Defining multiple relation types totally optional. The goal behind it to improve validation and reasonability. And for complex models, it allows you to model your entities in a more structured way.
+Defining multiple relation types is totally optional. The goal behind it is to improve validation and reasonability. And for complex models, it allows you to model your entities in a more structured way.
 
 ## Defining Permissions
 
@@ -212,7 +212,7 @@ The Permify Schema supports **`and`**, **`or`** and **`not`** operators to achie
 
 #### Intersection
 
-Lets get back to our github example and create a read action on repository entity to represent usage of **`and`** &, **`or`** operators,
+Let's get back to our GitHub example and create a read action on the repository entity to represent usage of **`and`** &, **`or`** operators,
 
 ```perm
 entity repository {
@@ -240,7 +240,7 @@ The same `read` can also be defined using the **permission** keyword, as follows
  permission read =  org.admin and (owner or maintainer or org.member)
 ```
 
-Using `action` and `permission` will yield the same result for defining permissions in your authorization logic. See why we have 2 keywords for defining an permission from the [Nested Hierarchies](#nested-hierarchies) section.
+Using `action` and `permission` will yield the same result for defining permissions in your authorization logic. See why we have 2 keywords for defining a permission from the [Nested Hierarchies](#nested-hierarchies) section.
 
 </Note>
 
@@ -357,7 +357,7 @@ double[]
 
 ### Defining Rules
 
-Rules are structures that allow you to write specific conditions for the model. You can think rules as simple functions of every software language have. They accept parameters and are based on condition to return a true/false result.
+Rules are structures that allow you to write specific conditions for the model. You can think of rules as simple functions that every software language has. They accept parameters and based on a condition, return a true/false result.
 
 In the following example schema, a rule could be used to check if a given IP address falls within a specified IP range:
 
@@ -418,7 +418,7 @@ entity repository {
 }
 ```
 
-As shown in the example, we used this rule in the `edit` permission of the repository to check whether the organization:X has edit access or not, depending on the authority level it possess.
+As shown in the example, we used this rule in the `edit` permission of the repository to check whether the organization:X has edit access or not, depending on the authority level it possesses.
 
 <Note>
 We design our schema language based on [Common Expression Language (CEL)](https://github.com/google/cel-go). So the syntax looks nearly identical to equivalent expressions in C++, Go, Java, and TypeScript.
@@ -459,7 +459,7 @@ Here is what each example focuses on,
 - [Google Docs]: how users can gain direct access to a document through **organizational roles** or through **inherited/nested permissions**.
 - [Facebook Groups]: how users can perform various actions based on the **roles and permissions within the groups** they belong.
 - [Notion]: how **one global entity (workspace) can manage access rights** in the child entities that belong to it.
-- [Instagram]: how **public/private attributes** play role in granting access to specific users.
+- [Instagram]: how **public/private attributes** play a role in granting access to specific users.
 - [Mercury]: how **attributes and rules interact within the hierarchical relationships**.
 
 [Google Docs]: ./examples/google-docs
