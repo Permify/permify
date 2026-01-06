@@ -59,11 +59,13 @@ const MainLayout = ({children, ...rest}) => {
                 attributes: attributes,
                 scenarios: scenarios
             })
-            const file = new File([yamlString], `s.yaml`, {type: 'text/x-yaml'});
-            put("s.yaml", file, {
+            // Generate unique filename to avoid conflicts
+            const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            const fileName = `${uniqueId}.yaml`;
+            const file = new File([yamlString], fileName, {type: 'text/x-yaml'});
+            put(fileName, file, {
                 access: 'public', 
-                token: process.env.REACT_APP_BLOB_READ_WRITE_TOKEN,
-                addRandomSuffix: true
+                token: process.env.REACT_APP_BLOB_READ_WRITE_TOKEN
             }).then((result) => {
                 let fileName = result.url.split('/').pop();
                 setId(fileName.replace('.yaml', ''))
