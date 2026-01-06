@@ -179,7 +179,7 @@ In Write Data API response you'll get a snap token of the operation.
 }
 ```
 
-This token consists of an encoded timestamp, which is used to ensure fresh results in access control checks. We're suggesting using snap tokens in production to prevent data inconsistency and optimize performance. See more on [Snap Tokens](../operations/snap-tokens)
+This token consists of an encoded timestamp, which is used to ensure fresh results in access control checks. We're suggesting using snap tokens in production to prevent data inconsistency and optimize performance. See more on [Snap Tokens](../operations/snap-tokens).
 
 ## More Examples
 
@@ -362,10 +362,10 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write
 <Note>
 Note: `relation: “...”` used when subject type is different from **user** entity. **#…** represents a relation that does not affect the semantics of the tuple.
 
-Simply, the usage of ... is straightforward: if you're using the user entity as a subject, you should not be using the `...` If you're using another subject rather than the user entity then you need to use the `...` 
+Simply, the usage of ... is straightforward: if you're using the user entity as a subject, you should not be using the `...` If you're using another subject rather than the user entity then you need to use the `...` .
 </Note>
 
-### Organization Members Are Maintainers in specific Doc
+### Organization Members Are Maintainers Of A Specific Doc
 
 **Created relational tuple:** document:1#maintainer@organization:2#member
 

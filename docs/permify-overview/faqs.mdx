@@ -61,7 +61,7 @@ As we can see above: only users with an admin role in an organization, which `do
 
 **Q2:** Get admins of the organization where `document:12` belongs to.
 
-Since edit action consists of **or** between owner and parent.admin, if Permify Engine finds user:3 in results of one of these queries then it terminates the other ongoing queries and returns authorized true to the client.
+Since edit action consists of **or** between owner and parent.admin, if Permify Engine finds user:3 in the results of one of these queries then it terminates the other ongoing queries and returns authorized true to the client.
 
 Rather than **or**, if we had an **and** relation then Permify Engine waits for the results of these queries before returning a decision. 
 
