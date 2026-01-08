@@ -250,30 +250,46 @@ The same `delete` action can also be defined using the **permission** keyword, a
 Using the `action` or `permission` keywords yields the same authorization logic. We have two keywords for defining a permission because most, but not all, permissions are based on actions. Learn more in our [Nested Hierarchies](/modeling-guides/rebac/impersonation) section.
 </Note>
 
-The `and` operation creates an intersection between relations but is not tied to specific entities.
+The `and` operation creates an intersection between relations but is not tied to specific entities. For example, in the following model, users can see a repository if they are a member or admin of any organization.
 
-For example, in the following model, users can see a repository if they are a member or admin of any organization.
-
-Let's say `user:1` is a member of `organization:1` and an admin of `organization:2`. If `repository:1` belongs to `organization:1`, then `user:1` has access to view `repository:1`.
+Let's say `user:1` is a member of `organization:1` and an admin of `organization:2`. If `repository:1` belongs to `organization:1`, then `user:1` has access to delete `repository:1`.
 
 ```perm
 entity user {}
 
 entity organization {
-
-    relation member @user
-    relation admin @user
-
-    permission view = member and admin
+  relation member @user
+  relation admin  @user
 }
 
 entity repository {
-
-    relation parent @organization
-
-    permission view = parent.member and parent.admin
+  relation org @organization
+  permission delete = org.member and org.admin
 }
 ```
+
+This is not always what you want. If you want to tie the relation to a specific organization, so that a user must be an admin and a member of the same organization to have the delete permission, create the permission on the organization and have the repository re-use the permission check.
+
+Here's an example of that:
+
+```perm
+entity user {}
+
+entity organization {
+  relation member @user
+  relation admin  @user
+
+  permission delete = member and admin
+}
+
+entity repository {
+  relation org @organization
+
+  permission delete = org.delete 
+}
+```
+
+This ensures that if the user is not a member and admin of the same organization, the repository delete permission check will fail.
 
 #### Exclusion
 
