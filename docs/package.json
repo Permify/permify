@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "loose-envify": "^1.4.0",
-    "mintlify": "^4.2.219",
+    "mintlify": "^4.2.269",
     "monaco-editor": "^0.55.1",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
@@ -20,5 +20,14 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "overrides": {
+    "axios": "^1.12.0",
+    "path-to-regexp": "^0.1.12",
+    "body-parser": "^1.20.3",
+    "qs": "^6.14.1",
+    "zod": "^3.22.3",
+    "express": "^4.19.2",
+    "tar": "^6.2.1"
+  }
 }
