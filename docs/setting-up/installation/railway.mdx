@@ -1,0 +1,127 @@
+---
+title: Deploy on Railway
+---
+
+This guide outlines the process of deploying Permify on Railway using our official one-click template.
+
+## One-Click Deploy
+
+The fastest way to get started is using the official Permify Railway template:
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/permify)
+
+This template automatically provisions:
+- A Permify instance with API authentication enabled
+- A PostgreSQL database for persistent storage
+- Private networking between services
+
+## What Gets Deployed
+
+### Permify Service
+
+The template deploys the latest Permify container image with the following default configuration:
+
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `PERMIFY_DATABASE_ENGINE` | `postgres` | Database backend |
+| `PERMIFY_DATABASE_URI` | Auto-configured | Connection string to PostgreSQL |
+| `PERMIFY_AUTHN_ENABLED` | `true` | Enable API authentication |
+| `PERMIFY_AUTHN_METHOD` | `preshared` | Authentication method |
+| `PERMIFY_AUTHN_PRESHARED_KEYS` | Auto-generated | 32-character secret key |
+| `PERMIFY_LOG_LEVEL` | `info` | Logging verbosity |
+
+### PostgreSQL Database
+
+A dedicated PostgreSQL instance is provisioned and connected to Permify over Railway's private network. The database connection is configured automatically—no manual setup required.
+
+## Connecting Your Application
+
+After deployment, add these environment variables to your application service to connect to Permify:
+```shell
+PERMIFY_HOST=${{Permify.RAILWAY_PRIVATE_DOMAIN}}
+PERMIFY_GRPC_PORT=3478
+PERMIFY_REST_PORT=3476
+PERMIFY_API_KEY=${{Permify.PERMIFY_AUTHN_PRESHARED_KEYS}}
+```
+
+### Available Endpoints
+
+Permify exposes two ports:
+
+| Port | Protocol | Description |
+|------|----------|-------------|
+| 3476 | HTTP/REST | REST API and health checks |
+| 3478 | gRPC | High-performance gRPC API |
+
+<Note>
+Both ports are accessible over Railway's private network by default. To expose them publicly, configure a public domain in your Railway service settings.
+</Note>
+
+## Verifying the Deployment
+
+By default, Permify runs on Railway's private network with no public access. To verify the deployment:
+
+**Option 1: Check Railway logs**
+
+View the deployment logs in Railway's dashboard. A successful start shows:
+```
+🚀 grpc server successfully started: 3478
+🚀 http server successfully started: 3476
+```
+
+**Option 2: Expose a public domain**
+
+To test externally, add a public domain in Railway's service settings (Settings → Networking → Public Networking). Then:
+```sh
+curl https://<your-public-domain>/healthz
+```
+
+You should see:
+```json
+{"status":"SERVING"}
+```
+
+**Option 3: From another Railway service**
+
+Your application can reach Permify on the private network at:
+```
+http://permify.railway.internal:3476/healthz
+```
+
+## Manual Deployment
+
+If you prefer to deploy manually instead of using the template:
+
+### 1. Create a New Project
+
+Create a new project in Railway and add a PostgreSQL database.
+
+### 2. Add the Permify Service
+
+Add a new service and deploy from the Docker image:
+```
+ghcr.io/permify/permify:latest
+```
+
+### 3. Configure Environment Variables
+
+Set the following environment variables on your Permify service:
+```shell
+PERMIFY_DATABASE_ENGINE=postgres
+PERMIFY_DATABASE_URI=${{Postgres.DATABASE_URL}}
+PERMIFY_AUTHN_ENABLED=true
+PERMIFY_AUTHN_METHOD=preshared
+PERMIFY_AUTHN_PRESHARED_KEYS=<your-secret-key>
+PERMIFY_LOG_LEVEL=info
+```
+
+### 4. Set the Start Command
+
+Configure the start command:
+```
+serve
+```
+
+### 5. Expose Ports
+
+In the service settings, expose ports 3476 (REST) and/or 3478 (gRPC) as needed.
