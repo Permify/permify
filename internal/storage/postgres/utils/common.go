@@ -87,7 +87,7 @@ func SnapshotQuery(sl squirrel.SelectBuilder, value uint64, snapshotValue string
 // based on the provided value, which represents a transaction ID.
 func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 	// Create a Squirrel DELETE builder for the specified table.
-	deleteBuilder := squirrel.Delete(table)
+	deleteBuilder := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).Delete(table)
 
 	// Create an expression to check if 'expired_tx_id' is not equal to ActiveRecordTxnID (expired records).
 	expiredNotActiveExpr := squirrel.Expr("expired_tx_id <> ?::xid8", ActiveRecordTxnID)
@@ -104,7 +104,7 @@ func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 // based on the provided value, which represents a transaction ID.
 func GenerateGCQueryForTenant(table, tenantID string, value uint64) squirrel.DeleteBuilder {
 	// Create a Squirrel DELETE builder for the specified table.
-	deleteBuilder := squirrel.Delete(table)
+	deleteBuilder := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).Delete(table)
 
 	// Create an expression to check if 'expired_tx_id' is not equal to ActiveRecordTxnID (expired records).
 	expiredNotActiveExpr := squirrel.Expr("expired_tx_id <> ?::xid8", ActiveRecordTxnID)

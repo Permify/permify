@@ -75,7 +75,7 @@ var _ = Describe("Common", func() {
 			sql, args, err := query.ToSql()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			expectedSQL := "DELETE FROM relation_tuples WHERE expired_tx_id <> ?::xid8 AND expired_tx_id < ?::xid8"
+			expectedSQL := "DELETE FROM relation_tuples WHERE expired_tx_id <> $1::xid8 AND expired_tx_id < $2::xid8"
 			Expect(expectedSQL).Should(Equal(sql))
 			Expect(args).Should(Equal([]interface{}{utils.ActiveRecordTxnID, uint64(100)}))
 		})
@@ -85,7 +85,7 @@ var _ = Describe("Common", func() {
 			sql, args, err := query.ToSql()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			expectedSQL := "DELETE FROM relation_tuples WHERE tenant_id = ? AND expired_tx_id <> ?::xid8 AND expired_tx_id < ?::xid8"
+			expectedSQL := "DELETE FROM relation_tuples WHERE tenant_id = $1 AND expired_tx_id <> $2::xid8 AND expired_tx_id < $3::xid8"
 			Expect(expectedSQL).Should(Equal(sql))
 			Expect(args).Should(Equal([]interface{}{"tenant1", utils.ActiveRecordTxnID, uint64(100)}))
 		})
