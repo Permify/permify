@@ -72,7 +72,7 @@ View the deployment logs in Railway's dashboard. A successful start shows:
 **Option 2: Expose a public domain**
 
 To test externally, add a public domain in Railway's service settings (Settings → Networking → Public Networking). Then:
-```sh
+```
 curl https://<your-public-domain>/healthz
 ```
 
@@ -119,7 +119,7 @@ PERMIFY_LOG_LEVEL=info
 
 Configure the start command:
 ```
-serve
+permify serve --database-auto-migrate=true
 ```
 
 ### 5. Expose Ports
