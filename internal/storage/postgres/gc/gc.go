@@ -195,7 +195,7 @@ func (gc *GC) getLastTransactionIDForTenant(ctx context.Context, tenantID string
 
 // deleteRecordsForTenant generates and executes DELETE queries for relation_tuples and attributes tables for a specific tenant.
 func (gc *GC) deleteRecordsForTenant(ctx context.Context, table, tenantID string, lastTransactionID uint64) error {
-	queryBuilder := utils.GenerateGCQueryForTenant(table, tenantID, lastTransactionID)
+	queryBuilder := utils.GenerateGCQueryForTenant(gc.database.Builder, table, tenantID, lastTransactionID)
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return err

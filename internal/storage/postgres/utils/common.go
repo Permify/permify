@@ -85,9 +85,9 @@ func SnapshotQuery(sl squirrel.SelectBuilder, value uint64, snapshotValue string
 // GenerateGCQuery generates a Squirrel DELETE query builder for garbage collection.
 // It constructs a query to delete expired records from the specified table
 // based on the provided value, which represents a transaction ID.
-func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
+func GenerateGCQuery(sl squirrel.StatementBuilderType, table string, value uint64) squirrel.DeleteBuilder {
 	// Create a Squirrel DELETE builder for the specified table.
-	deleteBuilder := squirrel.Delete(table)
+	deleteBuilder := sl.Delete(table)
 
 	// Create an expression to check if 'expired_tx_id' is not equal to ActiveRecordTxnID (expired records).
 	expiredNotActiveExpr := squirrel.Expr("expired_tx_id <> ?::xid8", ActiveRecordTxnID)
@@ -102,9 +102,9 @@ func GenerateGCQuery(table string, value uint64) squirrel.DeleteBuilder {
 // GenerateGCQueryForTenant generates a Squirrel DELETE query builder for tenant-aware garbage collection.
 // It constructs a query to delete expired records from the specified table for a specific tenant
 // based on the provided value, which represents a transaction ID.
-func GenerateGCQueryForTenant(table, tenantID string, value uint64) squirrel.DeleteBuilder {
+func GenerateGCQueryForTenant(sl squirrel.StatementBuilderType, table, tenantID string, value uint64) squirrel.DeleteBuilder {
 	// Create a Squirrel DELETE builder for the specified table.
-	deleteBuilder := squirrel.Delete(table)
+	deleteBuilder := sl.Delete(table)
 
 	// Create an expression to check if 'expired_tx_id' is not equal to ActiveRecordTxnID (expired records).
 	expiredNotActiveExpr := squirrel.Expr("expired_tx_id <> ?::xid8", ActiveRecordTxnID)

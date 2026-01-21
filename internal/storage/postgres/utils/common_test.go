@@ -69,9 +69,10 @@ var _ = Describe("Common", func() {
 		})
 	})
 
-	Context("TestGarbageCollectQuery", func() {
+	Context("TestGarbageCollectQuery question placeholder", func() {
 		It("Case 1", func() {
-			query := utils.GenerateGCQuery("relation_tuples", 100)
+			sl := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Question)
+			query := utils.GenerateGCQuery(sl, "relation_tuples", 100)
 			sql, args, err := query.ToSql()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -81,11 +82,36 @@ var _ = Describe("Common", func() {
 		})
 
 		It("Case 2 - Tenant Aware", func() {
-			query := utils.GenerateGCQueryForTenant("relation_tuples", "tenant1", 100)
+			sl := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Question)
+			query := utils.GenerateGCQueryForTenant(sl, "relation_tuples", "tenant1", 100)
 			sql, args, err := query.ToSql()
 			Expect(err).ShouldNot(HaveOccurred())
 
 			expectedSQL := "DELETE FROM relation_tuples WHERE tenant_id = ? AND expired_tx_id <> ?::xid8 AND expired_tx_id < ?::xid8"
+			Expect(expectedSQL).Should(Equal(sql))
+			Expect(args).Should(Equal([]interface{}{"tenant1", utils.ActiveRecordTxnID, uint64(100)}))
+		})
+	})
+
+	Context("TestGarbageCollectQuery dollar placeholder", func() {
+		It("Case 1", func() {
+			sl := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+			query := utils.GenerateGCQuery(sl, "relation_tuples", 100)
+			sql, args, err := query.ToSql()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			expectedSQL := "DELETE FROM relation_tuples WHERE expired_tx_id <> $1::xid8 AND expired_tx_id < $2::xid8"
+			Expect(expectedSQL).Should(Equal(sql))
+			Expect(args).Should(Equal([]interface{}{utils.ActiveRecordTxnID, uint64(100)}))
+		})
+
+		It("Case 2 - Tenant Aware", func() {
+			sl := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+			query := utils.GenerateGCQueryForTenant(sl, "relation_tuples", "tenant1", 100)
+			sql, args, err := query.ToSql()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			expectedSQL := "DELETE FROM relation_tuples WHERE tenant_id = $1 AND expired_tx_id <> $2::xid8 AND expired_tx_id < $3::xid8"
 			Expect(expectedSQL).Should(Equal(sql))
 			Expect(args).Should(Equal([]interface{}{"tenant1", utils.ActiveRecordTxnID, uint64(100)}))
 		})
