@@ -311,6 +311,7 @@
             "setting-up/installation/brew",
             "setting-up/installation/container",
             "setting-up/installation/fly",
+            "setting-up/installation/railway",
             "setting-up/installation/google",
             "setting-up/installation/helm",
             "setting-up/installation/kubernetes",
