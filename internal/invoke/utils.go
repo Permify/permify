@@ -9,7 +9,7 @@ import (
 
 // checkDepth validates that the request has sufficient depth for permission checks
 func checkDepth(request *base.PermissionCheckRequest) error {
-	if atomic.LoadInt32(&request.GetMetadata().Depth) <= 0 { // Check depth is positive
+	if atomic.LoadInt32(&request.GetMetadata().Depth) < 0 { // Check depth is not negative
 		return errors.New(base.ErrorCode_ERROR_CODE_DEPTH_NOT_ENOUGH.String())
 	}
 	return nil

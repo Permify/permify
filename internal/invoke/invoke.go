@@ -166,10 +166,12 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 		}
 	}
 
-	atomic.AddInt32(&request.GetMetadata().Depth, -1)
+	// Create a copy of the request to safely decrement depth without mutating the original.
+	nextRequest := request.CloneVT()
+	nextRequest.Metadata.Depth = request.GetMetadata().Depth - 1
 
 	// Perform the actual permission check using the provided request.
-	response, err = invoker.cc.Check(ctx, request)
+	response, err = invoker.cc.Check(ctx, nextRequest)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
