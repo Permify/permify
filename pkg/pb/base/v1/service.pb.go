@@ -7,14 +7,15 @@
 package basev1
 
 import (
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
+
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
 )
 
 const (
@@ -132,7 +133,9 @@ type PermissionCheckRequestMetadata struct {
 	// Token associated with the snap.
 	SnapToken string `protobuf:"bytes,2,opt,name=snap_token,proto3" json:"snap_token,omitempty"`
 	// Depth of the check, must be greater than or equal to 3.
-	Depth         int32 `protobuf:"varint,3,opt,name=depth,proto3" json:"depth,omitempty"`
+	Depth int32 `protobuf:"varint,3,opt,name=depth,proto3" json:"depth,omitempty"`
+	// Path of the exclusion, used for coverage tracking.
+	ExclusionPath string `protobuf:"bytes,4,opt,name=exclusion_path,json=exclusionPath,proto3" json:"exclusion_path,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -186,6 +189,13 @@ func (x *PermissionCheckRequestMetadata) GetDepth() int32 {
 		return x.Depth
 	}
 	return 0
+}
+
+func (x *PermissionCheckRequestMetadata) GetExclusionPath() string {
+	if x != nil {
+		return x.ExclusionPath
+	}
+	return ""
 }
 
 // PermissionCheckResponse is the response message for the Check method in the Permission service.

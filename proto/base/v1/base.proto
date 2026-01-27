@@ -60,6 +60,11 @@ message Context {
   google.protobuf.Struct data = 3;
 }
 
+message PositionInfo {
+  uint32 line = 1;
+  uint32 column = 2;
+}
+
 // Child represents a node in the permission tree.
 message Child {
   // Child node can be either a leaf or a rewrite operation.
@@ -73,6 +78,9 @@ message Child {
     // Rewrite operation in the permission tree.
     Rewrite rewrite = 2 [(validate.rules).message.required = true];
   }
+
+  // Source position information for this node.
+  PositionInfo position_info = 3;
 }
 
 // Leaf represents a leaf node in the permission tree.

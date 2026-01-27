@@ -853,6 +853,9 @@ message PermissionCheckRequestMetadata {
     (validate.rules).int32.gte = 3,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop"}
   ];
+
+  // Path of the exclusion, used for coverage tracking.
+  string exclusion_path = 4 [json_name = "exclusion_path"];
 }
 
 // PermissionCheckResponse is the response message for the Check method in the Permission service.

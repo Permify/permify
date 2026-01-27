@@ -479,6 +479,10 @@ func (t *Compiler) compileCall(entityName string, call *ast.Call) (*base.Child, 
 			Arguments: arguments,
 		}},
 	}}
+	child.PositionInfo = &base.PositionInfo{
+		Line:   uint32(call.Name.PositionInfo.LinePosition),
+		Column: uint32(call.Name.PositionInfo.ColumnPosition),
+	}
 
 	// Return the compiled child and nil error to indicate success.
 	return child, nil

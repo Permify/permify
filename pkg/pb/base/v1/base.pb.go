@@ -7,6 +7,10 @@
 package basev1
 
 import (
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
+
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	v1alpha1 "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -14,9 +18,6 @@ import (
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
 )
 
 const (
@@ -482,16 +483,62 @@ func (x *Context) GetData() *structpb.Struct {
 	return nil
 }
 
+type PositionInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Line          uint32                 `protobuf:"varint,1,opt,name=line,proto3" json:"line,omitempty"`
+	Column        uint32                 `protobuf:"varint,2,opt,name=column,proto3" json:"column,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PositionInfo) Reset() {
+	*x = PositionInfo{}
+}
+
+func (x *PositionInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PositionInfo) ProtoMessage() {}
+
+func (x *PositionInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_base_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *PositionInfo) GetLine() uint32 {
+	if x != nil {
+		return x.Line
+	}
+	return 0
+}
+
+func (x *PositionInfo) GetColumn() uint32 {
+	if x != nil {
+		return x.Column
+	}
+	return 0
+}
+
 // Child represents a node in the permission tree.
 type Child struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Child node can be either a leaf or a rewrite operation.
 	//
-	// Types that are valid to be assigned to Type:
+	// Types that are assignable to Type:
 	//
 	//	*Child_Leaf
 	//	*Child_Rewrite
-	Type          isChild_Type `protobuf_oneof:"type"`
+	Type isChild_Type `protobuf_oneof:"type"`
+	// Source position information for this node.
+	PositionInfo  *PositionInfo `protobuf:"bytes,3,opt,name=position_info,json=positionInfo,proto3" json:"position_info,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -547,6 +594,13 @@ func (x *Child) GetRewrite() *Rewrite {
 		if x, ok := x.Type.(*Child_Rewrite); ok {
 			return x.Rewrite
 		}
+	}
+	return nil
+}
+
+func (x *Child) GetPositionInfo() *PositionInfo {
+	if x != nil {
+		return x.PositionInfo
 	}
 	return nil
 }
