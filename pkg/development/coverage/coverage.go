@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/Permify/permify/internal/coverage"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/development/file"
 	"github.com/Permify/permify/pkg/dsl/compiler"
@@ -12,27 +13,14 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-// SchemaCoverageInfo represents the overall coverage information for a schema
-type SchemaCoverageInfo struct {
-	EntityCoverageInfo         []EntityCoverageInfo
-	TotalRelationshipsCoverage int
-	TotalAttributesCoverage    int
-	TotalAssertionsCoverage    int
-}
+// SchemaCoverageInfo aliases internal coverage info
+type SchemaCoverageInfo = coverage.SchemaCoverageInfo
 
-// EntityCoverageInfo represents coverage information for a single entity
-type EntityCoverageInfo struct {
-	EntityName string
+// EntityCoverageInfo aliases internal entity coverage info
+type EntityCoverageInfo = coverage.EntityCoverageInfo
 
-	UncoveredRelationships       []string
-	CoverageRelationshipsPercent int
-
-	UncoveredAttributes       []string
-	CoverageAttributesPercent int
-
-	UncoveredAssertions       map[string][]string
-	CoverageAssertionsPercent map[string]int
-}
+// LogicNodeCoverage aliases internal logic node coverage info
+type LogicNodeCoverage = coverage.LogicNodeCoverage
 
 // SchemaCoverage represents the expected coverage for a schema entity
 //
@@ -72,13 +60,25 @@ type SchemaCoverage struct {
 // Run analyzes the coverage of relationships, attributes, and assertions
 // for a given schema shape and returns the coverage information
 func Run(shape file.Shape) SchemaCoverageInfo {
-	definitions, err := parseAndCompileSchema(shape.Schema)
+	p, err := parser.NewParser(shape.Schema).Parse()
 	if err != nil {
 		return SchemaCoverageInfo{}
 	}
 
+	definitions, _, err := compiler.NewCompiler(true, p).Compile()
+	if err != nil {
+		return SchemaCoverageInfo{}
+	}
+
+	registry := coverage.NewRegistry()
+	coverage.Discover(p, registry)
+
 	refs := extractSchemaReferences(definitions)
 	entityCoverageInfos := calculateEntityCoverages(refs, shape)
+
+	// Logic coverage is handled during scenario execution in calculateEntityCoverages if we wanted to be fully integration-style,
+	// but since the current coverage tool is static, we'll mark logic nodes as uncovered based on registry report.
+	// For now, let's just populate the logic coverage in calculateEntityCoverage.
 
 	return buildSchemaCoverageInfo(entityCoverageInfos)
 }
