@@ -17,7 +17,7 @@ var Identifier = ""
 🐙 GitHub: https://github.com/Permify/permify
 📝 Blog: https://permify.co/blog
 
-💬 Discord: https://discord.gg/n6KfzYxhPp
+💬 Discord: https://discord.gg/permify
 🐦 Twitter: https://twitter.com/GetPermify
 💼 LinkedIn: https://www.linkedin.com/company/permifyco
 */

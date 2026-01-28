@@ -37,7 +37,7 @@
     <a href="https://github.com/Permify/permify" target="_blank"><img src="https://img.shields.io/github/go-mod/go-version/Permify/permify?style=for-the-badge&logo=go" alt="Permify Go Version" /></a>&nbsp;
     <a href="https://goreportcard.com/report/github.com/Permify/permify" target="_blank"><img src="https://goreportcard.com/badge/github.com/Permify/permify?style=for-the-badge" alt="Permify Go Report Card" /></a>&nbsp;
     <a href="https://github.com/Permify/permify" target="_blank"><img src="https://img.shields.io/github/license/Permify/permify?style=for-the-badge&logo=github" alt="Permify Licence" /></a>&nbsp;
-    <a href="https://discord.gg/n6KfzYxhPp" target="_blank"><img src="https://img.shields.io/discord/950799928047833088?style=for-the-badge&logo=discord&label=DISCORD" alt="Permify Discord Channel" /></a>&nbsp;
+    <a href="https://discord.gg/permify" target="_blank"><img src="https://img.shields.io/discord/950799928047833088?style=for-the-badge&logo=discord&label=DISCORD" alt="Permify Discord Channel" /></a>&nbsp;
     <a href="https://github.com/Permify/permify/releases" target="_blank"><img src="https://img.shields.io/github/v/release/permify/permify?style=for-the-badge&logo=github" alt="Permify Release" /></a>&nbsp;
     <a href="https://github.com/Permify/permify/commits" target="_blank"><img src="https://img.shields.io/github/commit-activity/m/Permify/permify?style=for-the-badge&logo=github" alt="Permify Commit Activity" /></a>&nbsp;
     <a href="https://github.com/Permify/permify/actions/workflows/release.yml" target="_blank"><img src="https://img.shields.io/github/actions/workflow/status/Permify/permify/release.yml?style=for-the-badge&logo=github-actions" alt="GitHub Workflow Status" /></a>&nbsp;
@@ -148,7 +148,7 @@ Your feedback helps shape the future of Permify, and we'd love to hear from you!
 
 Share your use case, get the latest product updates, and feel free to ask any questions about Permify or authorization in a broader context by joining our conversation on Discord!
 
-[![Join Our Discord!](https://img.shields.io/badge/Join%20Our%20Discord!-blueviolet?style=for-the-badge)](https://discord.gg/n6KfzYxhPp)&nbsp;
+[![Join Our Discord!](https://img.shields.io/badge/Join%20Our%20Discord!-blueviolet?style=for-the-badge)](https://discord.gg/permify)&nbsp;
 
 ## Contributing
 
@@ -180,6 +180,6 @@ You can find [Permify's Public Roadmap](https://github.com/orgs/Permify/projects
 
 If you like Permify, please consider giving us a :star:
 
-[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/n6KfzYxhPp)&nbsp;&nbsp;
+[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/permify)&nbsp;&nbsp;
 [![X (Twitter)](https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white)](https://twitter.com/GetPermify)&nbsp;&nbsp;
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/company/permifyco)

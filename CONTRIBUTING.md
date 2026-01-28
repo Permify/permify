@@ -4,14 +4,12 @@ Welcome to Permify contribution guidelines, happy to see you here :blush:
 
 Before participating in the community, we must specify that all of the contributions must follow our [Code of Conduct](https://github.com/Permify/permify/blob/master/CODE_OF_CONDUCT.md). Please read it before you make any contributions. 
 
-For questions or assistance regarding any specific issue, feel free to contact me at: ege@permify.co
+If you have any questions or need help with a specific issue, feel free to reach out through our community channels.
 
-You're always more than welcome to our other communication channels.
-
-## Communication Channels
+## Community Communication Channels
 
 <p align="left">
-<a href="https://discord.gg/n6KfzYxhPp">
+<a href="https://discord.gg/permify">
  <img height="70px" width="70px" alt="permify | Discord" src="https://user-images.githubusercontent.com/39353278/187209316-3d01a799-c51b-4eaa-8f52-168047078a14.png" />
 </a>
 <a href="https://twitter.com/GetPermify">
