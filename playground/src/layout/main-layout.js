@@ -287,7 +287,7 @@ const MainLayout = ({children, ...rest}) => {
                                                 href="https://github.com/Permify/permify">
                                             Star us on GitHub
                                         </Button>
-                                        <Button type="primary" href="https://discord.com/invite/MJbUjwskdH" target="_blank">
+                                        <Button type="primary" href="https://discord.gg/permify" target="_blank">
                                             Join Community
                                         </Button>
                                     </>

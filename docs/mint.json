@@ -18,7 +18,7 @@
   "topbarLinks": [
     {
       "name": "Support",
-      "url": "https://discord.com/invite/n6KfzYxhPp"
+      "url": "https://discord.gg/permify"
     }
   ],
   "modeToggle": {
@@ -221,7 +221,7 @@
     {
       "name": "Community",
       "icon": "discord",
-      "url": "https://discord.com/invite/n6KfzYxhPp"
+      "url": "https://discord.gg/permify"
     },
     {
       "name": "Open Source",
