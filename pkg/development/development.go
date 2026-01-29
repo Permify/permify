@@ -15,6 +15,7 @@ import (
 	"github.com/rs/xid"
 
 	"github.com/Permify/permify/internal/config"
+	"github.com/Permify/permify/internal/coverage"
 	"github.com/Permify/permify/internal/engines"
 	"github.com/Permify/permify/internal/factories"
 	"github.com/Permify/permify/internal/invoke"
@@ -23,6 +24,7 @@ import (
 	"github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
+	cov "github.com/Permify/permify/pkg/development/coverage"
 	"github.com/Permify/permify/pkg/development/file"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
@@ -33,6 +35,7 @@ import (
 
 type Development struct {
 	Container *servers.Container
+	Registry  *coverage.Registry
 }
 
 func NewContainer() *Development {
@@ -111,6 +114,58 @@ type Error struct {
 	Message string `json:"message"`
 }
 
+func (c *Development) RunCoverage(ctx context.Context, shape *file.Shape) (cov.SchemaCoverageInfo, []Error) {
+	errors := c.RunWithShape(ctx, shape)
+
+	// Initial static coverage
+	schemaCoverageInfo := cov.Run(*shape)
+
+	if c.Registry != nil {
+		report := c.Registry.Report()
+		// Merge logic coverage into schemaCoverageInfo
+		// We'll calculate logic coverage percentage here
+
+		totalNodes := len(c.Registry.ReportAll()) // I need to add ReportAll to Registry
+		uncoveredNodes := len(report)
+
+		if totalNodes > 0 {
+			schemaCoverageInfo.TotalLogicCoverage = ((totalNodes - uncoveredNodes) * 100) / totalNodes
+		} else {
+			schemaCoverageInfo.TotalLogicCoverage = 100
+		}
+
+		// Update entity coverage info with logic nodes
+		for i, entityInfo := range schemaCoverageInfo.EntityCoverageInfo {
+			var entityUncovered []cov.LogicNodeCoverage
+			var entityTotal int
+			var entityUncoveredCount int
+
+			for _, node := range c.Registry.ReportAll() {
+				if strings.HasPrefix(node.Path, entityInfo.EntityName+"#") {
+					entityTotal++
+					if node.VisitCount == 0 {
+						entityUncoveredCount++
+						entityUncovered = append(entityUncovered, cov.LogicNodeCoverage{
+							Path:       node.Path,
+							SourceInfo: node.SourceInfo,
+							Type:       node.Type,
+						})
+					}
+				}
+			}
+
+			schemaCoverageInfo.EntityCoverageInfo[i].UncoveredLogicNodes = entityUncovered
+			if entityTotal > 0 {
+				schemaCoverageInfo.EntityCoverageInfo[i].CoverageLogicPercent = ((entityTotal - entityUncoveredCount) * 100) / entityTotal
+			} else {
+				schemaCoverageInfo.EntityCoverageInfo[i].CoverageLogicPercent = 100
+			}
+		}
+	}
+
+	return schemaCoverageInfo, errors
+}
+
 func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (errors []Error) {
 	// Marshal the shape map into YAML format
 	out, err := yaml.Marshal(shape)
@@ -140,7 +195,7 @@ func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (er
 
 func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (errors []Error) {
 	// Parse the schema using the parser library
-	sch, err := parser.NewParser(shape.Schema).Parse()
+	p, err := parser.NewParser(shape.Schema).Parse()
 	if err != nil {
 		errors = append(errors, Error{
 			Type:    "schema",
@@ -150,8 +205,13 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 		return errors
 	}
 
+	registry := coverage.NewRegistry()
+	coverage.Discover(p, registry)
+	ctx = coverage.ContextWithRegistry(ctx, registry)
+	c.Registry = registry
+
 	// Compile the parsed schema
-	_, _, err = compiler.NewCompiler(true, sch).Compile()
+	_, _, err = compiler.NewCompiler(true, p).Compile()
 	if err != nil {
 		errors = append(errors, Error{
 			Type:    "schema",
@@ -165,8 +225,8 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 	version := xid.New().String()
 
 	// Create a slice of SchemaDefinitions, one for each statement in the schema
-	cnf := make([]storage.SchemaDefinition, 0, len(sch.Statements))
-	for _, st := range sch.Statements {
+	cnf := make([]storage.SchemaDefinition, 0, len(p.Statements))
+	for _, st := range p.Statements {
 		cnf = append(cnf, storage.SchemaDefinition{
 			TenantID:             "t1",
 			Version:              version,
