@@ -280,7 +280,7 @@ const MainLayout = ({children, ...rest}) => {
                                 {screens.xl &&
                                     <>
                                         <Button className="mr-8 text-white" type="link" target="_blank"
-                                                href="https://docs.permify.co/docs/playground">
+                                                href="https://docs.permify.co/permify-overview/playground">
                                             How to use the playground?
                                         </Button>
                                         <Button className="mr-8" target="_blank" icon={<GithubOutlined/>}
