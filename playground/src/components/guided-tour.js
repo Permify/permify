@@ -77,7 +77,7 @@ export default function GuidedTour({refSchemaEditor, refRelationshipsAndAttribut
                         Enforcement section represents a test scenario for conducting access checks. To learn more about
                         the
                         capabilities of this YAML, refer to:{" "}
-                        <Link href="https://docs.permify.co/docs/playground/#enforcement-access-check-scenarios"
+                        <Link href="https://docs.permify.co/permify-overview/playground/#enforcement-access-check-scenarios"
                               text="docs"/>.
                     </p>
                 </div>

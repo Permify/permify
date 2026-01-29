@@ -240,7 +240,8 @@
       "pages": [
         "permify-overview/intro",
         "permify-overview/authorization-service",
-        "permify-overview/faqs"
+        "permify-overview/faqs",
+        "permify-overview/playground"
       ]
     },
     {
