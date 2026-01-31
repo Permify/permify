@@ -69,6 +69,8 @@ func discoverExpression(expr ast.Expression, path string, r *Registry) {
 				Column: int32(v.Name.PositionInfo.ColumnPosition),
 			}
 			nodeType = "CALL"
+		default:
+			nodeType = "UNKNOWN"
 		}
 
 		r.Register(path, info, nodeType)
