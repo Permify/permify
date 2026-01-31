@@ -66,7 +66,7 @@ type SchemaCoverageInfo struct {
 // NewRegistry creates a new Coverage Registry.
 func NewRegistry() *Registry {
 	return &Registry{
-		nodes: make(make(map[string]*NodeInfo)),
+		nodes: make(map[string]*NodeInfo),
 	}
 }
 
