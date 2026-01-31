@@ -177,9 +177,10 @@ func (engine *CheckEngine) check(
 func (engine *CheckEngine) checkRewrite(ctx context.Context, request *base.PermissionCheckRequest, rewrite *base.Rewrite) CheckFunction {
 	path := coverage.PathFromContext(ctx)
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
-		if engine.registry != nil {
-			engine.registry.Visit(coverage.GetPath(request.GetPermission(), request.GetMetadata().GetExclusionPath()))
-		}
+		trackCtx := coverage.ContextWithRegistry(ctx, engine.registry)
+		trackPath := coverage.GetPath(request.GetPermission(), request.GetMetadata().GetExclusionPath())
+		coverage.Track(coverage.ContextWithPath(trackCtx, trackPath))
+		
 		// Switch statement depending on the Rewrite operation
 		switch rewrite.GetRewriteOperation() {
 		// In case of UNION operation, set the children CheckFunctions to be run concurrently
@@ -259,7 +260,7 @@ func (engine *CheckEngine) setChild(
 		case *base.Child_Rewrite:
 			functions = append(functions, engine.checkRewrite(childCtx, request, child.GetRewrite()))
 		// In case of a Leaf node, create a CheckFunction for the Leaf and append it
-		case *base.Leaf_Leaf:
+		case *base.Child_Leaf:
 			functions = append(functions, engine.checkLeaf(childCtx, request, child.GetLeaf()))
 		// In case of an undefined type, return a CheckFunction that always fails
 		default:
