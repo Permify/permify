@@ -11,11 +11,9 @@ managed:
       - buf.build/grpc-ecosystem/grpc-gateway
 plugins:
   - name: go
-    path: ["go", "run", "google.golang.org/protobuf/cmd/protoc-gen-go"]
     out: pkg/pb
     opt: paths=source_relative
   - name: go-grpc
-    path: ["go", "run", "google.golang.org/grpc/cmd/protoc-gen-go-grpc"]
     out: pkg/pb
     opt: paths=source_relative
   - name: go-vtproto
@@ -23,18 +21,14 @@ plugins:
     out: pkg/pb
     opt: paths=source_relative,features=marshal+unmarshal+size+clone+pool+equal
   - name: validate
-    path: ["go", "run", "github.com/envoyproxy/protoc-gen-validate"]
     out: pkg/pb
     opt: paths=source_relative,lang=go
   - name: grpc-gateway
-    path: ["go", "run", "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway"]
     out: pkg/pb
     opt: paths=source_relative
   - name: openapiv2
-    path: ["go", "run", "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2"]
     out: docs/api-reference
     opt: openapi_naming_strategy=simple,allow_merge=true
   - name: openapiv2
-    path: ["go", "run", "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2"]
     out: docs/api-reference/openapiv2
     opt: omit_enum_default_value=true,openapi_naming_strategy=simple,allow_merge=true
