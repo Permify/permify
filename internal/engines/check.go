@@ -178,7 +178,7 @@ func (engine *CheckEngine) checkRewrite(ctx context.Context, request *base.Permi
 	path := coverage.PathFromContext(ctx)
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
 		trackCtx := coverage.ContextWithRegistry(ctx, engine.registry)
-		trackPath := coverage.GetPath(request.GetPermission(), request.GetMetadata().GetExclusionPath())
+		trackPath := coverage.AppendPath(request.GetPermission(), request.GetMetadata().GetCoveragePath())
 		coverage.Track(coverage.ContextWithPath(trackCtx, trackPath))
 		
 		// Switch statement depending on the Rewrite operation
@@ -526,7 +526,6 @@ func (engine *CheckEngine) checkDirectAttribute(
 			return allowed(emptyResponseMetadata()), nil
 		}
 
-		// If the attribute's value is not true, return a denied response.
 		return denied(emptyResponseMetadata()), nil
 	}
 }
