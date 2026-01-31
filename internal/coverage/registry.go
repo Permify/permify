@@ -6,9 +6,7 @@ import (
 	"sync"
 )
 
-type contextKey struct{}
-
-var registryKey = contextKey{}
+type registryContextKey struct{}
 
 // SourceInfo represents the position of a logic node in the schema source.
 type SourceInfo struct {
@@ -120,27 +118,27 @@ func (r *Registry) Report() (uncovered []LogicNodeCoverage) {
 
 // ContextWithRegistry returns a new context with the given registry and initial path.
 func ContextWithRegistry(ctx context.Context, r *Registry) context.Context {
-	return context.WithValue(ctx, registryKey, r)
+	return context.WithValue(ctx, registryContextKey{}, r)
 }
 
 // RegistryFromContext retrieves the registry from the context.
 func RegistryFromContext(ctx context.Context) *Registry {
-	if r, ok := ctx.Value(registryKey).(*Registry); ok {
+	if r, ok := ctx.Value(registryContextKey{}).(*Registry); ok {
 		return r
 	}
 	return nil
 }
 
-type pathKey struct{}
+type pathContextKey struct{}
 
 // ContextWithPath returns a new context with an updated path.
 func ContextWithPath(ctx context.Context, path string) context.Context {
-	return context.WithValue(ctx, pathKey{}, path)
+	return context.WithValue(ctx, pathContextKey{}, path)
 }
 
 // PathFromContext retrieves the current path from the context.
 func PathFromContext(ctx context.Context) string {
-	if p, ok := ctx.Value(pathKey{}).(string); ok {
+	if p, ok := ctx.Value(pathContextKey{}).(string); ok {
 		return p
 	}
 	return ""
