@@ -38,7 +38,10 @@ func TestCheckEngineCoverage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	db, _ := factories.DatabaseFactory(config.Database{Engine: "memory"})
+	db, err := factories.DatabaseFactory(config.Database{Engine: "memory"})
+	if err != nil {
+		t.Fatal(err)
+	}
 	sw := factories.SchemaWriterFactory(db)
 
 	for _, entity := range entities {
