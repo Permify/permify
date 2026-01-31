@@ -41,13 +41,14 @@ func discoverExpression(expr ast.Expression, path string, r *Registry) {
 
 	if expr.IsInfix() {
 		node := expr.(*ast.InfixExpression)
-		r.Register(path, SourceInfo{
+		opPath := AppendPath(path, "op")
+		r.Register(opPath, SourceInfo{
 			Line:   int32(node.Op.PositionInfo.LinePosition),
 			Column: int32(node.Op.PositionInfo.ColumnPosition),
 		}, string(node.Operator))
 
-		discoverExpression(node.Left, AppendPath(path, "0"), r)
-		discoverExpression(node.Right, AppendPath(path, "1"), r)
+		discoverExpression(node.Left, AppendPath(opPath, "0"), r)
+		discoverExpression(node.Right, AppendPath(opPath, "1"), r)
 	} else {
 		// Leaf node
 		var info SourceInfo
