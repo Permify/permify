@@ -115,12 +115,13 @@ type Error struct {
 }
 
 func (c *Development) RunCoverage(ctx context.Context, shape *file.Shape) (cov.SchemaCoverageInfo, []Error) {
+	c.Registry = nil
 	errors := c.RunWithShape(ctx, shape)
 
 	// Initial static coverage
 	schemaCoverageInfo := cov.Run(*shape)
 
-	if c.Registry != nil {
+	if len(errors) == 0 && c.Registry != nil {
 		report := c.Registry.Report()
 		// Merge logic coverage into schemaCoverageInfo
 		// We'll calculate logic coverage percentage here
