@@ -233,7 +233,8 @@ func (engine *CheckEngine) checkLeaf(ctx context.Context, request *base.Permissi
 // trace wraps a CheckFunction with coverage tracking.
 func (engine *CheckEngine) trace(ctx context.Context, fn CheckFunction, path string) CheckFunction {
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
-		coverage.Track(coverage.ContextWithPath(ctx, path))
+		trackCtx := coverage.ContextWithRegistry(ctx, engine.registry)
+		coverage.Track(coverage.ContextWithPath(trackCtx, path))
 		return fn(ctx)
 	}
 }
@@ -258,7 +259,7 @@ func (engine *CheckEngine) setChild(
 		case *base.Child_Rewrite:
 			functions = append(functions, engine.checkRewrite(childCtx, request, child.GetRewrite()))
 		// In case of a Leaf node, create a CheckFunction for the Leaf and append it
-		case *base.Child_Leaf:
+		case *base.Leaf_Leaf:
 			functions = append(functions, engine.checkLeaf(childCtx, request, child.GetLeaf()))
 		// In case of an undefined type, return a CheckFunction that always fails
 		default:
