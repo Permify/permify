@@ -3,6 +3,7 @@ package coverage
 import (
 	"context"
 	"fmt"
+	"sort" // Add this
 	"sync"
 )
 
@@ -75,6 +76,9 @@ func (r *Registry) ReportAll() (nodes []NodeInfo) {
 	for _, node := range r.nodes {
 		nodes = append(nodes, *node)
 	}
+	sort.Slice(nodes, func(i, j int) bool {
+		return nodes[i].Path < nodes[j].Path
+	})
 	return nodes
 }
 
