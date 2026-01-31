@@ -3,7 +3,8 @@ package coverage
 import (
 	"context"
 	"fmt"
-	"sort" // Add this
+	"log/slog" // Add this
+	"sort"
 	"sync"
 )
 
@@ -101,7 +102,9 @@ func (r *Registry) Visit(path string) {
 	defer r.mu.Unlock()
 	if node, ok := r.nodes[path]; ok {
 		node.VisitCount++
-	}
+	} else {
+        slog.Debug("attempted to visit unregistered path", "path", path)
+    }
 }
 
 // Report returns all logic nodes and their coverage status.
