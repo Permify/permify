@@ -70,15 +70,8 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 		return SchemaCoverageInfo{}
 	}
 
-	registry := coverage.NewRegistry()
-	coverage.Discover(p, registry)
-
 	refs := extractSchemaReferences(definitions)
 	entityCoverageInfos := calculateEntityCoverages(refs, shape)
-
-	// Logic coverage is handled during scenario execution in calculateEntityCoverages if we wanted to be fully integration-style,
-	// but since the current coverage tool is static, we'll mark logic nodes as uncovered based on registry report.
-	// For now, let's just populate the logic coverage in calculateEntityCoverage.
 
 	return buildSchemaCoverageInfo(entityCoverageInfos)
 }
