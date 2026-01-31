@@ -3,7 +3,7 @@ package coverage
 import (
 	"context"
 	"fmt"
-	"log/slog" // Add this
+	"log/slog"
 	"sort"
 	"sync"
 )
@@ -166,12 +166,4 @@ func AppendPath(curr, segment string) string {
 		return segment
 	}
 	return fmt.Sprintf("%s.%s", curr, segment)
-}
-
-// GetPath helper to build the full coverage path from permission and exclusion.
-func GetPath(permission, exclusion string) string {
-	if exclusion == "" {
-		return permission
-	}
-	return fmt.Sprintf("%s.%s", permission, exclusion)
 }
