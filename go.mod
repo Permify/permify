@@ -120,7 +120,7 @@ require (
 	github.com/Antonboom/testifylint v1.6.4 // indirect
 	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/Djarvur/go-err113 v0.1.1 // indirect
-	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.54.0 // indirect
+	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.55.0 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/MirrexOne/unqueryvet v1.2.1 // indirect
 	github.com/OpenPeeDeeP/depguard/v2 v2.2.1 // indirect
@@ -344,7 +344,7 @@ require (
 require (
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
-	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.54.0
+	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.55.0
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.30.0
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/agoda-com/opentelemetry-go/otelslog v0.3.0
