@@ -180,7 +180,6 @@ func (engine *CheckEngine) checkRewrite(ctx context.Context, request *base.Permi
 		trackCtx := coverage.ContextWithRegistry(ctx, engine.registry)
 		trackPath := coverage.AppendPath(request.GetPermission(), request.GetMetadata().GetCoveragePath())
 		coverage.Track(coverage.ContextWithPath(trackCtx, trackPath))
-		coverage.Track(coverage.ContextWithPath(trackCtx, trackPath))
 
 		// Switch statement depending on the Rewrite operation
 		// Switch statement depending on the Rewrite operation

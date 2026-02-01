@@ -136,22 +136,29 @@ func (c *Development) RunCoverage(ctx context.Context, shape *file.Shape) (cov.S
 		}
 
 		// Update entity coverage info with logic nodes
+		// Group nodes by entity once
+		nodesByEntity := make(map[string][]coverage.NodeInfo)
+		for _, node := range c.Registry.ReportAll() {
+			parts := strings.SplitN(node.Path, "#", 2)
+			if len(parts) > 0 {
+				nodesByEntity[parts[0]] = append(nodesByEntity[parts[0]], node)
+			}
+		}
+
 		for i, entityInfo := range schemaCoverageInfo.EntityCoverageInfo {
 			var entityUncovered []cov.LogicNodeCoverage
 			var entityTotal int
 			var entityUncoveredCount int
 
-			for _, node := range c.Registry.ReportAll() {
-				if strings.HasPrefix(node.Path, entityInfo.EntityName+"#") {
-					entityTotal++
-					if node.VisitCount == 0 {
-						entityUncoveredCount++
-						entityUncovered = append(entityUncovered, cov.LogicNodeCoverage{
-							Path:       node.Path,
-							SourceInfo: node.SourceInfo,
-							Type:       node.Type,
-						})
-					}
+			for _, node := range nodesByEntity[entityInfo.EntityName] {
+				entityTotal++
+				if node.VisitCount == 0 {
+					entityUncoveredCount++
+					entityUncovered = append(entityUncovered, cov.LogicNodeCoverage{
+						Path:       node.Path,
+						SourceInfo: node.SourceInfo,
+						Type:       node.Type,
+					})
 				}
 			}
 

@@ -230,6 +230,109 @@ var _ interface {
 	ErrorName() string
 } = ContextValidationError{}
 
+// Validate checks the field values on PositionInfo with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *PositionInfo) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PositionInfo with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PositionInfoMultiError, or
+// nil if none found.
+func (m *PositionInfo) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PositionInfo) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Line
+
+	// no validation rules for Column
+
+	if len(errors) > 0 {
+		return PositionInfoMultiError(errors)
+	}
+
+	return nil
+}
+
+// PositionInfoMultiError is an error wrapping multiple validation errors
+// returned by PositionInfo.ValidateAll() if the designated constraints aren't met.
+type PositionInfoMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PositionInfoMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PositionInfoMultiError) AllErrors() []error { return m }
+
+// PositionInfoValidationError is the validation error returned by
+// PositionInfo.Validate if the designated constraints aren't met.
+type PositionInfoValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PositionInfoValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PositionInfoValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PositionInfoValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PositionInfoValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PositionInfoValidationError) ErrorName() string { return "PositionInfoValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PositionInfoValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPositionInfo.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PositionInfoValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PositionInfoValidationError{}
+
 // Validate checks the field values on Child with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -250,6 +353,35 @@ func (m *Child) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetPositionInfo()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ChildValidationError{
+					field:  "PositionInfo",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ChildValidationError{
+					field:  "PositionInfo",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPositionInfo()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ChildValidationError{
+				field:  "PositionInfo",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	oneofTypePresent := false
 	switch v := m.Type.(type) {

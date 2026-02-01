@@ -68,15 +68,16 @@ func TestDiscover(t *testing.T) {
 	r := NewRegistry()
 	Discover(sch, r)
 
-	report := r.Report()
-	if len(report) != 3 {
-		t.Errorf("expected 3 nodes (PERMISSION, OR, LEAF), got %d", len(report))
+	report := r.ReportAll() // Use ReportAll to get all registered nodes
+	if len(report) != 4 {
+		t.Errorf("expected 4 nodes (PERMISSION, OR, LEAF, LEAF), got %d", len(report))
 	}
 
 	// Verify paths
 	foundEdit := false
-	foundEdit0 := false
-	foundEdit1 := false
+	foundEditOp := false
+	foundEdit0Leaf := false
+	foundEdit1Leaf := false
 
 	for _, node := range report {
 		switch node.Path {
@@ -85,20 +86,25 @@ func TestDiscover(t *testing.T) {
 			if node.Type != "PERMISSION" {
 				t.Errorf("expected PERMISSION type for repository#edit, got %s", node.Type)
 			}
-		case "repository#edit.0":
-			foundEdit0 = true
-			if node.Type != "LEAF" {
-				t.Errorf("expected LEAF type for repository#edit.0, got %s", node.Type)
+		case "repository#edit.op":
+			foundEditOp = true
+			if node.Type != "or" {
+				t.Errorf("expected OR type for repository#edit.op, got %s", node.Type)
 			}
-		case "repository#edit.1":
-			foundEdit1 = true
+		case "repository#edit.op.0.leaf":
+			foundEdit0Leaf = true
 			if node.Type != "LEAF" {
-				t.Errorf("expected LEAF type for repository#edit.1, got %s", node.Type)
+				t.Errorf("expected LEAF type for repository#edit.op.0.leaf, got %s", node.Type)
+			}
+		case "repository#edit.op.1.leaf":
+			foundEdit1Leaf = true
+			if node.Type != "LEAF" {
+				t.Errorf("expected LEAF type for repository#edit.op.1.leaf, got %s", node.Type)
 			}
 		}
 	}
 
-	if !foundEdit || !foundEdit0 || !foundEdit1 {
-		t.Errorf("missing paths: edit:%v, edit.0:%v, edit.1:%v", foundEdit, foundEdit0, foundEdit1)
+	if !foundEdit || !foundEditOp || !foundEdit0Leaf || !foundEdit1Leaf {
+		t.Errorf("missing paths: edit:%v, edit.op:%v, edit.op.0.leaf:%v, edit.op.1.leaf:%v", foundEdit, foundEditOp, foundEdit0Leaf, foundEdit1Leaf)
 	}
 }

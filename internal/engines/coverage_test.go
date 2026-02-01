@@ -99,7 +99,7 @@ func TestCheckEngineCoverage(t *testing.T) {
 	// 'admin' should be uncovered because of short-circuit (owner was true)
 	foundAdmin := false
 	for _, node := range report {
-		if node.Path == "repository#edit.1" { // .1 is 'admin' in 'owner or admin'
+		if node.Path == "repository#edit.op.1.leaf" { // .op.1.leaf is 'admin' in 'owner or admin'
 			foundAdmin = true
 		}
 	}

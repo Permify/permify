@@ -18,7 +18,10 @@ func Discover(sch *ast.Schema, r *Registry) {
 
 func discoverEntity(es *ast.EntityStatement, r *Registry) {
 	for _, ps := range es.PermissionStatements {
-		st := ps.(*ast.PermissionStatement)
+		st, ok := ps.(*ast.PermissionStatement)
+		if !ok {
+			continue
+		}
 		path := fmt.Sprintf("%s#%s", es.Name.Literal, st.Name.Literal)
 
 		// Register the root perm node
@@ -73,6 +76,6 @@ func discoverExpression(expr ast.Expression, path string, r *Registry) {
 			nodeType = "UNKNOWN"
 		}
 
-		r.Register(path, info, nodeType)
+		r.Register(AppendPath(path, "leaf"), info, nodeType)
 	}
 }
