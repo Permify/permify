@@ -1,10 +1,10 @@
-FROM golang:1.25.5-alpine@sha256:26111811bc967321e7b6f852e914d14bede324cd1accb7f81811929a6a57fea9 AS permify-builder
+FROM golang:1.25.6-alpine@sha256:98e6cffc31ccc44c7c15d83df1d69891efee8115a5bb7ede2bf30a38af3e3c92 AS permify-builder
 WORKDIR /go/src/app
 RUN apk update && apk add --no-cache git
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod CGO_ENABLED=0 go build -v ./cmd/permify/
 
-FROM golang:1.25.5-alpine@sha256:26111811bc967321e7b6f852e914d14bede324cd1accb7f81811929a6a57fea9 AS health-probe-builder
+FROM golang:1.25.6-alpine@sha256:98e6cffc31ccc44c7c15d83df1d69891efee8115a5bb7ede2bf30a38af3e3c92 AS health-probe-builder
 WORKDIR /go/src/app
 RUN apk update && apk add --no-cache git
 RUN git clone https://github.com/grpc-ecosystem/grpc-health-probe.git
