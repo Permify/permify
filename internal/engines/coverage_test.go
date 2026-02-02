@@ -65,19 +65,27 @@ func TestCheckEngineCoverage(t *testing.T) {
 	registry := coverage.NewRegistry()
 	coverage.Discover(sch, registry)
 
-	checkEngine := NewCheckEngine(sr, dr)
+	// Concurrency limit 1 enables sequential execution and short-circuit detection.
+	checkEngine := NewCheckEngine(sr, dr, CheckConcurrencyLimit(1))
 	checkEngine.SetRegistry(registry)
 
 	invoker := invoke.NewDirectInvoker(sr, dr, checkEngine, nil, nil, nil)
 	checkEngine.SetInvoker(invoker)
 
-	// Add owner
-	tup, _ := tuple.Tuple("repository:1#owner@user:1")
-	dw.Write(context.Background(), "t1", database.NewTupleCollection(tup), database.NewAttributeCollection())
+	// Add owner. For OR, we check owner first - it succeeds. Short-circuit: admin never runs.
+	tup, err := tuple.Tuple("repository:1#owner@user:1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := dw.Write(context.Background(), "t1", database.NewTupleCollection(tup), database.NewAttributeCollection()); err != nil {
+		t.Fatal(err)
+	}
 
-	// Check repository:1#edit@user:1
-	// This should match 'owner' (short-circuit OR)
-	entity, _ := tuple.E("repository:1")
+	// Check repository:1#edit@user:1 - owner matches (short-circuit), admin never evaluated.
+	entity, err := tuple.E("repository:1")
+	if err != nil {
+		t.Fatal(err)
+	}
 	subject := &base.Subject{Type: "user", Id: "1"}
 
 	_, err = invoker.Check(context.Background(), &base.PermissionCheckRequest{

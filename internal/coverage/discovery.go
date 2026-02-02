@@ -2,6 +2,7 @@ package coverage
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Permify/permify/pkg/dsl/ast"
 )
@@ -24,7 +25,16 @@ func discoverEntity(es *ast.EntityStatement, r *Registry) {
 		}
 		path := fmt.Sprintf("%s#%s", es.Name.Literal, st.Name.Literal)
 
-		// Register the root perm node
+		if st.ExpressionStatement != nil {
+			expr := st.ExpressionStatement.(*ast.ExpressionStatement)
+			// When expression is a leaf, let it own the root path to preserve leaf metadata.
+			if expr.Expression != nil && !expr.Expression.IsInfix() {
+				discoverExpression(expr.Expression, path, r)
+				continue
+			}
+		}
+
+		// Register the root perm node (for infix expressions)
 		r.Register(path, SourceInfo{
 			Line:   int32(st.Name.PositionInfo.LinePosition),
 			Column: int32(st.Name.PositionInfo.ColumnPosition),
@@ -76,6 +86,11 @@ func discoverExpression(expr ast.Expression, path string, r *Registry) {
 			nodeType = "UNKNOWN"
 		}
 
-		r.Register(AppendPath(path, "leaf"), info, nodeType)
+		// Operand leaves (path contains .op.) use path.leaf; root-level leaf owns path.
+		leafPath := path
+		if strings.Contains(path, ".op.") {
+			leafPath = AppendPath(path, "leaf")
+		}
+		r.Register(leafPath, info, nodeType)
 	}
 }

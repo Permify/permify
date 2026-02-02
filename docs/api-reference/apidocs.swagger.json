@@ -475,7 +475,7 @@
           {
             "label": "cURL",
             "lang": "curl",
-            "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/delete' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"tuple_filter\": {\n    \"entity\": {\n      \"type\": \"organization\",\n      \"id\": \"1\"\n    },\n    \"relation\": \"admin\",\n    \"subject\": {\n      \"type\": \"user\",\n      \"id\": \"1\"\n    }\n  },\n  \"attribute_filter\": {}\n}'"
+            "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/delete' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"tuple_filter\": {\n    \"entity\": {\n      \"type\": \"organization\",\n      \"ids\": [\"1\"]\n    },\n    \"relation\": \"admin\",\n    \"subject\": {\n      \"type\": \"user\",\n      \"ids\": [\"1\"]\n    }\n  },\n  \"attribute_filter\": {}\n}'"
           }
         ]
       }
@@ -584,7 +584,7 @@
           {
             "label": "node",
             "lang": "javascript",
-            "source": "client.bundle.runBundle({\n    tenantId: \"t1\",\n    name: \"organization_created\",\n    arguments: {\n        creatorID: \"564\",\n        organizationID: \"789\",\n    }\n}).then((response) =\u003e {\n    // handle response\n})"
+            "source": "client.data.runBundle({\n    tenantId: \"t1\",\n    name: \"organization_created\",\n    arguments: {\n        creatorID: \"564\",\n        organizationID: \"789\",\n    }\n}).then((response) =\u003e {\n    // handle response\n})"
           },
           {
             "label": "cURL",
