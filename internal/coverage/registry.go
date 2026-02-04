@@ -120,6 +120,11 @@ func (r *Registry) Report() (uncovered []LogicNodeCoverage) {
 			})
 		}
 	}
+
+	sort.Slice(uncovered, func(i, j int) bool {
+		return uncovered[i].Path < uncovered[j].Path
+	})
+
 	return uncovered
 }
 

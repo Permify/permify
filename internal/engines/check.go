@@ -808,6 +808,35 @@ func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (
 		return denied(responseMetadata), errors.New(base.ErrorCode_ERROR_CODE_EXCLUSION_REQUIRES_MORE_THAN_ONE_FUNCTION.String())
 	}
 
+	// Sequential execution when limit is 1 avoids deadlock and preserves short-circuit semantics
+	if limit == 1 {
+		// Evaluate the left-hand side first
+		leftResp, err := functions[0](ctx)
+		responseMetadata = joinResponseMetas(responseMetadata, leftResp.Metadata)
+		if err != nil {
+			return denied(responseMetadata), err
+		}
+		// If left is denied, exclusion cannot be satisfied
+		if leftResp.GetCan() == base.CheckResult_CHECK_RESULT_DENIED {
+			return denied(responseMetadata), nil
+		}
+
+		// Evaluate remaining functions one-by-one; any ALLOWED denies by exclusion
+		for _, fn := range functions[1:] {
+			resp, err := fn(ctx)
+			responseMetadata = joinResponseMetas(responseMetadata, resp.Metadata)
+			if err != nil {
+				return denied(responseMetadata), err
+			}
+			if resp.GetCan() == base.CheckResult_CHECK_RESULT_ALLOWED {
+				return denied(responseMetadata), nil
+			}
+		}
+
+		// Left allowed and all others denied → allowed by exclusion
+		return allowed(responseMetadata), nil
+	}
+
 	// Initialize channels to handle the result of the first function and the remaining functions separately
 	leftDecisionChan := make(chan CheckResponse, 1)
 	decisionChan := make(chan CheckResponse, len(functions)-1)
