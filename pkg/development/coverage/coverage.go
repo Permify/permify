@@ -60,12 +60,7 @@ type SchemaCoverage struct {
 // Run analyzes the coverage of relationships, attributes, and assertions
 // for a given schema shape and returns the coverage information
 func Run(shape file.Shape) SchemaCoverageInfo {
-	p, err := parser.NewParser(shape.Schema).Parse()
-	if err != nil {
-		return SchemaCoverageInfo{}
-	}
-
-	definitions, _, err := compiler.NewCompiler(true, p).Compile()
+	definitions, err := parseAndCompileSchema(shape.Schema)
 	if err != nil {
 		return SchemaCoverageInfo{}
 	}

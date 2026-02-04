@@ -103,8 +103,8 @@ func (r *Registry) Visit(path string) {
 	if node, ok := r.nodes[path]; ok {
 		node.VisitCount++
 	} else {
-        slog.Debug("attempted to visit unregistered path", "path", path)
-    }
+		slog.Debug("attempted to visit unregistered path", "path", path)
+	}
 }
 
 // Report returns all logic nodes and their coverage status.

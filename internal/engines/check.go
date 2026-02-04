@@ -180,7 +180,8 @@ func (engine *CheckEngine) checkRewrite(ctx context.Context, request *base.Permi
 	opPath := coverage.AppendPath(path, "op")
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
 		trackCtx := coverage.ContextWithRegistry(ctx, engine.registry)
-		coverage.Track(coverage.ContextWithPath(trackCtx, opPath))
+		// Mark permission node; operator node is tracked by trace().
+		coverage.Track(coverage.ContextWithPath(trackCtx, path))
 
 		// Switch statement depending on the Rewrite operation
 		switch rewrite.GetRewriteOperation() {

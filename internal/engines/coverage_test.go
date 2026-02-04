@@ -113,6 +113,6 @@ func TestCheckEngineCoverage(t *testing.T) {
 	}
 
 	if !foundAdmin {
-		t.Errorf("expected repository#edit.1 (admin) to be uncovered, but it wasn't in the report")
+		t.Errorf("expected repository#edit.op.1.leaf (admin) to be uncovered, but it wasn't in the report")
 	}
 }
