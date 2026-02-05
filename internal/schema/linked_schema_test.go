@@ -1884,6 +1884,98 @@ var _ = Describe("linked schema", func() {
 				},
 			}))
 		})
+
+		It("Case 33: SelfCycleRelationsForPermission returns only same-type relations", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity resource {
+				relation parent @resource
+				relation owner @user
+				permission view = parent.view or owner
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			Expect(g.SelfCycleRelationsForPermission("resource", "view")).To(ConsistOf("parent"))
+		})
+
+		It("Case 34: SelfCycleRelationsForPermission ignores cross-type relations", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity org {
+				attribute is_public boolean
+				permission view = is_public
+			}
+
+			entity resource {
+				relation parent @org
+				permission view = parent.view
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			Expect(g.SelfCycleRelationsForPermission("resource", "view")).To(BeEmpty())
+		})
+
+		It("Case 35: GetSubjectRelationForPathWalk returns nested subject relation", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity group {
+				relation member @user
+			}
+
+			entity document {
+				relation group @group#member
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			Expect(g.GetSubjectRelationForPathWalk("document", "group", "group")).To(Equal("member"))
+			Expect(g.GetSubjectRelationForPathWalk("document", "group", "user")).To(Equal(""))
+		})
+
+		It("Case 36: SelfCycleRelationsForPermission ignores non-self computed relation", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity resource {
+				relation parent @resource
+				relation owner @user
+				permission edit = owner
+				permission view = parent.edit
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			Expect(g.SelfCycleRelationsForPermission("resource", "view")).To(BeEmpty())
+		})
 	})
 
 	Context("BuildRelationPathChain", func() {

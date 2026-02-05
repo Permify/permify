@@ -6342,4 +6342,23 @@ entity group_perms {
 			Expect(resp.GetEntityIds()).To(ConsistOf("r1"))
 		})
 	})
+
+	Context("Entity Filter Cursor", func() {
+		It("decodes empty cursor without error", func() {
+			value, err := decodeCursorValue("")
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(value).To(Equal(""))
+		})
+
+		It("returns error for invalid cursor", func() {
+			_, err := decodeCursorValue("not-a-valid-base64")
+			Expect(err).Should(HaveOccurred())
+		})
+
+		It("decodes a valid cursor value", func() {
+			value, err := decodeCursorValue("YWJj")
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(value).To(Equal("abc"))
+		})
+	})
 })
