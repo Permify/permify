@@ -270,7 +270,24 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.Entrance, leaf
 			var filteredResults []*LinkedEntrance
 
 			for _, result := range results {
-				if result.Kind == AttributeLinkedEntrance && target.GetType() != result.TargetEntrance.GetType() {
+				if target.GetType() != result.TargetEntrance.GetType() &&
+					(result.Kind == AttributeLinkedEntrance || result.Kind == PathChainLinkedEntrance) {
+					if result.Kind == PathChainLinkedEntrance && len(result.PathChain) > 0 {
+						// Compose the existing path chain with the tuple-set relation to preserve the exact path.
+						pathChain := make([]*base.RelationReference, 0, len(result.PathChain)+1)
+						pathChain = append(pathChain, &base.RelationReference{
+							Type:     target.GetType(),
+							Relation: tupleSet,
+						})
+						pathChain = append(pathChain, result.PathChain...)
+						res = append(res, &LinkedEntrance{
+							Kind:             PathChainLinkedEntrance,
+							TargetEntrance:   result.TargetEntrance,
+							TupleSetRelation: "",
+							PathChain:        pathChain,
+						})
+						continue
+					}
 					cacheKey := target.GetType() + "->" + result.TargetEntrance.GetType()
 
 					var pathChain []*base.RelationReference
@@ -293,14 +310,11 @@ func (g *LinkedSchemaGraph) findEntranceLeaf(target, source *base.Entrance, leaf
 							PathChain:        pathChain,
 						})
 						// Skip adding AttributeLinkedEntrance for cases with PathChain
-					} else {
-						// No PathChain, keep AttributeLinkedEntrance
-						filteredResults = append(filteredResults, result)
+						continue
 					}
-				} else {
-					// Non-nested or other types: keep as-is
-					filteredResults = append(filteredResults, result)
 				}
+				// Non-nested or other types: keep as-is
+				filteredResults = append(filteredResults, result)
 			}
 
 			res = append(res, filteredResults...)
@@ -496,4 +510,80 @@ func (g *LinkedSchemaGraph) GetSubjectRelationForPathWalk(leftEntityType, relati
 		}
 	}
 	return ""
+}
+
+// SelfCycleRelationsForPermission returns tuple-set relations that cause a permission
+// to reference itself (e.g., view = parent.view).
+func (g *LinkedSchemaGraph) SelfCycleRelationsForPermission(entityType, permission string) []string {
+	entityDef, exists := g.schema.EntityDefinitions[entityType]
+	if !exists {
+		return nil
+	}
+
+	permDef, exists := entityDef.Permissions[permission]
+	if !exists {
+		return nil
+	}
+
+	seen := make(map[string]struct{})
+	res := make([]string, 0)
+
+	child := permDef.GetChild()
+	if child == nil {
+		return nil
+	}
+
+	g.collectSelfCycleRelations(entityType, permission, child, seen, &res)
+	return res
+}
+
+func (g *LinkedSchemaGraph) collectSelfCycleRelations(entityType, permission string, child *base.Child, seen map[string]struct{}, res *[]string) {
+	if child == nil {
+		return
+	}
+
+	if child.GetRewrite() != nil {
+		for _, c := range child.GetRewrite().GetChildren() {
+			g.collectSelfCycleRelations(entityType, permission, c, seen, res)
+		}
+		return
+	}
+
+	leaf := child.GetLeaf()
+	if leaf == nil {
+		return
+	}
+
+	switch t := leaf.GetType().(type) {
+	case *base.Leaf_TupleToUserSet:
+		tupleSet := t.TupleToUserSet.GetTupleSet().GetRelation()
+		computed := t.TupleToUserSet.GetComputed().GetRelation()
+		if tupleSet == "" || computed == "" {
+			return
+		}
+		if computed != permission {
+			return
+		}
+		if _, ok := seen[tupleSet]; ok {
+			return
+		}
+		entityDef, exists := g.schema.EntityDefinitions[entityType]
+		if !exists {
+			return
+		}
+		relDef, exists := entityDef.Relations[tupleSet]
+		if !exists {
+			return
+		}
+		// Only include relations that point back to the same entity type.
+		for _, ref := range relDef.GetRelationReferences() {
+			if ref.GetType() == entityType {
+				seen[tupleSet] = struct{}{}
+				*res = append(*res, tupleSet)
+				return
+			}
+		}
+	case *base.Leaf_ComputedUserSet, *base.Leaf_ComputedAttribute, *base.Leaf_Call:
+		return
+	}
 }
