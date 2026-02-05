@@ -1785,6 +1785,24 @@ var _ = Describe("linked schema", func() {
 				{
 					Kind: PathChainLinkedEntrance,
 					TargetEntrance: &base.Entrance{
+						Type:  "company",
+						Value: "company_id",
+					},
+					TupleSetRelation: "",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "employee",
+							Relation: "department",
+						},
+						{
+							Type:     "department",
+							Relation: "company",
+						},
+					},
+				},
+				{
+					Kind: PathChainLinkedEntrance,
+					TargetEntrance: &base.Entrance{
 						Type:  "department",
 						Value: "dept_name",
 					},
@@ -1797,20 +1815,6 @@ var _ = Describe("linked schema", func() {
 					},
 				},
 				{
-					Kind: PathChainLinkedEntrance,
-					TargetEntrance: &base.Entrance{
-						Type:  "company",
-						Value: "company_id",
-					},
-					TupleSetRelation: "",
-					PathChain: []*base.RelationReference{
-						{
-							Type:     "department",
-							Relation: "company",
-						},
-					},
-				},
-				{
 					Kind: AttributeLinkedEntrance,
 					TargetEntrance: &base.Entrance{
 						Type:  "employee",
@@ -1818,6 +1822,65 @@ var _ = Describe("linked schema", func() {
 					},
 					TupleSetRelation: "",
 					PathChain:        nil,
+				},
+			}))
+		})
+
+		It("Case 32: Nested PathChain preserves tuple-set relation", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+
+			entity org {
+				attribute is_public boolean
+				permission view = is_public
+			}
+
+			entity folder {
+				relation parent @org
+				permission view = parent.view
+			}
+
+			entity resource {
+				relation parent @folder
+				relation alt @folder
+				permission view = parent.view
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			a, _, _ := c.Compile()
+
+			g := NewLinkedGraph(NewSchemaFromEntityAndRuleDefinitions(a, nil))
+
+			ent, err := g.LinkedEntrances(&base.Entrance{
+				Type:  "resource",
+				Value: "view",
+			}, &base.Entrance{
+				Type:  "user",
+				Value: "",
+			})
+
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(ent).Should(Equal([]*LinkedEntrance{
+				{
+					Kind: PathChainLinkedEntrance,
+					TargetEntrance: &base.Entrance{
+						Type:  "org",
+						Value: "is_public",
+					},
+					TupleSetRelation: "",
+					PathChain: []*base.RelationReference{
+						{
+							Type:     "resource",
+							Relation: "parent",
+						},
+						{
+							Type:     "folder",
+							Relation: "parent",
+						},
+					},
 				},
 			}))
 		})
