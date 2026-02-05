@@ -212,6 +212,10 @@ func (engine *EntityFilter) attributeEntrance(
 	return nil
 }
 
+// decodeCursorValue decodes a cursor token and returns its underlying value.
+// It returns an empty string with no error when the input cursor is empty.
+// If token decoding fails, the returned error describes the failure.
+// If decoding succeeds but the token is not a ContinuousToken, it returns an empty string with no error.
 func decodeCursorValue(cursor string) (string, error) {
 	if cursor == "" {
 		return "", nil
