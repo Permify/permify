@@ -179,7 +179,11 @@ func (engine *CheckEngine) checkRewrite(ctx context.Context, request *base.Permi
 	path := coverage.PathFromContext(ctx)
 	opPath := coverage.AppendPath(path, "op")
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
-		trackCtx := coverage.ContextWithRegistry(ctx, engine.registry)
+		r := coverage.RegistryFromContext(ctx)
+		if r == nil {
+			r = engine.registry
+		}
+		trackCtx := coverage.ContextWithRegistry(ctx, r)
 		// Mark permission node; operator node is tracked by trace().
 		coverage.Track(coverage.ContextWithPath(trackCtx, path))
 
@@ -238,7 +242,11 @@ func (engine *CheckEngine) checkLeaf(ctx context.Context, request *base.Permissi
 // trace wraps a CheckFunction with coverage tracking.
 func (engine *CheckEngine) trace(ctx context.Context, fn CheckFunction, path string) CheckFunction {
 	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
-		trackCtx := coverage.ContextWithRegistry(ctx, engine.registry)
+		r := coverage.RegistryFromContext(ctx)
+		if r == nil {
+			r = engine.registry
+		}
+		trackCtx := coverage.ContextWithRegistry(ctx, r)
 		coverage.Track(coverage.ContextWithPath(trackCtx, path))
 		return fn(ctx)
 	}
@@ -679,6 +687,8 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*bas
 
 	// Sequential execution when limit is 1 enables short-circuit detection for coverage tracking
 	if limit == 1 {
+		exhaustive := coverage.EvalModeFromContext(ctx) == coverage.ModeExhaustive
+		anyAllowed := false
 		for _, fn := range functions {
 			resp, err := fn(ctx)
 			responseMetadata = joinResponseMetas(responseMetadata, resp.Metadata)
@@ -686,8 +696,15 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*bas
 				return denied(responseMetadata), err
 			}
 			if resp.GetCan() == base.CheckResult_CHECK_RESULT_ALLOWED {
-				return allowed(responseMetadata), nil
+				anyAllowed = true
+				if !exhaustive {
+					return allowed(responseMetadata), nil
+				}
+				// Exhaustive: keep evaluating remaining branches so all paths are visited for coverage
 			}
+		}
+		if anyAllowed {
+			return allowed(responseMetadata), nil
 		}
 		return denied(responseMetadata), nil
 	}
@@ -745,6 +762,8 @@ func checkIntersection(ctx context.Context, functions []CheckFunction, limit int
 
 	// Sequential execution when limit is 1 enables short-circuit detection for coverage tracking
 	if limit == 1 {
+		exhaustive := coverage.EvalModeFromContext(ctx) == coverage.ModeExhaustive
+		anyDenied := false
 		for _, fn := range functions {
 			resp, err := fn(ctx)
 			responseMetadata = joinResponseMetas(responseMetadata, resp.Metadata)
@@ -752,8 +771,15 @@ func checkIntersection(ctx context.Context, functions []CheckFunction, limit int
 				return denied(responseMetadata), err
 			}
 			if resp.GetCan() == base.CheckResult_CHECK_RESULT_DENIED {
-				return denied(responseMetadata), nil
+				anyDenied = true
+				if !exhaustive {
+					return denied(responseMetadata), nil
+				}
+				// Exhaustive: keep evaluating remaining branches so all paths are visited for coverage
 			}
+		}
+		if anyDenied {
+			return denied(responseMetadata), nil
 		}
 		return allowed(responseMetadata), nil
 	}

@@ -87,6 +87,16 @@ Upgrade permify coverage to detect when specific parts of a permission rule (lik
   - When `owner or admin` evaluates with `owner=true`
   - Path `repository#edit.1` (admin) correctly shows as uncovered
 
+### ✅ 6b. Evaluation Mode (Exhaustive vs Short-Circuit)
+**Status: COMPLETE**
+
+- **Location**: `internal/coverage/registry.go` (EvalMode, ContextWithEvalMode, EvalModeFromContext), `internal/engines/check.go` (checkUnion, checkIntersection)
+- **Implementation**:
+  - **ModeShortCircuit** (default): Returns as soon as the outcome is determined; minimizes work at runtime.
+  - **ModeExhaustive**: Evaluates all branches before returning; used by the coverage command so every logic path is visited and the coverage report is complete (avoids "coverage paradox" where short-circuit hides paths from the report).
+- **Coverage command**: `pkg/development/development.go` runs assertion checks with `ContextWithEvalMode(ctx, ModeExhaustive)` so that when `permify coverage <file>` runs, all branches are evaluated and uncovered nodes accurately reflect which paths were never taken.
+- **Registry from context**: When a registry is set on the context (e.g. in development), the engine uses it for tracking so the coverage command does not require the engine to have SetRegistry called.
+
 ### ✅ 7. Coverage Reporting
 **Status: COMPLETE**
 
@@ -115,6 +125,22 @@ permission edit = owner or admin
 **Result**: ✅ PASS
 - Correctly identifies `repository#edit.1` (admin) as uncovered
 - Confirms short-circuit detection works for OR operations
+
+### ✅ Test: `TestCheckEngineCoverageExhaustiveMode`
+**Location**: `internal/engines/coverage_test.go`
+
+**Test Case**: Same schema as above; run with `ContextWithEvalMode(ctx, ModeExhaustive)`.
+
+**Result**: ✅ PASS
+- With exhaustive mode, all branches are evaluated; `repository#edit.op.1.leaf` (admin) is covered and does not appear in the uncovered report.
+
+### ✅ Test: `TestCheckEngineCoverageNegativeCase`
+**Location**: `internal/engines/coverage_test.go`
+
+**Test Case**: Same schema; only `admin` tuple (no owner). So owner branch is false and admin branch is evaluated.
+
+**Result**: ✅ PASS
+- Forces the second branch to run without using Exhaustive mode; improves coverage and verifies that when the first branch fails, the second is correctly evaluated.
 
 ---
 

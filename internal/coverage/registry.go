@@ -172,3 +172,29 @@ func AppendPath(curr, segment string) string {
 	}
 	return fmt.Sprintf("%s.%s", curr, segment)
 }
+
+// EvalMode controls whether the check engine short-circuits or evaluates all branches.
+// ModeExhaustive is used by the coverage command so all logic paths are visited and reported.
+type EvalMode int
+
+const (
+	// ModeShortCircuit returns as soon as the outcome is determined (runtime default).
+	ModeShortCircuit EvalMode = iota
+	// ModeExhaustive evaluates all branches before returning; used for coverage reporting.
+	ModeExhaustive
+)
+
+type evalModeContextKey struct{}
+
+// ContextWithEvalMode returns a new context with the given evaluation mode.
+func ContextWithEvalMode(ctx context.Context, mode EvalMode) context.Context {
+	return context.WithValue(ctx, evalModeContextKey{}, mode)
+}
+
+// EvalModeFromContext returns the evaluation mode from the context, defaulting to ModeShortCircuit.
+func EvalModeFromContext(ctx context.Context) EvalMode {
+	if m, ok := ctx.Value(evalModeContextKey{}).(EvalMode); ok {
+		return m
+	}
+	return ModeShortCircuit
+}

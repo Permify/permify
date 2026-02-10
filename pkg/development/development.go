@@ -216,6 +216,7 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 	registry := coverage.NewRegistry()
 	coverage.Discover(p, registry)
 	ctx = coverage.ContextWithRegistry(ctx, registry)
+	ctx = coverage.ContextWithEvalMode(ctx, coverage.ModeExhaustive) // evaluate all branches for accurate coverage report
 	c.Registry = registry
 
 	// Compile the parsed schema
