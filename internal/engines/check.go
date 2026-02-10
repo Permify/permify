@@ -856,8 +856,9 @@ func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (
 		wg.Done()
 	}()
 
-	// Run the remaining functions concurrently with a limit
-	clean := checkRun(cancelCtx, functions[1:], decisionChan, limit-1)
+	// Run the remaining functions concurrently with a limit (clamp to at least 1 to avoid deadlock)
+	childLimit := max(1, limit-1)
+	clean := checkRun(cancelCtx, functions[1:], decisionChan, childLimit)
 
 	// Ensure that all resources are properly cleaned up when the function exits
 	defer func() {

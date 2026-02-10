@@ -2597,7 +2597,7 @@
         },
         "coverage_path": {
           "type": "string",
-          "description": "Path of the exclusion, used for coverage tracking."
+          "description": "Path identifier used for coverage tracking during permission evaluation."
         }
       },
       "description": "PermissionCheckRequestMetadata metadata for the PermissionCheckRequest."
@@ -2789,6 +2789,7 @@
     },
     "PositionInfo": {
       "type": "object",
+      "description": "Source position information indicating line and column numbers in the schema definition.",
       "properties": {
         "line": {
           "type": "integer",
