@@ -26,7 +26,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: daily
+      interval: monthly
 
   - package-ecosystem: docker
     directory: /integration-test
