@@ -1,6 +1,6 @@
 module github.com/Permify/permify
 
-go 1.25.5
+go 1.25.7
 
 tool (
 	github.com/bufbuild/buf/cmd/buf
