@@ -1,0 +1,51 @@
+---
+title: Database Configuration
+---
+
+For production deployments, run Permify with PostgreSQL instead of in-memory storage.
+
+## Production Default: Pgcat
+
+For multi-replica Permify deployments, use pgcat in session mode and connect Permify through pgcat.
+
+```yaml
+database:
+  engine: postgres
+  writer:
+    uri: postgresql://postgres:DB_PASSWORD@pgcat:6432/permify?plan_cache_mode=force_custom_plan&default_query_exec_mode=cache_describe
+  reader:
+    uri: postgresql://postgres:DB_PASSWORD@pgcat:6432/permify?plan_cache_mode=force_custom_plan&default_query_exec_mode=cache_describe
+  max_connections: 1
+  min_connections: 0
+```
+
+See full setup guide: [Database Pooling with Pgcat](/setting-up/installation/pooling)
+
+## Supported PostgreSQL versions
+
+- PostgreSQL `13.8+` is supported.
+- Permify validates PostgreSQL version during startup and returns an error for older versions.
+
+For Watch API usage, also enable:
+
+- `track_commit_timestamp = on`
+- See Watch API setup: [Watch API requirements](/api-reference/watch/watch-changes)
+
+## Recommended runtime settings (direct Postgres)
+
+```yaml
+database:
+  engine: postgres
+  uri: postgresql://postgres:DB_PASSWORD@postgres:5432/permify?sslmode=require
+  auto_migrate: true
+  max_connections: 20 # typical range: 15-25, tune to DB limits and workload
+  min_connections: 2  # typical range: 1-3
+  max_connection_lifetime: 30m
+  max_connection_idle_time: 5m
+```
+
+## Related guides
+
+- [Database Pooling with Pgcat](/setting-up/installation/pooling)
+- [Watch API requirements](/api-reference/watch/watch-changes)
+- [Configuration reference](/setting-up/configuration)
