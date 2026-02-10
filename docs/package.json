@@ -10,7 +10,7 @@
     "loose-envify": "^1.4.0",
     "mintlify": "^4.2.336",
     "monaco-editor": "^0.55.1",
-    "react": "^19.2.1",
+    "react": "^19.2.4",
     "react-dom": "^19.2.1",
     "scheduler": "^0.27.0",
     "state-local": "^1.0.7"
