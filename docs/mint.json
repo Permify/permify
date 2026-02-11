@@ -311,6 +311,7 @@
           "icon": "cloud-arrow-up",
           "pages": [
             "setting-up/installation/intro",
+            "setting-up/installation/database",
             "setting-up/installation/aws",
             "setting-up/installation/brew",
             "setting-up/installation/container",

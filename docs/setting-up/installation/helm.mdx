@@ -2,118 +2,307 @@
 title: Deploying Permify with Helm Charts
 ---
 
-Helm is a package manager for Kubernetes applications that simplifies the deployment and management of applications in a Kubernetes cluster. Using Helm, you can package and release your applications as charts, which are pre-configured Kubernetes resources.
+Helm charts package Kubernetes manifests and configuration into a reusable deployment unit.  
+Permify publishes an official chart here: [Permify Helm Charts](https://github.com/Permify/helm-charts).
 
-You can learn more about helm [here](https://helm.sh/docs/)
+## Requirements
 
-## Helm Charts for Permify
+- A Kubernetes cluster
+- `kubectl` configured for that cluster
+- Helm 3 installed ([Helm install docs](https://helm.sh/docs/intro/install/))
 
-Permify provides Helm Charts to facilitate the deployment and management of Permify in Kubernetes environments. Helm Charts encapsulate all the necessary Kubernetes resources and configurations required to run Permify, making it easy to deploy and maintain.([helm-permify-github](https://github.com/Permify/helm-charts))
-
-## Helm installation
-
-### Prerequisite
-
-Installing the Helm Chart is pretty easy but there is a prerequisite of setting up a Kubernetes Cluster.
-
-If you do not have a Kubernetes cluster you can choose any of the four below options.
-
-**1. [EKS-Amazon Elastic k8s service](https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html)**
-
-**2. [GKE-Google k8s engine](https://cloud.google.com/kubernetes-engine)**
-
-**3. [AKS-Azure kubernetes Service](https://azure.microsoft.com/en-in/products/kubernetes-service)**
-
-**4. [microk8s](https://microk8s.io/#install-microk8s)**
-
-### 1.1: Install Helm Chart Using Script
-
-If you like doing everything from scratch then I would suggest you to install the Helm Chart Using script.
-
-Run the following scripts -
+## Add Permify Helm repository
 
 ```bash
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+helm repo add permify https://permify.github.io/helm-charts
+helm repo update
+helm search repo permify
 ```
+
+## Download and edit `values.yaml`
+
+Before install, review and customize your chart values.
 
 ```bash
-chmod 700 get_helm.sh
+curl -o values.yaml https://raw.githubusercontent.com/Permify/helm-charts/main/charts/permify/values.yaml
 ```
+
+You can also inspect defaults directly with Helm:
 
 ```bash
-./get_helm.sh
+helm show values permify/permify
 ```
 
-You can verify the installation by running the command
+For advanced customization, you can inspect how chart values map into Kubernetes manifests:
+
+- Deployment template: [charts/permify/templates/deployment.yaml](https://raw.githubusercontent.com/Permify/helm-charts/main/charts/permify/templates/deployment.yaml)
+- All chart templates: [charts/permify/templates](https://github.com/Permify/helm-charts/tree/main/charts/permify/templates)
+
+## Install and upgrade
+
+Install with your customized values:
 
 ```bash
-helm version
+helm install permify permify/permify -f values.yaml
 ```
 
-If helm is installed the terminal will provide this as output
+Upgrade an existing release:
 
 ```bash
-WARNING: Kubernetes configuration file is group-readable. This is insecure. Location: /home/vagrant/.kube/config
-version.BuildInfo{Version:"v3.4.0", GitCommit:"7090a89efc8a18f3d8178bf47d2462450349a004", GitTreeState:"clean", GoVersion:"go1.14.10"}
+helm upgrade permify permify/permify -f values.yaml
 ```
 
-### 1.2: Install Helm Chart with package Manager
-
-If you like package manager then you use the following install command based on your preference -
-
-**Homebrew**
+Check rollout:
 
 ```bash
-brew install helm
+kubectl get deployments,pods,svc
 ```
 
-**Chocolatey**
+## Helm Chart Configuration
 
-```bash
-choco install kubernetes-helm
+Before you install, configure your `values.yaml`. The snippets below mirror the chart values and document each parameter inline.
+
+### Deployment and image settings
+
+```yaml
+# replicaCount -- Number of Permify pods to run. Increase for high availability and throughput.
+replicaCount: 3
+
+image:
+  # image.repository -- Container image repository for Permify.
+  repository: ghcr.io/permify/permify
+  # image.pullPolicy -- Image pull behavior. Always checks for newer image at pod start.
+  pullPolicy: Always
+  # image.tag -- Image tag override. For this guide, Permify version 1.6.0 is used
+  tag: v1.6.0
 ```
 
-**Scoop**
+### Health checks
 
+```yaml
+livenessProbe:
+  # livenessProbe.enabled -- Enable liveness checks. Failed checks trigger container restart.
+  enabled: true
+  # livenessProbe.initialDelaySeconds -- Delay before first liveness check.
+  initialDelaySeconds: 60
+  # livenessProbe.periodSeconds -- Frequency of liveness checks.
+  periodSeconds: 10
+  # livenessProbe.timeoutSeconds -- Timeout per liveness check.
+  timeoutSeconds: 5
+  # livenessProbe.failureThreshold -- Consecutive failures before restart.
+  failureThreshold: 12
+  # livenessProbe.successThreshold -- Consecutive successes needed to mark healthy.
+  successThreshold: 1
+
+readinessProbe:
+  # readinessProbe.enabled -- Enable readiness checks. NotReady pods are removed from service endpoints.
+  enabled: true
+  # readinessProbe.initialDelaySeconds -- Delay before first readiness check.
+  initialDelaySeconds: 5
+  # readinessProbe.periodSeconds -- Frequency of readiness checks.
+  periodSeconds: 10
+  # readinessProbe.timeoutSeconds -- Timeout per readiness check.
+  timeoutSeconds: 5
+  # readinessProbe.failureThreshold -- Consecutive failures before pod is marked NotReady.
+  failureThreshold: 6
+  # readinessProbe.successThreshold -- Consecutive successes to mark Ready.
+  successThreshold: 1
+
+startupProbe:
+  # startupProbe.enabled -- Enable startup checks for slower boot scenarios.
+  enabled: false
+  # startupProbe.initialDelaySeconds -- Delay before first startup check.
+  initialDelaySeconds: 60
+  # startupProbe.periodSeconds -- Frequency of startup checks.
+  periodSeconds: 10
+  # startupProbe.timeoutSeconds -- Timeout per startup check.
+  timeoutSeconds: 5
+  # startupProbe.failureThreshold -- Consecutive failures before restart during startup phase.
+  failureThreshold: 30
+  # startupProbe.successThreshold -- Consecutive successes needed to pass startup phase.
+  successThreshold: 1
+
+# customLivenessProbe -- Full custom probe object. Overrides chart default liveness probe when set.
+customLivenessProbe: {}
+# customReadinessProbe -- Full custom probe object. Overrides chart default readiness probe when set.
+customReadinessProbe: {}
+# customStartupProbe -- Full custom probe object. Overrides chart default startup probe when set.
+customStartupProbe: {}
 ```
-scoop install helm
+
+### Service and ingress
+
+```yaml
+service:
+  # service.type -- Service exposure type: ClusterIP, NodePort, or LoadBalancer.
+  type: LoadBalancer
+  # service.annotations -- Annotations on Kubernetes Service resource.
+  annotations: {}
+
+ingress:
+  # ingress.enabled -- Create ingress resources for external HTTP(S) access.
+  enabled: false
+  # ingress.className -- Ingress class to target (for example nginx).
+  className: ""
+  # ingress.annotations -- Ingress-controller-specific annotations.
+  annotations: {}
+  hosts:
+    - # ingress.hosts[].host -- Hostname routed to Permify service.
+      host: chart-example.local
+      paths:
+        - # ingress.hosts[].paths[].path -- URL path for route matching.
+          path: /
+          # ingress.hosts[].paths[].pathType -- Path matching mode (ImplementationSpecific, Prefix, Exact).
+          pathType: ImplementationSpecific
+  # ingress.tls -- TLS host/secret mappings for HTTPS termination.
+  tls: []
 ```
 
-**Snap**
+### Permify application configuration (`app`)
 
-```bash
-sudo snap install helm --classic
+```yaml
+app:
+  # app.account_id -- Optional account identifier for runtime/account-scoped behavior.
+  account_id: ""
+
+  server:
+    # app.server.rate_limit -- Server request rate limit.
+    rate_limit: 100_000
+    http:
+      # app.server.http.enabled -- Enable HTTP API listener.
+      enabled: true
+      # app.server.http.port -- HTTP listener port.
+      port: 3476
+      tls:
+        # app.server.http.tls.enabled -- Enable TLS for HTTP endpoint.
+        enabled: false
+    grpc:
+      # app.server.grpc.port -- gRPC listener port.
+      port: 3478
+      tls:
+        # app.server.grpc.tls.enabled -- Enable TLS for gRPC endpoint.
+        enabled: false
+
+  logger:
+    # app.logger.level -- Log verbosity (error, warn, info, debug).
+    level: info
+
+  profiler:
+    # app.profiler.enabled -- Enable pprof profiling endpoint.
+    enabled: true
+    # app.profiler.port -- pprof server port.
+    port: 6060
+
+  authn:
+    # app.authn.enabled -- Enable API authentication.
+    enabled: false
+    # app.authn.method -- Authentication method (for example preshared).
+    method: preshared
+    preshared:
+      # app.authn.preshared.keys_secret -- Optional secret reference for preshared keys.
+      # keys_secret:
+      # app.authn.preshared.keys -- Inline preshared keys accepted by the API.
+      keys: ["secret"]
+
+  tracer:
+    # app.tracer.enabled -- Enable distributed tracing export.
+    enabled: false
+
+  meter:
+    # app.meter.enabled -- Enable metrics export.
+    enabled: false
+    # app.meter.exporter -- Metrics exporter type.
+    exporter: otlp
+    # app.meter.endpoint -- Metrics exporter endpoint.
+    endpoint: telemetry.permify.co
+
+  service:
+    # app.service.circuit_breaker -- Enable circuit breaker behavior for internal operations.
+    circuit_breaker: false
+    watch:
+      # app.service.watch.enabled -- Enable watch/change-stream behavior.
+      enabled: false
+    schema:
+      cache:
+        # app.service.schema.cache.number_of_counters -- Counter count used by schema cache policy.
+        number_of_counters: 1_000
+        # app.service.schema.cache.max_cost -- Memory budget for schema cache.
+        max_cost: 8MiB
+    permission:
+      # app.service.permission.concurrency_limit -- Limit concurrent permission evaluations.
+      concurrency_limit: 100
+      cache:
+        # app.service.permission.cache.number_of_counters -- Counter count used by permission cache policy.
+        number_of_counters: 10_000
+        # app.service.permission.cache.max_cost -- Memory budget for permission cache.
+        max_cost: 16MiB
 ```
 
-If helm is installed the terminal will provide this as output
+### Database and distributed mode
 
-```bash
-WARNING: Kubernetes configuration file is group-readable. This is insecure. Location: /home/vagrant/.kube/config
-version.BuildInfo{Version:"v3.4.0", GitCommit:"7090a89efc8a18f3d8178bf47d2462450349a004", GitTreeState:"clean", GoVersion:"go1.14.10"}
+```yaml
+app:
+  database:
+    # app.database.engine -- Storage backend. 'memory' is ephemeral; 'postgres' is persistent.
+    engine: postgres
+    # app.database.uri -- PostgreSQL connection URI.
+    uri: postgres://postgres:secret@localhost:5432/permify?sslmode=disable
+    # app.database.uri_secret -- If you use a secret to store the database URI, set it here.
+    #uri_secret: ""
+    # app.database.auto_migrate -- Run schema migrations automatically at startup.
+    auto_migrate: true
+    # app.database.max_open_connections -- Max DB connections.
+    max_open_connections: 20
+    # app.database.max_idle_connections -- Max idle DB connections.
+    max_idle_connections: 1
+    # app.database.max_connection_lifetime -- Max lifetime for DB connections.
+    max_connection_lifetime: 300s
+    # app.database.max_connection_idle_time -- Max idle time before DB connection is closed.
+    max_connection_idle_time: 60s
+   
+    garbage_collection:
+      # app.database.garbage_collection.enabled -- Enable stale tuple cleanup jobs.
+      enabled: false
+      # app.database.garbage_collection.interval -- GC run interval.
+      # interval: 200h
+      # app.database.garbage_collection.window -- GC lookback window.
+      # window: 200h
+      # app.database.garbage_collection.timeout -- Timeout per GC run.
+      # timeout: 5m
+
+  distributed:
+    # app.distributed.enabled -- Enable distributed mode across multiple instances.
+    enabled: false
 ```
 
-## Adding the Permify Helm Charts Repository
+### Resources, database job, autoscaling, and scheduling
 
-To use Permify Helm Charts, you need to add the Permify Helm Charts repository to Helm. Follow these steps:
+```yaml
+# resources -- CPU/memory requests and limits for the Permify container.
+# Setting requests/limits strongly affects scheduling, stability, and autoscaling behavior.
+resources: {}
 
-**1.** Open your terminal.
+autoscaling:
+  # autoscaling.enabled -- Enable HorizontalPodAutoscaler for Permify deployment.
+  enabled: false
+  # autoscaling.minReplicas -- Minimum number of replicas when autoscaling is enabled.
+  minReplicas: 1
+  # autoscaling.maxReplicas -- Maximum number of replicas when autoscaling is enabled.
+  maxReplicas: 100
+  # autoscaling.targetCPUUtilizationPercentage -- CPU utilization target for HPA scaling decisions.
+  targetCPUUtilizationPercentage: 80
+  # autoscaling.targetMemoryUtilizationPercentage -- Memory utilization target for HPA scaling decisions.
+  targetMemoryUtilizationPercentage: 80
 
-**2.** Run the following command to add the Permify Helm Charts repository:
-
-```bash
-$ helm repo add permify https://permify.github.io/helm-charts
+# nodeSelector -- Constrain pod placement to nodes with matching labels.
+nodeSelector: {}
+# tolerations -- Allow scheduling onto tainted nodes.
+tolerations: []
+# affinity -- Advanced pod scheduling rules (node affinity, pod affinity/anti-affinity).
+affinity: {}
 ```
 
-**3.** After adding the Permify Helm Charts repository, you can search for available charts using the following command:
+## Production notes
 
-```bash
-$ helm search repo permify
-```
-
-**Installing Permify using Helm Charts**
-
-Once you've added the Permify Helm Charts repository, you can install Permify using Helm
-
-```bash
-helm install permify permify/permify
-```
+- Set `app.authn.enabled: true` and supply keys via secret-based settings in production.
+- If you expose Permify externally, either configure `ingress` and TLS or use a LoadBalancer-type service.
