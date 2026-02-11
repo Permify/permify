@@ -2518,5 +2518,75 @@ var _ = Describe("check-engine", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.GetCan()).To(Equal(base.CheckResult_CHECK_RESULT_ALLOWED))
 		})
+
+		It("should allow mixed-entrance recursive attribute permissions", func() {
+			schema := `
+			entity user {}
+
+			entity resource {
+				relation viewer @user
+				relation parent @resource
+				attribute is_public boolean
+				permission view = viewer or is_public or parent.view
+			}
+			`
+
+			db, err := factories.DatabaseFactory(config.Database{Engine: "memory"})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			lookupEngine := NewLookupEngine(checkEngine, schemaReader, dataReader)
+			invoker := invoke.NewDirectInvoker(schemaReader, dataReader, checkEngine, nil, lookupEngine, nil)
+			checkEngine.SetInvoker(invoker)
+
+			relationships := []string{
+				"resource:za#viewer@user:u1",
+				"resource:zb#parent@resource:za",
+				"resource:zc#parent@resource:zb",
+			}
+
+			var tuples []*base.Tuple
+			for _, relationship := range relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			publicAttr, err := attribute.Attribute("resource:za$is_public|boolean:true")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = dataWriter.Write(
+				context.Background(),
+				"t1",
+				database.NewTupleCollection(tuples...),
+				database.NewAttributeCollection(publicAttr),
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			resp, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+				TenantId:   "t1",
+				Entity:     &base.Entity{Type: "resource", Id: "zc"},
+				Permission: "view",
+				Subject:    &base.Subject{Type: "user", Id: "u1"},
+				Metadata: &base.PermissionCheckRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+					Depth:         20,
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(resp.GetCan()).To(Equal(base.CheckResult_CHECK_RESULT_ALLOWED))
+		})
 	})
 })

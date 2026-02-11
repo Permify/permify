@@ -70,12 +70,6 @@ func (engine *EntityFilter) EntityFilter(
 		return nil
 	}
 
-	// Extract self-recursive relations used by the permission rewrite.
-	selfCycleRelations := engine.graph.SelfCycleRelationsForPermission(
-		request.GetEntrance().GetType(),
-		request.GetEntrance().GetValue(),
-	)
-
 	// Create a new context for executing goroutines and a cancel function.
 	cctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -104,7 +98,7 @@ func (engine *EntityFilter) EntityFilter(
 				return err
 			}
 		case schema.AttributeLinkedEntrance: // If the linked entrance is a computed user set entrance.
-			err = engine.attributeEntrance(cont, request, entrance, visits, publisher, selfCycleRelations) // Call the tuple to user set entrance method.
+			err = engine.attributeEntrance(cont, request, entrance, visits, publisher) // Call the tuple to user set entrance method.
 			if err != nil {
 				return err
 			}
@@ -133,7 +127,6 @@ func (engine *EntityFilter) attributeEntrance(
 	entrance *schema.LinkedEntrance, // A linked entrance.
 	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
-	selfCycleRelations []string, // Self-recursive relations from the permission rewrite.
 ) error { // Returns an error if one occurs during execution.
 	// attributeEntrance only handles direct attribute access
 	if !visits.AddEA(entrance.TargetEntrance.GetType(), entrance.TargetEntrance.GetValue()) {
@@ -156,6 +149,14 @@ func (engine *EntityFilter) attributeEntrance(
 		Attributes: []string{entrance.TargetEntrance.GetValue()},
 	}
 
+	selfCycleRelations := engine.graph.SelfCycleRelationsForPermission(
+		request.GetEntrance().GetType(),
+		request.GetEntrance().GetValue(),
+	)
+
+	expandRecursive := request.GetEntrance().GetType() == entrance.TargetEntrance.GetType() &&
+		len(selfCycleRelations) > 0
+
 	pagination := database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
 
 	cti, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter, pagination)
@@ -171,6 +172,7 @@ func (engine *EntityFilter) attributeEntrance(
 	it := database.NewUniqueAttributeIterator(rit, cti)
 
 	var attributeEntityIDs []string
+	attributeEntityIDSet := make(map[string]struct{})
 
 	// Publish entities directly for regular case
 	for it.HasNext() {
@@ -184,6 +186,13 @@ func (engine *EntityFilter) attributeEntrance(
 			Id:   current.GetEntity().GetId(),
 		}
 
+		if expandRecursive {
+			if _, ok := attributeEntityIDSet[entity.GetId()]; !ok {
+				attributeEntityIDSet[entity.GetId()] = struct{}{}
+				attributeEntityIDs = append(attributeEntityIDs, entity.GetId())
+			}
+		}
+
 		if !visits.AddPublished(entity) {
 			continue
 		}
@@ -193,14 +202,40 @@ func (engine *EntityFilter) attributeEntrance(
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),
 		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
-
-		attributeEntityIDs = append(attributeEntityIDs, entity.GetId())
 	}
 
-	// Expand recursive relations for same-type attribute permissions (e.g., parent.view).
-	if request.GetEntrance().GetType() == entrance.TargetEntrance.GetType() &&
-		len(selfCycleRelations) > 0 &&
-		len(attributeEntityIDs) > 0 {
+	// For same-type recursive permissions, collect recursion seeds
+	// without cursor filtering so descendant entities remain reachable on later pages.
+	if expandRecursive && request.GetCursor() != "" {
+		seedPagination := database.NewCursorPagination(database.Sort("entity_id"))
+		seedCTI, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter, seedPagination)
+		if err != nil {
+			return err
+		}
+
+		seedRIT, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), seedPagination)
+		if err != nil {
+			return err
+		}
+
+		seedIt := database.NewUniqueAttributeIterator(seedRIT, seedCTI)
+		for seedIt.HasNext() {
+			current, ok := seedIt.GetNext()
+			if !ok {
+				break
+			}
+
+			id := current.GetEntity().GetId()
+			if _, ok := attributeEntityIDSet[id]; ok {
+				continue
+			}
+			attributeEntityIDSet[id] = struct{}{}
+			attributeEntityIDs = append(attributeEntityIDs, id)
+		}
+	}
+
+	// Expand recursive relations for same-type attribute permissions
+	if expandRecursive && len(attributeEntityIDs) > 0 {
 		for _, relation := range selfCycleRelations {
 			err := engine.expandRecursiveRelation(ctx, request, entrance.TargetEntrance.GetType(), relation, attributeEntityIDs, visits, publisher)
 			if err != nil {
@@ -672,7 +707,7 @@ func (engine *EntityFilter) pathChainEntrance(
 			Subject: &base.SubjectFilter{
 				Type:     currentType,
 				Ids:      currentIds,
-				Relation: subjectRelation, // Fixed: Use correct subject relation for complex cases
+				Relation: subjectRelation, // Preserve subject relation for references like @group#member.
 			},
 		}
 
