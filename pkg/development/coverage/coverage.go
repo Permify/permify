@@ -137,9 +137,25 @@ func calculateEntityCoverages(refs []SchemaCoverage, shape file.Shape, definitio
 
 func calculateEntityCoverage(ref SchemaCoverage, shape file.Shape, entityDef *base.EntityDefinition) EntityCoverageInfo {
 	entityCoverageInfo := newEntityCoverageInfo(ref.EntityName)
-	entityCoverageInfo.UncoveredRelationships = findUncoveredRelationships(ref.EntityName, ref.Relationships, shape.Relationships)
+
+	// Collect all relationships: global + scenario-specific
+	allRelationships := make([]string, len(shape.Relationships))
+	copy(allRelationships, shape.Relationships)
+	for _, scenario := range shape.Scenarios {
+		allRelationships = append(allRelationships, scenario.Relationships...)
+	}
+
+	entityCoverageInfo.UncoveredRelationships = findUncoveredRelationships(ref.EntityName, ref.Relationships, allRelationships)
 	entityCoverageInfo.CoverageRelationshipsPercent = calculateCoveragePercent(ref.Relationships, entityCoverageInfo.UncoveredRelationships)
-	entityCoverageInfo.UncoveredAttributes = findUncoveredAttributes(ref.EntityName, ref.Attributes, shape.Attributes)
+
+	// Collect all attributes: global + scenario-specific
+	allAttributes := make([]string, len(shape.Attributes))
+	copy(allAttributes, shape.Attributes)
+	for _, scenario := range shape.Scenarios {
+		allAttributes = append(allAttributes, scenario.Attributes...)
+	}
+
+	entityCoverageInfo.UncoveredAttributes = findUncoveredAttributes(ref.EntityName, ref.Attributes, allAttributes)
 	entityCoverageInfo.CoverageAttributesPercent = calculateCoveragePercent(ref.Attributes, entityCoverageInfo.UncoveredAttributes)
 
 	for _, scenario := range shape.Scenarios {
@@ -149,7 +165,9 @@ func calculateEntityCoverage(ref SchemaCoverage, shape file.Shape, entityDef *ba
 		}
 		entityCoverageInfo.CoverageAssertionsPercent[scenario.Name] = calculateCoveragePercent(ref.Assertions, uncovered)
 		if entityDef != nil {
-			conditionCoverage := calculateConditionCoverage(ref.EntityName, entityDef, scenario, shape.Relationships, shape.Attributes)
+			scenarioRelationships := append(shape.Relationships, scenario.Relationships...)
+			scenarioAttributes := append(shape.Attributes, scenario.Attributes...)
+			conditionCoverage := calculateConditionCoverage(ref.EntityName, entityDef, scenario, scenarioRelationships, scenarioAttributes)
 			if len(conditionCoverage) > 0 {
 				entityCoverageInfo.PermissionConditionCoverage[scenario.Name] = conditionCoverage
 			}
