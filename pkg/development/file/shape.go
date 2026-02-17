@@ -25,6 +25,14 @@ type Scenario struct {
 	// Description is a string that provides a brief explanation of the scenario.
 	Description string `yaml:"description"`
 
+	// Relationships is a slice of strings representing scenario-specific authorization relationships.
+	// These are written in addition to the global relationships defined in the Shape.
+	Relationships []string `yaml:"relationships"`
+
+	// Attributes is a slice of strings representing scenario-specific authorization attributes.
+	// These are written in addition to the global attributes defined in the Shape.
+	Attributes []string `yaml:"attributes"`
+
 	// Checks is a slice of Check structs that represent the authorization checks to be performed.
 	Checks []Check `yaml:"checks"`
 

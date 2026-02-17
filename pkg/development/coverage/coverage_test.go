@@ -505,6 +505,120 @@ var _ = Describe("coverage", func() {
 			Expect(isSameArray(sci.EntityCoverageInfo[8].UncoveredAssertions["scenario 1"], []string{})).Should(Equal(true))
 			Expect(sci.EntityCoverageInfo[8].CoverageAssertionsPercent["scenario 1"]).Should(Equal(100))
 		})
+
+		It("Case 4: Scenario-Specific Relationships Coverage", func() {
+			sci := Run(file.Shape{
+				Schema: `
+		entity user {}
+
+		entity organization {
+		   relation admin @user
+		   relation member @user
+		}
+
+		entity repository {
+		   relation parent @organization
+		   relation owner  @user @organization#admin
+
+		   permission edit   = parent.admin or owner
+		   permission delete = owner
+		}`,
+				Relationships: []string{
+					"organization:1#admin@user:1",
+				},
+				Scenarios: []file.Scenario{
+					{
+						Name:        "scenario with extra relationships",
+						Description: "Tests coverage with scenario-specific relationships",
+						Relationships: []string{
+							"repository:1#parent@organization:1",
+						},
+						Checks: []file.Check{
+							{
+								Entity:  "repository:1",
+								Subject: "user:1",
+								Assertions: map[string]bool{
+									"edit": true,
+								},
+							},
+						},
+						EntityFilters: []file.EntityFilter{},
+					},
+					{
+						Name:        "scenario without extra relationships",
+						Description: "Tests coverage without scenario-specific relationships",
+						Checks: []file.Check{
+							{
+								Entity:  "repository:1",
+								Subject: "user:1",
+								Assertions: map[string]bool{
+									"edit": true,
+								},
+							},
+						},
+						EntityFilters: []file.EntityFilter{},
+					},
+				},
+			})
+
+			Expect(sci.EntityCoverageInfo[2].EntityName).Should(Equal("repository"))
+			Expect(isSameArray(sci.EntityCoverageInfo[2].UncoveredRelationships, []string{
+				"repository#owner@user",
+				"repository#owner@organization#admin",
+			})).Should(Equal(true))
+			Expect(sci.EntityCoverageInfo[2].CoverageRelationshipsPercent).Should(Equal(33))
+		})
+
+		It("Case 5: Scenario-Specific Attributes Coverage", func() {
+			sci := Run(file.Shape{
+				Schema: `
+		entity user {}
+
+		entity account {
+		   relation owner @user
+
+		   attribute balance integer
+
+		   permission withdraw = check_balance(balance) and owner
+		}
+
+		rule check_balance(balance integer) {
+		   (balance >= context.data.amount) && (context.data.amount <= 5000)
+		}`,
+				Relationships: []string{
+					"account:1#owner@user:1",
+				},
+				Attributes: []string{},
+				Scenarios: []file.Scenario{
+					{
+						Name:        "scenario with attributes",
+						Description: "Tests coverage with scenario-specific attributes",
+						Attributes: []string{
+							"account:1$balance|integer:4000",
+						},
+						Checks: []file.Check{
+							{
+								Entity:  "account:1",
+								Subject: "user:1",
+								Context: file.Context{
+									Data: map[string]interface{}{
+										"amount": 3000,
+									},
+								},
+								Assertions: map[string]bool{
+									"withdraw": true,
+								},
+							},
+						},
+						EntityFilters: []file.EntityFilter{},
+					},
+				},
+			})
+
+			Expect(sci.EntityCoverageInfo[1].EntityName).Should(Equal("account"))
+			Expect(sci.EntityCoverageInfo[1].UncoveredAttributes).Should(Equal([]string{}))
+			Expect(sci.EntityCoverageInfo[1].CoverageAttributesPercent).Should(Equal(100))
+		})
 	})
 })
 

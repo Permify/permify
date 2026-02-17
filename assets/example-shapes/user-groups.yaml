@@ -43,8 +43,36 @@ schema: |-
     }
 
 relationships:
+   - "organization:1#admin@user:1"
    - "team:1#owner@user:1"
+   - "team:1#org@organization:1"
 
 attributes:
 
 scenarios:
+  - name: "Team Owner Permissions"
+    description: "Verifies that team owner (user:1) has edit, delete, and remove_user permissions on the team."
+    checks:
+      - entity: "team:1"
+        subject: "user:1"
+        assertions:
+          edit: true
+          delete: true
+          remove_user: true
+  - name: "Team Member Project Access"
+    description: "Verifies project access for a team member added via scenario-specific relationships."
+    relationships:
+      - "team:1#member@user:2"
+      - "project:1#team@team:1"
+      - "project:1#org@organization:1"
+    checks:
+      - entity: "project:1"
+        subject: "user:2"
+        assertions:
+          view: true
+          edit: true
+          delete: true
+      - entity: "project:1"
+        subject: "user:1"
+        assertions:
+          view: true

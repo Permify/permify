@@ -177,22 +177,36 @@ func calculateEntityCoverages(refs []SchemaCoverage, shape file.Shape) []EntityC
 func calculateEntityCoverage(ref SchemaCoverage, shape file.Shape) EntityCoverageInfo {
 	entityCoverageInfo := newEntityCoverageInfo(ref.EntityName)
 
-	// Calculate relationships coverage
+	// Collect all relationships: global + scenario-specific
+	allRelationships := make([]string, len(shape.Relationships))
+	copy(allRelationships, shape.Relationships)
+	for _, scenario := range shape.Scenarios {
+		allRelationships = append(allRelationships, scenario.Relationships...)
+	}
+
+	// Calculate relationships coverage using all relationships (global + scenario-specific)
 	entityCoverageInfo.UncoveredRelationships = findUncoveredRelationships(
 		ref.EntityName,
 		ref.Relationships,
-		shape.Relationships,
+		allRelationships,
 	)
 	entityCoverageInfo.CoverageRelationshipsPercent = calculateCoveragePercent(
 		ref.Relationships,
 		entityCoverageInfo.UncoveredRelationships,
 	)
 
-	// Calculate attributes coverage
+	// Collect all attributes: global + scenario-specific
+	allAttributes := make([]string, len(shape.Attributes))
+	copy(allAttributes, shape.Attributes)
+	for _, scenario := range shape.Scenarios {
+		allAttributes = append(allAttributes, scenario.Attributes...)
+	}
+
+	// Calculate attributes coverage using all attributes (global + scenario-specific)
 	entityCoverageInfo.UncoveredAttributes = findUncoveredAttributes(
 		ref.EntityName,
 		ref.Attributes,
-		shape.Attributes,
+		allAttributes,
 	)
 	entityCoverageInfo.CoverageAttributesPercent = calculateCoveragePercent(
 		ref.Attributes,
