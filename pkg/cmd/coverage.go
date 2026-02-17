@@ -157,5 +157,46 @@ func DisplayCoverageInfo(schemaCoverageInfo cov.SchemaCoverageInfo) {
 				color.Success.Printf(" %d%%\n", value)
 			}
 		}
+
+		// Display permission condition coverage
+		displayConditionCoverage(entityCoverageInfo)
+	}
+}
+
+// displayConditionCoverage displays the detailed condition-level coverage for each permission
+func displayConditionCoverage(entityCoverageInfo cov.EntityCoverageInfo) {
+	if len(entityCoverageInfo.PermissionConditionCoverage) == 0 {
+		return
+	}
+
+	fmt.Printf("  permission condition coverage:\n")
+
+	for scenarioName, permCoverages := range entityCoverageInfo.PermissionConditionCoverage {
+		fmt.Printf("    %s:\n", scenarioName)
+
+		for permName, condCov := range permCoverages {
+			fmt.Printf("      %s:", permName)
+
+			if condCov.CoveragePercent <= 50 {
+				color.Danger.Printf(" %d%% (%d/%d components)\n",
+					condCov.CoveragePercent,
+					len(condCov.CoveredComponents),
+					len(condCov.AllComponents),
+				)
+			} else {
+				color.Success.Printf(" %d%% (%d/%d components)\n",
+					condCov.CoveragePercent,
+					len(condCov.CoveredComponents),
+					len(condCov.AllComponents),
+				)
+			}
+
+			if len(condCov.UncoveredComponents) > 0 {
+				fmt.Printf("        uncovered components:\n")
+				for _, comp := range condCov.UncoveredComponents {
+					fmt.Printf("          - %s (%s)\n", comp.Name, comp.Type)
+				}
+			}
+		}
 	}
 }

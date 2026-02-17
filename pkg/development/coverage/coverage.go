@@ -20,6 +20,21 @@ type SchemaCoverageInfo struct {
 	TotalAssertionsCoverage    int
 }
 
+// ConditionComponent represents a single component (leaf) in a permission condition tree
+type ConditionComponent struct {
+	Name string // The identifier, e.g. "owner", "parent.admin", "is_public"
+	Type string // "relation", "tuple_to_userset", "attribute", "call"
+}
+
+// ConditionCoverageInfo represents the coverage information for a single permission's condition
+type ConditionCoverageInfo struct {
+	PermissionName      string
+	AllComponents       []ConditionComponent
+	CoveredComponents   []ConditionComponent
+	UncoveredComponents []ConditionComponent
+	CoveragePercent     int
+}
+
 // EntityCoverageInfo represents coverage information for a single entity
 type EntityCoverageInfo struct {
 	EntityName string
@@ -32,6 +47,9 @@ type EntityCoverageInfo struct {
 
 	UncoveredAssertions       map[string][]string
 	CoverageAssertionsPercent map[string]int
+
+	// PermissionConditionCoverage maps scenario name -> permission name -> condition coverage info
+	PermissionConditionCoverage map[string]map[string]ConditionCoverageInfo
 }
 
 // SchemaCoverage represents the expected coverage for a schema entity
@@ -78,7 +96,7 @@ func Run(shape file.Shape) SchemaCoverageInfo {
 	}
 
 	refs := extractSchemaReferences(definitions)
-	entityCoverageInfos := calculateEntityCoverages(refs, shape)
+	entityCoverageInfos := calculateEntityCoverages(refs, shape, definitions)
 
 	return buildSchemaCoverageInfo(entityCoverageInfos)
 }
@@ -162,11 +180,18 @@ func extractAssertions(entity *base.EntityDefinition) []string {
 }
 
 // calculateEntityCoverages calculates coverage for all entities
-func calculateEntityCoverages(refs []SchemaCoverage, shape file.Shape) []EntityCoverageInfo {
+func calculateEntityCoverages(refs []SchemaCoverage, shape file.Shape, definitions []*base.EntityDefinition) []EntityCoverageInfo {
 	entityCoverageInfos := []EntityCoverageInfo{}
 
+	// Build a map from entity name to definition for condition coverage
+	defMap := make(map[string]*base.EntityDefinition)
+	for _, def := range definitions {
+		defMap[def.GetName()] = def
+	}
+
 	for _, ref := range refs {
-		entityCoverageInfo := calculateEntityCoverage(ref, shape)
+		entityDef := defMap[ref.EntityName]
+		entityCoverageInfo := calculateEntityCoverage(ref, shape, entityDef)
 		entityCoverageInfos = append(entityCoverageInfos, entityCoverageInfo)
 	}
 
@@ -174,7 +199,7 @@ func calculateEntityCoverages(refs []SchemaCoverage, shape file.Shape) []EntityC
 }
 
 // calculateEntityCoverage calculates coverage for a single entity
-func calculateEntityCoverage(ref SchemaCoverage, shape file.Shape) EntityCoverageInfo {
+func calculateEntityCoverage(ref SchemaCoverage, shape file.Shape, entityDef *base.EntityDefinition) EntityCoverageInfo {
 	entityCoverageInfo := newEntityCoverageInfo(ref.EntityName)
 
 	// Calculate relationships coverage
@@ -199,7 +224,7 @@ func calculateEntityCoverage(ref SchemaCoverage, shape file.Shape) EntityCoverag
 		entityCoverageInfo.UncoveredAttributes,
 	)
 
-	// Calculate assertions coverage for each scenario
+	// Calculate assertions coverage and condition coverage for each scenario
 	for _, scenario := range shape.Scenarios {
 		uncovered := findUncoveredAssertions(
 			ref.EntityName,
@@ -215,6 +240,20 @@ func calculateEntityCoverage(ref SchemaCoverage, shape file.Shape) EntityCoverag
 			ref.Assertions,
 			uncovered,
 		)
+
+		// Calculate condition coverage for permissions that are asserted in this scenario
+		if entityDef != nil {
+			condCov := calculateConditionCoverage(
+				entityDef,
+				ref.EntityName,
+				scenario,
+				shape.Relationships,
+				shape.Attributes,
+			)
+			if len(condCov) > 0 {
+				entityCoverageInfo.PermissionConditionCoverage[scenario.Name] = condCov
+			}
+		}
 	}
 
 	return entityCoverageInfo
@@ -230,6 +269,7 @@ func newEntityCoverageInfo(entityName string) EntityCoverageInfo {
 		UncoveredAssertions:          make(map[string][]string),
 		CoverageRelationshipsPercent: 0,
 		CoverageAttributesPercent:    0,
+		PermissionConditionCoverage:  make(map[string]map[string]ConditionCoverageInfo),
 	}
 }
 
@@ -416,6 +456,235 @@ func extractCoveredAssertions(entityName string, checks []file.Check, filters []
 	}
 
 	return covered
+}
+
+// calculateConditionCoverage analyzes the condition tree for each permission that is asserted
+// in the given scenario, and checks which leaf components are covered by the test data.
+func calculateConditionCoverage(
+	entityDef *base.EntityDefinition,
+	entityName string,
+	scenario file.Scenario,
+	relationships []string,
+	attributes []string,
+) map[string]ConditionCoverageInfo {
+	result := make(map[string]ConditionCoverageInfo)
+
+	// Find which permissions are asserted for this entity in this scenario
+	assertedPerms := extractAssertedPermissions(entityName, scenario)
+	if len(assertedPerms) == 0 {
+		return result
+	}
+
+	// Build sets of covered relations and attributes for this entity
+	coveredRelations := buildCoveredRelationSet(entityName, relationships)
+	coveredAttributes := buildCoveredAttributeSet(entityName, attributes)
+
+	// For each asserted permission, walk its condition tree
+	for _, permName := range assertedPerms {
+		permDef, ok := entityDef.GetPermissions()[permName]
+		if !ok || permDef.GetChild() == nil {
+			continue
+		}
+
+		allComponents := extractConditionComponents(permDef.GetChild())
+		if len(allComponents) == 0 {
+			continue
+		}
+
+		var covered []ConditionComponent
+		var uncovered []ConditionComponent
+
+		for _, comp := range allComponents {
+			if isComponentCovered(comp, coveredRelations, coveredAttributes) {
+				covered = append(covered, comp)
+			} else {
+				uncovered = append(uncovered, comp)
+			}
+		}
+
+		coveragePercent := (len(covered) * 100) / len(allComponents)
+
+		result[permName] = ConditionCoverageInfo{
+			PermissionName:      permName,
+			AllComponents:       allComponents,
+			CoveredComponents:   covered,
+			UncoveredComponents: uncovered,
+			CoveragePercent:     coveragePercent,
+		}
+	}
+
+	return result
+}
+
+// extractAssertedPermissions finds all permission names that are asserted for the given entity
+// in a scenario's checks and entity filters.
+func extractAssertedPermissions(entityName string, scenario file.Scenario) []string {
+	seen := make(map[string]bool)
+	var perms []string
+
+	for _, check := range scenario.Checks {
+		entity, err := tuple.E(check.Entity)
+		if err != nil || entity.GetType() != entityName {
+			continue
+		}
+		for permName := range check.Assertions {
+			if !seen[permName] {
+				seen[permName] = true
+				perms = append(perms, permName)
+			}
+		}
+	}
+
+	for _, filter := range scenario.EntityFilters {
+		if filter.EntityType != entityName {
+			continue
+		}
+		for permName := range filter.Assertions {
+			if !seen[permName] {
+				seen[permName] = true
+				perms = append(perms, permName)
+			}
+		}
+	}
+
+	return perms
+}
+
+// extractConditionComponents recursively walks a Child tree and extracts all leaf components
+func extractConditionComponents(child *base.Child) []ConditionComponent {
+	if child == nil {
+		return nil
+	}
+
+	// Check if this is a leaf node
+	if leaf := child.GetLeaf(); leaf != nil {
+		comp := leafToComponent(leaf)
+		if comp != nil {
+			return []ConditionComponent{*comp}
+		}
+		return nil
+	}
+
+	// Check if this is a rewrite (union/intersection/exclusion)
+	if rewrite := child.GetRewrite(); rewrite != nil {
+		var components []ConditionComponent
+		for _, ch := range rewrite.GetChildren() {
+			components = append(components, extractConditionComponents(ch)...)
+		}
+		return components
+	}
+
+	return nil
+}
+
+// leafToComponent converts a Leaf node to a ConditionComponent
+func leafToComponent(leaf *base.Leaf) *ConditionComponent {
+	if cus := leaf.GetComputedUserSet(); cus != nil {
+		return &ConditionComponent{
+			Name: cus.GetRelation(),
+			Type: "relation",
+		}
+	}
+
+	if ttus := leaf.GetTupleToUserSet(); ttus != nil {
+		tupleSetRelation := ""
+		if ttus.GetTupleSet() != nil {
+			tupleSetRelation = ttus.GetTupleSet().GetRelation()
+		}
+		computedRelation := ""
+		if ttus.GetComputed() != nil {
+			computedRelation = ttus.GetComputed().GetRelation()
+		}
+		name := tupleSetRelation
+		if computedRelation != "" {
+			name = tupleSetRelation + "." + computedRelation
+		}
+		return &ConditionComponent{
+			Name: name,
+			Type: "tuple_to_userset",
+		}
+	}
+
+	if ca := leaf.GetComputedAttribute(); ca != nil {
+		return &ConditionComponent{
+			Name: ca.GetName(),
+			Type: "attribute",
+		}
+	}
+
+	if call := leaf.GetCall(); call != nil {
+		return &ConditionComponent{
+			Name: call.GetRuleName(),
+			Type: "call",
+		}
+	}
+
+	return nil
+}
+
+// buildCoveredRelationSet builds a set of relation names that are covered by test relationships
+// for a given entity. Returns a map[relationName]bool.
+func buildCoveredRelationSet(entityName string, relationships []string) map[string]bool {
+	covered := make(map[string]bool)
+
+	for _, rel := range relationships {
+		tup, err := tuple.Tuple(rel)
+		if err != nil {
+			continue
+		}
+		if tup.GetEntity().GetType() == entityName {
+			covered[tup.GetRelation()] = true
+		}
+	}
+
+	return covered
+}
+
+// buildCoveredAttributeSet builds a set of attribute names that are covered by test attributes
+// for a given entity. Returns a map[attributeName]bool.
+func buildCoveredAttributeSet(entityName string, attributes []string) map[string]bool {
+	covered := make(map[string]bool)
+
+	for _, attrStr := range attributes {
+		a, err := attribute.Attribute(attrStr)
+		if err != nil {
+			continue
+		}
+		if a.GetEntity().GetType() == entityName {
+			covered[a.GetAttribute()] = true
+		}
+	}
+
+	return covered
+}
+
+// isComponentCovered checks if a condition component is covered by the test data.
+// A "relation" component is covered if the relation name exists in coveredRelations.
+// A "tuple_to_userset" component is covered if the tuple set relation exists in coveredRelations.
+// An "attribute" component is covered if the attribute name exists in coveredAttributes.
+// A "call" component is always considered covered (rule calls depend on runtime evaluation).
+func isComponentCovered(comp ConditionComponent, coveredRelations, coveredAttributes map[string]bool) bool {
+	switch comp.Type {
+	case "relation":
+		return coveredRelations[comp.Name]
+	case "tuple_to_userset":
+		// For tuple_to_userset like "parent.admin", check that the tuple set relation ("parent") is covered
+		tupleSetRelation := comp.Name
+		// If it contains a dot, split to get the tuple set relation
+		for i, c := range comp.Name {
+			if c == '.' {
+				tupleSetRelation = comp.Name[:i]
+				break
+			}
+		}
+		return coveredRelations[tupleSetRelation]
+	case "attribute":
+		return coveredAttributes[comp.Name]
+	case "call":
+		// Rule calls are considered covered if they can be evaluated
+		return true
+	}
+	return false
 }
 
 // formatRelationship formats a relationship string
