@@ -30,6 +30,7 @@ attributes:
 
 scenarios:
   - name: admin_access_test
+    description: "Verifies admin user can edit but not delete a repository they don't own."
     checks:
       - entity: repository:1234
         subject: user:5678
@@ -45,3 +46,13 @@ scenarios:
           delete: false
     entity_filters: []
     subject_filters: []
+  - name: owner_access_test
+    description: "Verifies repository owner has full permissions using scenario-specific relationships."
+    relationships:
+      - "repository:1234#owner@user:9999"
+    checks:
+      - entity: repository:1234
+        subject: user:9999
+        assertions:
+          edit: true
+          delete: true
