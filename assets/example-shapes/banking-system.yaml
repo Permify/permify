@@ -5,7 +5,7 @@ schema: |-
 
         // Defines a relation where an account has an owner of type 'user'.
         relation owner @user
-        
+
         // Attribute to store the balance information of the account.
         attribute balance integer
 
@@ -54,3 +54,17 @@ scenarios:
             amount: 3000
         assertions:
           withdraw: false
+  - name: "Account 2 Owner Withdrawal with Scenario-Specific Attributes"
+    description: "Tests 'steven' can withdraw from 'account:2' using scenario-specific balance attribute."
+    attributes:
+      - account:2$balance|integer:6000
+    checks:
+      - entity: "account:2"
+        subject: "user:steven"
+        context:
+          tuples: []
+          attributes: []
+          data:
+            amount: 2000
+        assertions:
+          withdraw: true
