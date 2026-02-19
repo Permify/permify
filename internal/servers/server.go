@@ -258,9 +258,7 @@ func (s *Container) Run(
 	// Start the optional HTTP server with CORS and optional TLS configurations.
 	// Connect to the gRPC server and register the HTTP handlers for each service.
 	if srv.HTTP.Enabled {
-		options := []grpc.DialOption{
-			grpc.WithBlock(),
-		}
+		options := []grpc.DialOption{}
 		if srv.GRPC.TLSConfig.Enabled {
 			c, err := credentials.NewClientTLSFromFile(srv.GRPC.TLSConfig.CertPath, srv.NameOverride)
 			if err != nil {
@@ -271,16 +269,14 @@ func (s *Container) Run(
 			options = append(options, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		}
 
-		timeoutCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-		defer cancel()
-
-		conn, err := grpc.DialContext(timeoutCtx, ":"+srv.GRPC.Port, options...)
+		targetAddr := net.JoinHostPort(srv.GRPC.Host, srv.GRPC.Port) // gRPC server address
+		conn, err := grpc.NewClient(targetAddr, options...)          // Create gRPC client connection
 		if err != nil {
 			return err
 		}
 		defer func() {
-			if err = conn.Close(); err != nil { // Connection close error
-				slog.Error("Failed to close gRPC connection", slog.Any("error", err)) // Log close error
+			if closeErr := conn.Close(); closeErr != nil { // Connection close error
+				slog.Error("Failed to close gRPC connection", slog.Any("error", closeErr)) // Log close error
 			}
 		}()
 
@@ -345,8 +341,8 @@ func (s *Container) Run(
 		}).Handler(mux) // CORS handler created
 
 		httpServer = &http.Server{ // HTTP server configuration
-			Addr:              ":" + srv.HTTP.Port, // Server address
-			Handler:           corsHandler,         // CORS handler
+			Addr:              targetAddr,  // Server address
+			Handler:           corsHandler, // CORS handler
 			ReadHeaderTimeout: 5 * time.Second,
 		}
 

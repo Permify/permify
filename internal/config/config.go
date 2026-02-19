@@ -44,6 +44,7 @@ type (
 
 	// GRPC contains configuration for the gRPC server.
 	GRPC struct {
+		Host      string    `mapstructure:"host"` // Host for the gRPC server
 		Port      string    `mapstructure:"port"` // Port for the gRPC server
 		TLSConfig TLSConfig `mapstructure:"tls"`  // TLS configuration for the gRPC server
 	}
@@ -293,6 +294,7 @@ func DefaultConfig() *Config {
 				CORSAllowedHeaders: []string{"*"},
 			},
 			GRPC: GRPC{
+				Host: "127.0.0.1",
 				Port: "3478",
 				TLSConfig: TLSConfig{
 					Enabled: false,
