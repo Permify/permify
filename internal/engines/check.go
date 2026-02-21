@@ -550,14 +550,20 @@ func (engine *CheckEngine) checkDirectCall(
 		// List to store computed attributes.
 		attributes := make([]string, 0)
 
+		// Map from attribute name to parameter name (for positional matching)
+		attrToParam := make(map[string]string)
+
 		// Iterate over request arguments to classify and process them.
-		for _, arg := range request.GetArguments() {
+		for i, arg := range request.GetArguments() {
 			switch actualArg := arg.Type.(type) {
 			case *base.Argument_ComputedAttribute:
 				// Handle computed attributes: Set them to a default empty value.
 				attrName := actualArg.ComputedAttribute.GetName()
-				emptyValue := getEmptyValueForType(ru.GetArguments()[attrName])
-				arguments[attrName] = emptyValue
+				// Get the parameter name from the rule definition at position i
+				paramName := ru.GetArguments()[i].GetName()
+				emptyValue := getEmptyValueForType(ru.GetArguments()[i].GetType())
+				arguments[paramName] = emptyValue
+				attrToParam[attrName] = paramName
 				attributes = append(attributes, attrName)
 			default:
 				// Return an error for any unsupported argument types.
@@ -592,7 +598,9 @@ func (engine *CheckEngine) checkDirectCall(
 				if !ok {
 					break
 				}
-				arguments[next.GetAttribute()] = utils.ConvertProtoAnyToInterface(next.GetValue())
+				// Map the attribute value to the parameter name
+				paramName := attrToParam[next.GetAttribute()]
+				arguments[paramName] = utils.ConvertProtoAnyToInterface(next.GetValue())
 			}
 		}
 

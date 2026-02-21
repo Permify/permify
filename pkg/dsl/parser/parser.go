@@ -314,8 +314,8 @@ func (p *Parser) parseRuleStatement() (*ast.RuleStatement, error) {
 		return nil, p.Error()
 	}
 
-	arguments := map[token.Token]ast.AttributeTypeStatement{}
-	args := map[string]string{}
+	arguments := []ast.RuleArgument{}
+	argInfos := []ast.RuleArgumentInfo{}
 
 	// Loop over the tokens until a right parenthesis ')' is encountered.
 	// In each iteration, two tokens are processed: an identifier (arg name) and its type.
@@ -324,31 +324,41 @@ func (p *Parser) parseRuleStatement() (*ast.RuleStatement, error) {
 		if !p.expectAndNext(token.IDENT) {
 			return nil, p.Error()
 		}
-		argument := p.currentToken
-		arg := p.currentToken.Literal
+		argName := p.currentToken
 
 		// Expect the second token to be the parameter's type.
 		if !p.expectAndNext(token.IDENT) {
 			return nil, p.Error()
 		}
 
+		var argType ast.AttributeTypeStatement
+		var typeStr string
 		if p.peekTokenIs(token.LSB) { // Check if the next token is '['
-			arguments[argument] = ast.AttributeTypeStatement{
+			argType = ast.AttributeTypeStatement{
 				Type:    p.currentToken,
 				IsArray: true, // Marking the type as an array
 			}
-			args[arg] = p.currentToken.Literal + "[]" // Store the argument type as string with "[]" suffix
-			p.next()                                  // Move to the '[' token
-			if !p.expectAndNext(token.RSB) {          // Expect and move to the ']' token
+			typeStr = p.currentToken.Literal + "[]" // Store the argument type as string with "[]" suffix
+			p.next()                                // Move to the '[' token
+			if !p.expectAndNext(token.RSB) {        // Expect and move to the ']' token
 				return nil, p.Error()
 			}
 		} else {
-			arguments[argument] = ast.AttributeTypeStatement{
+			argType = ast.AttributeTypeStatement{
 				Type:    p.currentToken,
 				IsArray: false, // Marking the type as not an array
 			}
-			args[arg] = p.currentToken.Literal // Store the regular argument type
+			typeStr = p.currentToken.Literal // Store the regular argument type
 		}
+
+		arguments = append(arguments, ast.RuleArgument{
+			Name: argName,
+			Type: argType,
+		})
+		argInfos = append(argInfos, ast.RuleArgumentInfo{
+			Name: argName.Literal,
+			Type: typeStr,
+		})
 
 		// If the next token is a comma, there are more parameters to parse.
 		// Continue to the next iteration.
@@ -402,7 +412,7 @@ func (p *Parser) parseRuleStatement() (*ast.RuleStatement, error) {
 	}
 
 	// Register the parsed rule in the parser's references.
-	err := p.references.AddRuleReference(stmt.Name.Literal, args)
+	err := p.references.AddRuleReference(stmt.Name.Literal, argInfos)
 	if err != nil {
 		// If there's an error (e.g., a duplicate rule), return an error.
 		p.duplicationError(stmt.Name.Literal)

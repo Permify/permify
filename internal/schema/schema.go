@@ -56,9 +56,9 @@ func NewSchemaFromEntityAndRuleDefinitions(entities []*base.EntityDefinition, ru
 
 	// Process each rule in the rules slice.
 	for _, rule := range rules {
-		// If the rule's Arguments map is nil, initialize it as an empty map.
+		// If the rule's Arguments slice is nil, initialize it as an empty slice.
 		if rule.Arguments == nil {
-			rule.Arguments = map[string]base.AttributeType{}
+			rule.Arguments = []*base.NamedArgument{}
 		}
 
 		// Add the rule to the RuleDefinitions map of the schema, using its name as the key.

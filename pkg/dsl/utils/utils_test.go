@@ -33,8 +33,8 @@ var _ = Describe("Utils", func() {
 
 	Describe("ArgumentsAsCelEnv function", func() {
 		It("should return an error for unrecognized attribute types", func() {
-			arguments := map[string]base.AttributeType{
-				"invalidAttribute": base.AttributeType(9999),
+			arguments := []*base.NamedArgument{
+				{Name: "invalidAttribute", Type: base.AttributeType(9999)},
 			}
 			_, err := ArgumentsAsCelEnv(arguments)
 			Expect(err.Error()).To(ContainSubstring("unrecognized AttributeType"))

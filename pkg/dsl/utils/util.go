@@ -22,18 +22,18 @@ func Key(v1, v2 string) string {
 	return sb.String()
 }
 
-// ArgumentsAsCelEnv converts a map of attributes to a CEL environment.
-// It iterates through the map, retrieves the CEL type for each attribute,
+// ArgumentsAsCelEnv converts a slice of NamedArgument to a CEL environment.
+// It iterates through the slice, retrieves the CEL type for each argument,
 // and appends it to an array of CEL environment options.
-func ArgumentsAsCelEnv(arguments map[string]base.AttributeType) (*cel.Env, error) {
+func ArgumentsAsCelEnv(arguments []*base.NamedArgument) (*cel.Env, error) {
 	opts := make([]cel.EnvOption, 0, len(arguments))
-	for name, typ := range arguments {
-		typ, err := GetCelType(typ)
+	for _, arg := range arguments {
+		typ, err := GetCelType(arg.GetType())
 		if err != nil {
 			return nil, err
 		}
 
-		opts = append(opts, cel.Variable(name, typ))
+		opts = append(opts, cel.Variable(arg.GetName(), typ))
 	}
 	return cel.NewEnv(opts...)
 }

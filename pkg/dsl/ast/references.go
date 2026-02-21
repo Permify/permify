@@ -18,12 +18,17 @@ const (
 	RULE        ReferenceType = "rule"
 )
 
+type RuleArgumentInfo struct {
+	Name string
+	Type string
+}
+
 // References - Map of all relational references extracted from the schema
 type References struct {
 	// Map of entity references extracted from the schema
 	entityReferences map[string]struct{}
-	// Map of rule references extracted from the schema
-	ruleReferences map[string]map[string]string
+	// Map of rule references extracted from the schema (ordered list of argument info)
+	ruleReferences map[string][]RuleArgumentInfo
 
 	// Map of permission references extracted from the schema
 	// -> ["entity_name#permission_name"] = {}
@@ -44,7 +49,7 @@ type References struct {
 func NewReferences() *References {
 	return &References{
 		entityReferences:     map[string]struct{}{},
-		ruleReferences:       map[string]map[string]string{},
+		ruleReferences:       map[string][]RuleArgumentInfo{},
 		permissionReferences: map[string]struct{}{},
 		attributeReferences:  map[string]AttributeTypeStatement{},
 		relationReferences:   map[string][]RelationTypeStatement{},
@@ -66,14 +71,14 @@ func (refs *References) AddEntityReference(name string) error {
 }
 
 // AddRuleReference sets a reference for a rule.
-func (refs *References) AddRuleReference(name string, types map[string]string) error {
+func (refs *References) AddRuleReference(name string, args []RuleArgumentInfo) error {
 	if name == "" { // Validate rule name
 		return fmt.Errorf("name cannot be empty")
 	}
 	if refs.IsReferenceExist(name) {
 		return fmt.Errorf("reference %s already exists", name)
 	}
-	refs.ruleReferences[name] = types
+	refs.ruleReferences[name] = args
 	refs.references[name] = RULE
 	return nil
 }
@@ -251,9 +256,9 @@ func (refs *References) GetRelationReferenceTypesIfExist(name string) ([]Relatio
 }
 
 // GetRuleArgumentTypesIfRuleExist retrieves the rule argument types for a given rule reference key.
-func (refs *References) GetRuleArgumentTypesIfRuleExist(name string) (map[string]string, bool) {
+func (refs *References) GetRuleArgumentTypesIfRuleExist(name string) ([]RuleArgumentInfo, bool) {
 	if _, ok := refs.ruleReferences[name]; ok {
 		return refs.ruleReferences[name], true
 	}
-	return map[string]string{}, false
+	return nil, false
 }

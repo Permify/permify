@@ -2467,6 +2467,20 @@
       },
       "description": "Map type with parameterized key and value types, e.g. `map\u003cstring, int\u003e`."
     },
+    "NamedArgument": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the argument."
+        },
+        "type": {
+          "$ref": "#/definitions/AttributeType",
+          "description": "The type of the argument."
+        }
+      },
+      "description": "NamedArgument represents a named argument with its type."
+    },
     "NullValue": {
       "type": "string",
       "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\nThe JSON representation for `NullValue` is JSON `null`."
@@ -2961,11 +2975,12 @@
           "description": "The name of the rule, which follows a specific string pattern and has a maximum byte size."
         },
         "arguments": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/AttributeType"
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/NamedArgument"
           },
-          "description": "Map of arguments for this rule. The key is the attribute name, and the value is the AttributeType."
+          "description": "Ordered list of arguments for this rule."
         },
         "expression": {
           "$ref": "#/definitions/CheckedExpr",
