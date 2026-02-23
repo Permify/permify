@@ -27,6 +27,7 @@ type (
 
 	// Server contains the configurations for both HTTP and gRPC servers.
 	Server struct {
+		Host         string `mapstructure:"host"` // Host for servers
 		HTTP         HTTP   `mapstructure:"http"` // HTTP server configuration
 		GRPC         GRPC   `mapstructure:"grpc"` // gRPC server configuration
 		NameOverride string `mapstructure:"name_override"`
@@ -283,6 +284,7 @@ func DefaultConfig() *Config {
 		AccountID: "",
 		Server: Server{
 			NameOverride: "",
+			Host:         "127.0.0.1",
 			HTTP: HTTP{
 				Enabled: true,
 				Port:    "3476",
