@@ -60,7 +60,9 @@ The first step to building Permify Schema is creating entities. An entity is an 
 
 Think of entities as tables in your database. It is strongly recommended to name entities the same as the corresponding database table name. Doing so allows you to model and reason about your authorization and eliminate the possibility of error.
 
-You can create entities using the `entity` keyword. Let's create some entities for our example GitHub authorization logic.
+You can create entities using the `entity` keyword. Entity names may contain only letters and underscores and must be at most 64 characters long. 
+
+Let's create some entities for our example GitHub authorization logic.
 
 ```perm
 entity user {}
