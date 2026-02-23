@@ -269,8 +269,8 @@ func (s *Container) Run(
 			options = append(options, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		}
 
-		targetAddr := net.JoinHostPort(srv.GRPC.Host, srv.GRPC.Port) // gRPC server address
-		conn, err := grpc.NewClient(targetAddr, options...)          // Create gRPC client connection
+		targetAddr := net.JoinHostPort(srv.Host, srv.GRPC.Port) // gRPC server address
+		conn, err := grpc.NewClient(targetAddr, options...)     // Create gRPC client connection
 		if err != nil {
 			return err
 		}
@@ -340,9 +340,10 @@ func (s *Container) Run(
 			}, // Methods configured
 		}).Handler(mux) // CORS handler created
 
-		httpServer = &http.Server{ // HTTP server configuration
-			Addr:              targetAddr,  // Server address
-			Handler:           corsHandler, // CORS handler
+		httpTargetAddr := net.JoinHostPort(srv.Host, srv.HTTP.Port) // HTTP server address
+		httpServer = &http.Server{                                  // HTTP server configuration
+			Addr:              httpTargetAddr, // Server address
+			Handler:           corsHandler,    // CORS handler
 			ReadHeaderTimeout: 5 * time.Second,
 		}
 
