@@ -509,9 +509,9 @@ rule check_region(region string, regions string[]) {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(ruDef.Name).Should(Equal("check_region"))
-			Expect(ruDef.Arguments).Should(Equal(map[string]base.AttributeType{
-				"region":  base.AttributeType_ATTRIBUTE_TYPE_STRING,
-				"regions": base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY,
+			Expect(ruDef.Arguments).Should(Equal([]*base.NamedArgument{
+				{Name: "region", Type: base.AttributeType_ATTRIBUTE_TYPE_STRING},
+				{Name: "regions", Type: base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY},
 			}))
 
 			Expect(ruDef.Expression.Expr.String()).Should(Equal(exp.Expr.String()))

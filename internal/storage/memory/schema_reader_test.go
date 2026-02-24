@@ -177,9 +177,9 @@ var _ = Describe("SchemaReader", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(version).Should(Equal(v))
 			Expect(ru.Name).Should(Equal("check_ip_range"))
-			Expect(ru.Arguments).Should(Equal(map[string]base.AttributeType{
-				"ip_address": base.AttributeType_ATTRIBUTE_TYPE_STRING,
-				"ip_range":   base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY,
+			Expect(ru.Arguments).Should(Equal([]*base.NamedArgument{
+				{Name: "ip_address", Type: base.AttributeType_ATTRIBUTE_TYPE_STRING},
+				{Name: "ip_range", Type: base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY},
 			}))
 		})
 	})

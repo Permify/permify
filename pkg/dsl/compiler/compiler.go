@@ -162,19 +162,19 @@ func (t *Compiler) compileEntity(sc *ast.EntityStatement) (*base.EntityDefinitio
 // returns a *base.RuleDefinition or an error.
 func (t *Compiler) compileRule(sc *ast.RuleStatement) (*base.RuleDefinition, error) {
 	// Initialize a new base.RuleDefinition with the name and body from the rule statement.
-	// The Arguments field is initialized as an empty map.
+	// The Arguments field is initialized as an empty slice.
 	ruleDefinition := &base.RuleDefinition{
 		Name:      sc.Name.Literal,
-		Arguments: map[string]base.AttributeType{},
+		Arguments: []*base.NamedArgument{},
 	}
 
 	var envOptions []cel.EnvOption
 	envOptions = append(envOptions, cel.Variable("context", cel.DynType))
 
 	// Iterate over the arguments in the rule statement.
-	for name, ty := range sc.Arguments {
+	for _, arg := range sc.Arguments {
 		// For each argument, use the getArgumentTypeIfExist function to determine the attribute type.
-		typ, err := getArgumentTypeIfExist(ty)
+		typ, err := getArgumentTypeIfExist(arg.Type)
 		// If the attribute type is not recognized, return an error.
 		if err != nil {
 			return nil, err
@@ -185,9 +185,12 @@ func (t *Compiler) compileRule(sc *ast.RuleStatement) (*base.RuleDefinition, err
 			return nil, err
 		}
 
-		// Add the argument name and its corresponding attribute type to the Arguments map in the rule definition.
-		ruleDefinition.Arguments[name.Literal] = typ
-		envOptions = append(envOptions, cel.Variable(name.Literal, cType))
+		// Add the argument name and its corresponding attribute type to the Arguments slice in the rule definition.
+		ruleDefinition.Arguments = append(ruleDefinition.Arguments, &base.NamedArgument{
+			Name: arg.Name.Literal,
+			Type: typ,
+		})
+		envOptions = append(envOptions, cel.Variable(arg.Name.Literal, cType))
 	}
 
 	// Variables used within this expression environment.
@@ -404,19 +407,19 @@ func (t *Compiler) compileCall(entityName string, call *ast.Call) (*base.Child, 
 	// Create a slice to store the call arguments.
 	var arguments []*base.Argument
 
-	// Create a map to store the types of the rule arguments, only if reference validation is enabled.
-	var types map[string]string
+	// Create a slice to store the types of the rule arguments, only if reference validation is enabled.
+	var argInfos []ast.RuleArgumentInfo
 
 	// If reference validation is enabled, try to get the rule argument types from the schema for the specific call.
 	// If the call's rule does not exist in the schema, return an error.
 	if t.withReferenceValidation {
 		var exist bool
-		types, exist = t.schema.GetReferences().GetRuleArgumentTypesIfRuleExist(call.Name.Literal)
+		argInfos, exist = t.schema.GetReferences().GetRuleArgumentTypesIfRuleExist(call.Name.Literal)
 		if !exist {
 			return nil, compileError(call.Name.PositionInfo, base.ErrorCode_ERROR_CODE_INVALID_RULE_REFERENCE.String())
 		}
 
-		if len(types) != len(call.Arguments) {
+		if len(argInfos) != len(call.Arguments) {
 			return nil, compileError(call.Name.PositionInfo, base.ErrorCode_ERROR_CODE_MISSING_ARGUMENT.String())
 		}
 	}
@@ -426,7 +429,7 @@ func (t *Compiler) compileCall(entityName string, call *ast.Call) (*base.Child, 
 	}
 
 	// Loop through each argument in the call.
-	for _, argument := range call.Arguments {
+	for i, argument := range call.Arguments {
 		// Check if the argument has no identifiers, which is not allowed.
 		// Return an error if this is the case.
 		if len(argument.Idents) == 0 {
@@ -445,13 +448,9 @@ func (t *Compiler) compileCall(entityName string, call *ast.Call) (*base.Child, 
 					return nil, compileError(call.Name.PositionInfo, base.ErrorCode_ERROR_CODE_INVALID_RULE_REFERENCE.String())
 				}
 
-				// Get the type of the rule argument from the types map and compare it with the attribute reference type.
-				typeInfo, exist := types[argument.Idents[0].Literal]
-				if !exist {
-					return nil, compileError(argument.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
-				}
-
-				if typeInfo != atyp.String() {
+				// Get the type of the rule argument at position i and compare it with the attribute reference type.
+				expectedType := argInfos[i].Type
+				if expectedType != atyp.String() {
 					return nil, compileError(argument.Idents[0].PositionInfo, base.ErrorCode_ERROR_CODE_INVALID_ARGUMENT.String())
 				}
 			}

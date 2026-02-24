@@ -47,6 +47,18 @@ enum AttributeType {
   ATTRIBUTE_TYPE_DOUBLE_ARRAY = 8;
 }
 
+// NamedArgument represents a named argument with its type.
+message NamedArgument {
+  // The name of the argument.
+  string name = 1 [(validate.rules).string = {
+    pattern: "^[a-zA-Z_]{1,64}$"
+    max_bytes: 64
+  }];
+
+  // The type of the argument.
+  AttributeType type = 2;
+}
+
 // Context encapsulates the information related to a single operation,
 // including the tuples involved and the associated attributes.
 message Context {
@@ -174,8 +186,8 @@ message RuleDefinition {
     max_bytes: 64
   }];
 
-  // Map of arguments for this rule. The key is the attribute name, and the value is the AttributeType.
-  map<string, AttributeType> arguments = 2;
+  // Ordered list of arguments for this rule.
+  repeated NamedArgument arguments = 2;
 
   // The expression for this rule in the form of a google.api.expr.v1alpha1.CheckedExpr.
   google.api.expr.v1alpha1.CheckedExpr expression = 3;
