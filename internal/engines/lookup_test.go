@@ -6189,4 +6189,334 @@ entity group_perms {
 			Expect(resp.GetEntityIds()).Should(ContainElements("alice", "bob"))
 		})
 	})
+
+	Context("Recursive Attribute Lookup", func() {
+		It("should include same-type recursive attribute permissions", func() {
+			schema := `
+			entity user {}
+
+			entity resource {
+				relation parent @resource
+				attribute is_public boolean
+				permission view = is_public or parent.view
+			}
+			`
+
+			db, err := factories.DatabaseFactory(config.Database{Engine: "memory"})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			relationships := []string{
+				"resource:r1#parent@resource:default",
+			}
+
+			var tuples []*base.Tuple
+			for _, relationship := range relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			publicAttr, err := attribute.Attribute("resource:default$is_public|boolean:true")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = dataWriter.Write(
+				context.Background(),
+				"t1",
+				database.NewTupleCollection(tuples...),
+				database.NewAttributeCollection(publicAttr),
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			lookupEngine := NewLookupEngine(checkEngine, schemaReader, dataReader)
+			invoker := invoke.NewDirectInvoker(schemaReader, dataReader, checkEngine, nil, lookupEngine, nil)
+			checkEngine.SetInvoker(invoker)
+
+			resp, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+				TenantId:   "t1",
+				EntityType: "resource",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "u1",
+				},
+				Permission: "view",
+				Metadata: &base.PermissionLookupEntityRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+					Depth:         20,
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(resp.GetEntityIds()).To(ConsistOf("default", "r1"))
+		})
+
+		It("should include cross-type recursive attribute permissions", func() {
+			schema := `
+			entity user {}
+
+			entity org {
+				attribute is_public boolean
+				permission view = is_public
+			}
+
+			entity folder {
+				relation parent @org
+				attribute is_public boolean
+				permission view = is_public or parent.view
+			}
+
+			entity resource {
+				relation parent @folder
+				permission view = parent.view
+			}
+			`
+
+			db, err := factories.DatabaseFactory(config.Database{Engine: "memory"})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			relationships := []string{
+				"folder:f1#parent@org:o1",
+				"resource:r1#parent@folder:f1",
+			}
+
+			var tuples []*base.Tuple
+			for _, relationship := range relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			publicAttr, err := attribute.Attribute("org:o1$is_public|boolean:true")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = dataWriter.Write(
+				context.Background(),
+				"t1",
+				database.NewTupleCollection(tuples...),
+				database.NewAttributeCollection(publicAttr),
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			lookupEngine := NewLookupEngine(checkEngine, schemaReader, dataReader)
+			invoker := invoke.NewDirectInvoker(schemaReader, dataReader, checkEngine, nil, lookupEngine, nil)
+			checkEngine.SetInvoker(invoker)
+
+			resp, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+				TenantId:   "t1",
+				EntityType: "resource",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "u1",
+				},
+				Permission: "view",
+				Metadata: &base.PermissionLookupEntityRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+					Depth:         20,
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(resp.GetEntityIds()).To(ConsistOf("r1"))
+		})
+
+		It("should paginate same-type recursive attribute permissions across pages", func() {
+			schema := `
+			entity user {}
+
+			entity resource {
+				relation parent @resource
+				attribute is_public boolean
+				permission view = is_public or parent.view
+			}
+			`
+
+			db, err := factories.DatabaseFactory(config.Database{Engine: "memory"})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			relationships := []string{
+				"resource:zb#parent@resource:za",
+				"resource:zc#parent@resource:zb",
+			}
+
+			var tuples []*base.Tuple
+			for _, relationship := range relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			publicAttr, err := attribute.Attribute("resource:za$is_public|boolean:true")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = dataWriter.Write(
+				context.Background(),
+				"t1",
+				database.NewTupleCollection(tuples...),
+				database.NewAttributeCollection(publicAttr),
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			lookupEngine := NewLookupEngine(checkEngine, schemaReader, dataReader)
+			invoker := invoke.NewDirectInvoker(schemaReader, dataReader, checkEngine, nil, lookupEngine, nil)
+			checkEngine.SetInvoker(invoker)
+
+			ct := ""
+			var ids []string
+
+			for {
+				resp, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+					TenantId:   "t1",
+					EntityType: "resource",
+					Subject: &base.Subject{
+						Type: "user",
+						Id:   "u1",
+					},
+					Permission: "view",
+					Metadata: &base.PermissionLookupEntityRequestMetadata{
+						SnapToken:     token.NewNoopToken().Encode().String(),
+						SchemaVersion: "",
+						Depth:         20,
+					},
+					PageSize:        1,
+					ContinuousToken: ct,
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				ids = append(ids, resp.GetEntityIds()...)
+				ct = resp.GetContinuousToken()
+				if ct == "" {
+					break
+				}
+			}
+
+			Expect(ids).To(ConsistOf("za", "zb", "zc"))
+			Expect(ids).To(HaveLen(3))
+		})
+
+		It("should expand recursion when root is already allowed via another entrance", func() {
+			schema := `
+			entity user {}
+
+			entity resource {
+				relation viewer @user
+				relation parent @resource
+				attribute is_public boolean
+				permission view = viewer or is_public or parent.view
+			}
+			`
+
+			db, err := factories.DatabaseFactory(config.Database{Engine: "memory"})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			relationships := []string{
+				"resource:za#viewer@user:u1",
+				"resource:zb#parent@resource:za",
+				"resource:zc#parent@resource:zb",
+			}
+
+			var tuples []*base.Tuple
+			for _, relationship := range relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			publicAttr, err := attribute.Attribute("resource:za$is_public|boolean:true")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = dataWriter.Write(
+				context.Background(),
+				"t1",
+				database.NewTupleCollection(tuples...),
+				database.NewAttributeCollection(publicAttr),
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			lookupEngine := NewLookupEngine(checkEngine, schemaReader, dataReader)
+			invoker := invoke.NewDirectInvoker(schemaReader, dataReader, checkEngine, nil, lookupEngine, nil)
+			checkEngine.SetInvoker(invoker)
+
+			resp, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+				TenantId:   "t1",
+				EntityType: "resource",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "u1",
+				},
+				Permission: "view",
+				Metadata: &base.PermissionLookupEntityRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+					Depth:         20,
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(resp.GetEntityIds()).To(ConsistOf("za", "zb", "zc"))
+		})
+	})
+
+	Context("Entity Filter Cursor", func() {
+		It("decodes empty cursor without error", func() {
+			value, err := decodeCursorValue("")
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(value).To(Equal(""))
+		})
+
+		It("returns error for invalid cursor", func() {
+			_, err := decodeCursorValue("not-a-valid-base64")
+			Expect(err).Should(HaveOccurred())
+		})
+
+		It("decodes a valid cursor value", func() {
+			value, err := decodeCursorValue("YWJj")
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(value).To(Equal("abc"))
+		})
+	})
 })

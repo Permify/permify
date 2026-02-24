@@ -9,6 +9,7 @@ import (
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
 	storageContext "github.com/Permify/permify/internal/storage/context"
+	tokenutils "github.com/Permify/permify/internal/storage/context/utils"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
@@ -148,6 +149,14 @@ func (engine *EntityFilter) attributeEntrance(
 		Attributes: []string{entrance.TargetEntrance.GetValue()},
 	}
 
+	selfCycleRelations := engine.graph.SelfCycleRelationsForPermission(
+		request.GetEntrance().GetType(),
+		request.GetEntrance().GetValue(),
+	)
+
+	expandRecursive := request.GetEntrance().GetType() == entrance.TargetEntrance.GetType() &&
+		len(selfCycleRelations) > 0
+
 	pagination := database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
 
 	cti, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter, pagination)
@@ -162,6 +171,9 @@ func (engine *EntityFilter) attributeEntrance(
 
 	it := database.NewUniqueAttributeIterator(rit, cti)
 
+	var attributeEntityIDs []string
+	attributeEntityIDSet := make(map[string]struct{})
+
 	// Publish entities directly for regular case
 	for it.HasNext() {
 		current, ok := it.GetNext()
@@ -174,6 +186,13 @@ func (engine *EntityFilter) attributeEntrance(
 			Id:   current.GetEntity().GetId(),
 		}
 
+		if expandRecursive {
+			if _, ok := attributeEntityIDSet[entity.GetId()]; !ok {
+				attributeEntityIDSet[entity.GetId()] = struct{}{}
+				attributeEntityIDs = append(attributeEntityIDs, entity.GetId())
+			}
+		}
+
 		if !visits.AddPublished(entity) {
 			continue
 		}
@@ -183,6 +202,166 @@ func (engine *EntityFilter) attributeEntrance(
 			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 			Depth:         request.GetMetadata().GetDepth(),
 		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
+	}
+
+	// For same-type recursive permissions, collect recursion seeds
+	// without cursor filtering so descendant entities remain reachable on later pages.
+	if expandRecursive && request.GetCursor() != "" {
+		seedPagination := database.NewCursorPagination(database.Sort("entity_id"))
+		seedCTI, err := storageContext.NewContextualAttributes(request.GetContext().GetAttributes()...).QueryAttributes(filter, seedPagination)
+		if err != nil {
+			return err
+		}
+
+		seedRIT, err := engine.dataReader.QueryAttributes(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), seedPagination)
+		if err != nil {
+			return err
+		}
+
+		seedIt := database.NewUniqueAttributeIterator(seedRIT, seedCTI)
+		for seedIt.HasNext() {
+			current, ok := seedIt.GetNext()
+			if !ok {
+				break
+			}
+
+			id := current.GetEntity().GetId()
+			if _, ok := attributeEntityIDSet[id]; ok {
+				continue
+			}
+			attributeEntityIDSet[id] = struct{}{}
+			attributeEntityIDs = append(attributeEntityIDs, id)
+		}
+	}
+
+	// Expand recursive relations for same-type attribute permissions
+	if expandRecursive && len(attributeEntityIDs) > 0 {
+		for _, relation := range selfCycleRelations {
+			err := engine.expandRecursiveRelation(ctx, request, entrance.TargetEntrance.GetType(), relation, attributeEntityIDs, visits, publisher)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// decodeCursorValue decodes a cursor token and returns its underlying value.
+// It returns an empty string when the cursor is empty.
+// If decoding fails, the error is returned.
+// If the decoded token is not a ContinuousToken, it returns an empty string.
+func decodeCursorValue(cursor string) (string, error) {
+	if cursor == "" {
+		return "", nil
+	}
+	t, err := tokenutils.EncodedContinuousToken{Value: cursor}.Decode()
+	if err != nil {
+		return "", err
+	}
+	decoded, ok := t.(tokenutils.ContinuousToken)
+	if !ok {
+		return "", nil
+	}
+	return decoded.Value, nil
+}
+
+// expandRecursiveRelation publishes all entities reachable from seed subjects via a relation,
+// walking the relation transitively (self-recursive permissions).
+func (engine *EntityFilter) expandRecursiveRelation(
+	ctx context.Context,
+	request *base.PermissionEntityFilterRequest,
+	entityType string,
+	relation string,
+	seedSubjectIDs []string,
+	visits *VisitsMap,
+	publisher *BulkEntityPublisher,
+) error {
+	if len(seedSubjectIDs) == 0 {
+		return nil
+	}
+
+	cursorValue := ""
+	if request.GetEntrance().GetType() == entityType && request.GetCursor() != "" {
+		var err error
+		cursorValue, err = decodeCursorValue(request.GetCursor())
+		if err != nil {
+			return err
+		}
+	}
+
+	scope, exists := request.GetScope()[entityType]
+	var data []string
+	if exists {
+		data = scope.GetData()
+	}
+
+	seen := make(map[string]struct{}, len(seedSubjectIDs))
+	queue := make([]string, 0, len(seedSubjectIDs))
+	for _, id := range seedSubjectIDs {
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		queue = append(queue, id)
+	}
+
+	for len(queue) > 0 {
+		currentIDs := queue
+		queue = nil
+
+		filter := &base.TupleFilter{
+			Entity: &base.EntityFilter{
+				Type: entityType,
+				Ids:  data,
+			},
+			Relation: relation,
+			Subject: &base.SubjectFilter{
+				Type:     entityType,
+				Ids:      currentIDs,
+				Relation: "",
+			},
+		}
+
+		pagination := database.NewCursorPagination()
+		cti, err := storageContext.NewContextualTuples(request.GetContext().GetTuples()...).QueryRelationships(filter, pagination)
+		if err != nil {
+			return err
+		}
+
+		rit, err := engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), pagination)
+		if err != nil {
+			return err
+		}
+
+		it := database.NewUniqueTupleIterator(rit, cti)
+		for it.HasNext() {
+			current, ok := it.GetNext()
+			if !ok {
+				break
+			}
+
+			entity := &base.Entity{
+				Type: current.GetEntity().GetType(),
+				Id:   current.GetEntity().GetId(),
+			}
+
+			if cursorValue == "" || entity.GetId() >= cursorValue {
+				if visits.AddPublished(entity) {
+					publisher.Publish(entity, &base.PermissionCheckRequestMetadata{
+						SnapToken:     request.GetMetadata().GetSnapToken(),
+						SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+						Depth:         request.GetMetadata().GetDepth(),
+					}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
+				}
+			}
+
+			if _, ok := seen[entity.GetId()]; ok {
+				continue
+			}
+			seen[entity.GetId()] = struct{}{}
+			queue = append(queue, entity.GetId())
+		}
 	}
 
 	return nil
@@ -528,7 +707,7 @@ func (engine *EntityFilter) pathChainEntrance(
 			Subject: &base.SubjectFilter{
 				Type:     currentType,
 				Ids:      currentIds,
-				Relation: subjectRelation, // Fixed: Use correct subject relation for complex cases
+				Relation: subjectRelation, // Preserve subject relation for references like @group#member.
 			},
 		}
 
