@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/google/cel-go/cel"
 
+	"github.com/Permify/permify/internal/coverage"
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/internal/storage"
@@ -30,6 +32,8 @@ type CheckEngine struct {
 	dataReader storage.DataReader
 	// concurrencyLimit is the maximum number of concurrent permission checks allowed
 	concurrencyLimit int
+	// registry is the coverage registry
+	registry *coverage.Registry
 }
 
 // NewCheckEngine creates a new CheckEngine instance for performing permission checks.
@@ -54,6 +58,11 @@ func NewCheckEngine(sr storage.SchemaReader, rr storage.DataReader, opts ...Chec
 // SetInvoker sets the delegate for the CheckEngine.
 func (engine *CheckEngine) SetInvoker(invoker invoke.Check) {
 	engine.invoker = invoker
+}
+
+// SetRegistry sets the coverage registry for the CheckEngine.
+func (engine *CheckEngine) SetRegistry(registry *coverage.Registry) {
+	engine.registry = registry
 }
 
 // Check executes a permission check based on the provided request.
@@ -94,7 +103,7 @@ type CheckFunction func(ctx context.Context) (*base.PermissionCheckResponse, err
 // a PermissionCheckResponse along with an error.
 type CheckCombiner func(ctx context.Context, functions []CheckFunction, limit int) (*base.PermissionCheckResponse, error)
 
-// run is a helper function that takes a context and a PermissionCheckRequest,
+// invoke is a helper function that takes a context and a PermissionCheckRequest,
 // and returns a CheckFunction. The returned CheckFunction, when called with
 // a context, executes the Run method of the CheckEngine with the given
 // request, and returns the resulting PermissionCheckResponse and error.
@@ -137,10 +146,11 @@ func (engine *CheckEngine) check(
 
 		// If the child has a rewrite, check the rewrite.
 		// If not, check the leaf.
+		path := fmt.Sprintf("%s#%s", en.GetName(), request.GetPermission())
 		if child.GetRewrite() != nil {
-			fn = engine.checkRewrite(ctx, request, child.GetRewrite())
+			fn = engine.checkRewrite(coverage.ContextWithPath(ctx, path), request, child.GetRewrite())
 		} else {
-			fn = engine.checkLeaf(request, child.GetLeaf())
+			fn = engine.checkLeaf(coverage.ContextWithPath(ctx, path), request, child.GetLeaf())
 		}
 	case base.EntityDefinition_REFERENCE_ATTRIBUTE:
 		// If the reference is an attribute, check the direct attribute.
@@ -166,50 +176,79 @@ func (engine *CheckEngine) check(
 // checkRewrite prepares a CheckFunction according to the provided Rewrite operation.
 // It uses a Rewrite object that describes how to combine the results of multiple CheckFunctions.
 func (engine *CheckEngine) checkRewrite(ctx context.Context, request *base.PermissionCheckRequest, rewrite *base.Rewrite) CheckFunction {
-	// Switch statement depending on the Rewrite operation
-	switch rewrite.GetRewriteOperation() {
-	// In case of UNION operation, set the children CheckFunctions to be run concurrently
-	// and return the permission if any of the CheckFunctions succeeds (union).
-	case *base.Rewrite_OPERATION_UNION.Enum():
-		return engine.setChild(ctx, request, rewrite.GetChildren(), checkUnion)
-	// In case of INTERSECTION operation, set the children CheckFunctions to be run concurrently
-	// and return the permission if all the CheckFunctions succeed (intersection).
-	case *base.Rewrite_OPERATION_INTERSECTION.Enum():
-		return engine.setChild(ctx, request, rewrite.GetChildren(), checkIntersection)
-	// In case of EXCLUSION operation, set the children CheckFunctions to be run concurrently
-	// and return the permission if the first CheckFunction succeeds and all others fail (exclusion).
-	case *base.Rewrite_OPERATION_EXCLUSION.Enum():
-		return engine.setChild(ctx, request, rewrite.GetChildren(), checkExclusion)
-	// In case of an undefined child type, return a CheckFunction that always fails.
-	default:
-		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
+	path := coverage.PathFromContext(ctx)
+	opPath := coverage.AppendPath(path, "op")
+	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
+		r := coverage.RegistryFromContext(ctx)
+		if r == nil {
+			r = engine.registry
+		}
+		trackCtx := coverage.ContextWithRegistry(ctx, r)
+		// Mark permission node; operator node is tracked by trace().
+		coverage.Track(coverage.ContextWithPath(trackCtx, path))
+
+		// Switch statement depending on the Rewrite operation
+		switch rewrite.GetRewriteOperation() {
+		// In case of UNION operation, set the children CheckFunctions to be run concurrently
+		// and return the permission if any of the CheckFunctions succeeds (union).
+		case base.Rewrite_OPERATION_UNION:
+			return engine.trace(ctx, engine.setChild(coverage.ContextWithPath(ctx, opPath), request, rewrite.GetChildren(), checkUnion), opPath)(ctx)
+		// In case of INTERSECTION operation, set the children CheckFunctions to be run concurrently
+		// and return the permission if all the CheckFunctions succeed (intersection).
+		case base.Rewrite_OPERATION_INTERSECTION:
+			return engine.trace(ctx, engine.setChild(coverage.ContextWithPath(ctx, opPath), request, rewrite.GetChildren(), checkIntersection), opPath)(ctx)
+		// In case of EXCLUSION operation, set the children CheckFunctions to be run concurrently
+		// and return the permission if the first CheckFunction succeeds and all others fail (exclusion).
+		case base.Rewrite_OPERATION_EXCLUSION:
+			return engine.trace(ctx, engine.setChild(coverage.ContextWithPath(ctx, opPath), request, rewrite.GetChildren(), checkExclusion), opPath)(ctx)
+		// In case of an undefined child type, return a CheckFunction that always fails.
+		default:
+			return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))(ctx)
+		}
 	}
 }
 
 // checkLeaf prepares a CheckFunction according to the provided Leaf operation.
 // It uses a Leaf object that describes how to check a permission request.
-func (engine *CheckEngine) checkLeaf(request *base.PermissionCheckRequest, leaf *base.Leaf) CheckFunction {
-	// Switch statement depending on the Leaf type
+func (engine *CheckEngine) checkLeaf(ctx context.Context, request *base.PermissionCheckRequest, leaf *base.Leaf) CheckFunction {
+	// Discovery registers operand leaves at path.leaf; root-level leaves own path.
+	path := coverage.PathFromContext(ctx)
+	if strings.Contains(path, ".op.") {
+		path = coverage.AppendPath(path, "leaf")
+	}
 	switch op := leaf.GetType().(type) {
 	// In case of TupleToUserSet operation, prepare a CheckFunction that checks
 	// if the request's user is in the UserSet referenced by the tuple.
 	case *base.Leaf_TupleToUserSet:
-		return engine.checkTupleToUserSet(request, op.TupleToUserSet)
+		return engine.trace(ctx, engine.checkTupleToUserSet(request, op.TupleToUserSet), path)
 	// In case of ComputedUserSet operation, prepare a CheckFunction that checks
 	// if the request's user is in the computed UserSet.
 	case *base.Leaf_ComputedUserSet:
-		return engine.checkComputedUserSet(request, op.ComputedUserSet)
+		return engine.trace(ctx, engine.checkComputedUserSet(request, op.ComputedUserSet), path)
 	// In case of ComputedAttribute operation, prepare a CheckFunction that checks
 	// the computed attribute's permission.
 	case *base.Leaf_ComputedAttribute:
-		return engine.checkComputedAttribute(request, op.ComputedAttribute)
+		return engine.trace(ctx, engine.checkComputedAttribute(request, op.ComputedAttribute), path)
 	// In case of Call operation, prepare a CheckFunction that checks
 	// the Call's permission.
 	case *base.Leaf_Call:
-		return engine.checkCall(request, op.Call)
+		return engine.trace(ctx, engine.checkCall(request, op.Call), path)
 	// In case of an undefined type, return a CheckFunction that always fails.
 	default:
 		return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
+	}
+}
+
+// trace wraps a CheckFunction with coverage tracking.
+func (engine *CheckEngine) trace(ctx context.Context, fn CheckFunction, path string) CheckFunction {
+	return func(ctx context.Context) (*base.PermissionCheckResponse, error) {
+		r := coverage.RegistryFromContext(ctx)
+		if r == nil {
+			r = engine.registry
+		}
+		trackCtx := coverage.ContextWithRegistry(ctx, r)
+		coverage.Track(coverage.ContextWithPath(trackCtx, path))
+		return fn(ctx)
 	}
 }
 
@@ -225,15 +264,18 @@ func (engine *CheckEngine) setChild(
 	// Create a slice to store the CheckFunctions
 	functions := make([]CheckFunction, 0, len(children))
 	// Loop over each child node
-	for _, child := range children {
+	for i, child := range children {
+		// Use path.op.i to match discovery's structure (operator at path.op, operands at path.op.0, path.op.1)
+		basePath := coverage.PathFromContext(ctx)
+		childCtx := coverage.ContextWithPath(ctx, coverage.AppendPath(basePath, fmt.Sprintf("%d", i)))
 		// Switch on the type of the child node
 		switch child.GetType().(type) {
 		// In case of a Rewrite node, create a CheckFunction for the Rewrite and append it
 		case *base.Child_Rewrite:
-			functions = append(functions, engine.checkRewrite(ctx, request, child.GetRewrite()))
+			functions = append(functions, engine.checkRewrite(childCtx, request, child.GetRewrite()))
 		// In case of a Leaf node, create a CheckFunction for the Leaf and append it
 		case *base.Child_Leaf:
-			functions = append(functions, engine.checkLeaf(request, child.GetLeaf()))
+			functions = append(functions, engine.checkLeaf(childCtx, request, child.GetLeaf()))
 		// In case of an undefined type, return a CheckFunction that always fails
 		default:
 			return checkFail(errors.New(base.ErrorCode_ERROR_CODE_UNDEFINED_CHILD_TYPE.String()))
@@ -498,7 +540,6 @@ func (engine *CheckEngine) checkDirectAttribute(
 			return allowed(emptyResponseMetadata()), nil
 		}
 
-		// If the attribute's value is not true, return a denied response.
 		return denied(emptyResponseMetadata()), nil
 	}
 }
@@ -644,6 +685,30 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*bas
 		}, nil
 	}
 
+	// Sequential execution when limit is 1 enables short-circuit detection for coverage tracking
+	if limit == 1 {
+		exhaustive := coverage.EvalModeFromContext(ctx) == coverage.ModeExhaustive
+		anyAllowed := false
+		for _, fn := range functions {
+			resp, err := fn(ctx)
+			responseMetadata = joinResponseMetas(responseMetadata, resp.Metadata)
+			if err != nil {
+				return denied(responseMetadata), err
+			}
+			if resp.GetCan() == base.CheckResult_CHECK_RESULT_ALLOWED {
+				anyAllowed = true
+				if !exhaustive {
+					return allowed(responseMetadata), nil
+				}
+				// Exhaustive: keep evaluating remaining branches so all paths are visited for coverage
+			}
+		}
+		if anyAllowed {
+			return allowed(responseMetadata), nil
+		}
+		return denied(responseMetadata), nil
+	}
+
 	// Create a channel to receive the results of the CheckFunctions
 	decisionChan := make(chan CheckResponse, len(functions))
 	// Create a context that can be cancelled
@@ -693,6 +758,30 @@ func checkIntersection(ctx context.Context, functions []CheckFunction, limit int
 	// If there are no functions, deny the permission and return
 	if len(functions) == 0 {
 		return denied(responseMetadata), nil
+	}
+
+	// Sequential execution when limit is 1 enables short-circuit detection for coverage tracking
+	if limit == 1 {
+		exhaustive := coverage.EvalModeFromContext(ctx) == coverage.ModeExhaustive
+		anyDenied := false
+		for _, fn := range functions {
+			resp, err := fn(ctx)
+			responseMetadata = joinResponseMetas(responseMetadata, resp.Metadata)
+			if err != nil {
+				return denied(responseMetadata), err
+			}
+			if resp.GetCan() == base.CheckResult_CHECK_RESULT_DENIED {
+				anyDenied = true
+				if !exhaustive {
+					return denied(responseMetadata), nil
+				}
+				// Exhaustive: keep evaluating remaining branches so all paths are visited for coverage
+			}
+		}
+		if anyDenied {
+			return denied(responseMetadata), nil
+		}
+		return allowed(responseMetadata), nil
 	}
 
 	// Create a channel to receive the results of the CheckFunctions
@@ -745,6 +834,35 @@ func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (
 		return denied(responseMetadata), errors.New(base.ErrorCode_ERROR_CODE_EXCLUSION_REQUIRES_MORE_THAN_ONE_FUNCTION.String())
 	}
 
+	// Sequential execution when limit is 1 avoids deadlock and preserves short-circuit semantics
+	if limit == 1 {
+		// Evaluate the left-hand side first
+		leftResp, err := functions[0](ctx)
+		responseMetadata = joinResponseMetas(responseMetadata, leftResp.Metadata)
+		if err != nil {
+			return denied(responseMetadata), err
+		}
+		// If left is denied, exclusion cannot be satisfied
+		if leftResp.GetCan() == base.CheckResult_CHECK_RESULT_DENIED {
+			return denied(responseMetadata), nil
+		}
+
+		// Evaluate remaining functions one-by-one; any ALLOWED denies by exclusion
+		for _, fn := range functions[1:] {
+			resp, err := fn(ctx)
+			responseMetadata = joinResponseMetas(responseMetadata, resp.Metadata)
+			if err != nil {
+				return denied(responseMetadata), err
+			}
+			if resp.GetCan() == base.CheckResult_CHECK_RESULT_ALLOWED {
+				return denied(responseMetadata), nil
+			}
+		}
+
+		// Left allowed and all others denied → allowed by exclusion
+		return allowed(responseMetadata), nil
+	}
+
 	// Initialize channels to handle the result of the first function and the remaining functions separately
 	leftDecisionChan := make(chan CheckResponse, 1)
 	decisionChan := make(chan CheckResponse, len(functions)-1)
@@ -764,8 +882,9 @@ func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (
 		wg.Done()
 	}()
 
-	// Run the remaining functions concurrently with a limit
-	clean := checkRun(cancelCtx, functions[1:], decisionChan, limit-1)
+	// Run the remaining functions concurrently with a limit (clamp to at least 1 to avoid deadlock)
+	childLimit := max(1, limit-1)
+	clean := checkRun(cancelCtx, functions[1:], decisionChan, childLimit)
 
 	// Ensure that all resources are properly cleaned up when the function exits
 	defer func() {

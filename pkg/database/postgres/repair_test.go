@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"testing"
 	"time"
 
 	"github.com/testcontainers/testcontainers-go"
@@ -59,13 +58,6 @@ var _ = Describe("Repair", func() {
 	Context("Integration tests with real database", func() {
 		var db *Postgres
 		var container testcontainers.Container
-
-		BeforeEach(func() {
-			// Skip if running in CI without Docker
-			if testing.Short() {
-				Skip("Skipping integration test in short mode")
-			}
-		})
 
 		AfterEach(func() {
 			if db != nil {

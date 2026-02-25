@@ -238,7 +238,7 @@ service Permission {
                       "        type: \"repository\",\n"
                       "        id: \"1\"\n"
                       "    },\n"
-                      "    permission: \"push\",\n"
+                      "    permission: \"push\"\n"
                       "})"
 }
                 }
@@ -451,15 +451,7 @@ service Permission {
                       "    },\n"
                       "    PageSize: 20,\n"
                       "    ContinuousToken: \"\",\n"
-                      "})\n\n"
-                      "// handle stream response\n"
-                      "for {\n"
-                      "    res, err := str.Recv()\n\n"
-                      "    if err == io.EOF {\n"
-                      "        break\n"
-                      "    }\n\n"
-                      "    // res.EntityId\n"
-                      "}"
+                      "})"
 }
                 }
               }
@@ -853,6 +845,9 @@ message PermissionCheckRequestMetadata {
     (validate.rules).int32.gte = 3,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop"}
   ];
+
+  // Path of the exclusion, used for coverage tracking.
+  string coverage_path = 4 [json_name = "coverage_path"];
 }
 
 // PermissionCheckResponse is the response message for the Check method in the Permission service.
@@ -2506,17 +2501,12 @@ service Data {
                       "  \"tuple_filter\": {\n"
                       "    \"entity\": {\n"
                       "      \"type\": \"organization\",\n"
-                      "      \"ids\": [\n"
-                      "        \"1\"\n"
-                      "      ]\n"
+                      "      \"id\": \"1\"\n"
                       "    },\n"
                       "    \"relation\": \"admin\",\n"
                       "    \"subject\": {\n"
                       "      \"type\": \"user\",\n"
-                      "      \"ids\": [\n"
-                      "        \"1\"\n"
-                      "      ],\n"
-                      "      \"relation\": \"\"\n"
+                      "      \"id\": \"1\"\n"
                       "    }\n"
                       "  },\n"
                       "  \"attribute_filter\": {}\n"
@@ -2599,7 +2589,7 @@ service Data {
                 fields: {
                   key: "source"
                   value: {string_value:
-                      "client.data.runBundle({\n"
+                      "client.bundle.runBundle({\n"
                       "    tenantId: \"t1\",\n"
                       "    name: \"organization_created\",\n"
                       "    arguments: {\n"

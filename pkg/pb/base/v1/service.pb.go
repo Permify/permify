@@ -132,7 +132,9 @@ type PermissionCheckRequestMetadata struct {
 	// Token associated with the snap.
 	SnapToken string `protobuf:"bytes,2,opt,name=snap_token,proto3" json:"snap_token,omitempty"`
 	// Depth of the check, must be greater than or equal to 3.
-	Depth         int32 `protobuf:"varint,3,opt,name=depth,proto3" json:"depth,omitempty"`
+	Depth int32 `protobuf:"varint,3,opt,name=depth,proto3" json:"depth,omitempty"`
+	// Path of the exclusion, used for coverage tracking.
+	CoveragePath  string `protobuf:"bytes,4,opt,name=coverage_path,proto3" json:"coverage_path,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -186,6 +188,13 @@ func (x *PermissionCheckRequestMetadata) GetDepth() int32 {
 		return x.Depth
 	}
 	return 0
+}
+
+func (x *PermissionCheckRequestMetadata) GetCoveragePath() string {
+	if x != nil {
+		return x.CoveragePath
+	}
+	return ""
 }
 
 // PermissionCheckResponse is the response message for the Check method in the Permission service.
@@ -3908,13 +3917,14 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"permission\x124\n" +
 	"\asubject\x18\x05 \x01(\v2\x10.base.v1.SubjectB\b\xfaB\x05\x8a\x01\x02\x10\x01R\asubject\x12\xc4\x01\n" +
 	"\acontext\x18\x06 \x01(\v2\x10.base.v1.ContextB\x97\x01\x92A\x93\x012\x90\x01Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)R\acontext\x12/\n" +
-	"\targuments\x18\a \x03(\v2\x11.base.v1.ArgumentR\targuments\"\xb2\x02\n" +
+	"\targuments\x18\a \x03(\v2\x11.base.v1.ArgumentR\targuments\"\xd8\x02\n" +
 	"\x1ePermissionCheckRequestMetadata\x12&\n" +
 	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\x12\x89\x01\n" +
 	"\n" +
 	"snap_token\x18\x02 \x01(\tBi\x92Af2dThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)R\n" +
 	"snap_token\x12\\\n" +
-	"\x05depth\x18\x03 \x01(\x05BF\x92A<2:Query limit when if recursive database queries got in loop\xfaB\x04\x1a\x02(\x03R\x05depth\"\x87\x01\n" +
+	"\x05depth\x18\x03 \x01(\x05BF\x92A<2:Query limit when if recursive database queries got in loop\xfaB\x04\x1a\x02(\x03R\x05depth\x12$\n" +
+	"\rcoverage_path\x18\x04 \x01(\tR\rcoverage_path\"\x87\x01\n" +
 	"\x17PermissionCheckResponse\x12&\n" +
 	"\x03can\x18\x01 \x01(\x0e2\x14.base.v1.CheckResultR\x03can\x12D\n" +
 	"\bmetadata\x18\x02 \x01(\v2(.base.v1.PermissionCheckResponseMetadataR\bmetadata\"C\n" +
@@ -4189,7 +4199,7 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\x10continuous_token\x18\x02 \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x01R\x10continuous_token\"k\n" +
 	"\x12TenantListResponse\x12)\n" +
 	"\atenants\x18\x01 \x03(\v2\x0f.base.v1.TenantR\atenants\x12*\n" +
-	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token2\xafN\n" +
+	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token2\xafM\n" +
 	"\n" +
 	"Permission\x12\xe8\r\n" +
 	"\x05Check\x12\x1f.base.v1.PermissionCheckRequest\x1a .base.v1.PermissionCheckResponse\"\x9b\r\x92A\xe3\f\n" +
@@ -4281,12 +4291,12 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"}'\x82\xd3\xe4\x93\x02.:\x01*\")/v1/tenants/{tenant_id}/permissions/check\x12\x99\x02\n" +
 	"\tBulkCheck\x12#.base.v1.PermissionBulkCheckRequest\x1a$.base.v1.PermissionBulkCheckResponse\"\xc0\x01\x92A\x83\x01\n" +
 	"\n" +
-	"Permission\x12\x0ebulk check api\x1aMCheck multiple permissions in a single request. Maximum 100 requests allowed.*\x16permissions.bulk-check\x82\xd3\xe4\x93\x023:\x01*\"./v1/tenants/{tenant_id}/permissions/bulk-check\x12\xb4\t\n" +
-	"\x06Expand\x12 .base.v1.PermissionExpandRequest\x1a!.base.v1.PermissionExpandResponse\"\xe4\b\x92A\xab\b\n" +
+	"Permission\x12\x0ebulk check api\x1aMCheck multiple permissions in a single request. Maximum 100 requests allowed.*\x16permissions.bulk-check\x82\xd3\xe4\x93\x023:\x01*\"./v1/tenants/{tenant_id}/permissions/bulk-check\x12\xb3\t\n" +
+	"\x06Expand\x12 .base.v1.PermissionExpandRequest\x1a!.base.v1.PermissionExpandResponse\"\xe3\b\x92A\xaa\b\n" +
 	"\n" +
 	"Permission\x12\n" +
-	"expand api*\x12permissions.expandj\xfc\a\n" +
-	"\rx-codeSamples\x12\xea\a2\xe7\a\n" +
+	"expand api*\x12permissions.expandj\xfb\a\n" +
+	"\rx-codeSamples\x12\xe9\a2\xe6\a\n" +
 	"\xee\x02*\xeb\x02\n" +
 	"\r\n" +
 	"\x05label\x12\x04\x1a\x02go\n" +
@@ -4305,14 +4315,14 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"    },\n" +
 	"    Permission: \"push\",\n" +
 	"})\n" +
-	"\x8d\x02*\x8a\x02\n" +
+	"\x8c\x02*\x89\x02\n" +
 	"\x0f\n" +
 	"\x05label\x12\x06\x1a\x04node\n" +
 	"\x14\n" +
 	"\x04lang\x12\f\x1a\n" +
 	"javascript\n" +
-	"\xe0\x01\n" +
-	"\x06source\x12\xd5\x01\x1a\xd2\x01client.permission.expand({\n" +
+	"\xdf\x01\n" +
+	"\x06source\x12\xd4\x01\x1a\xd1\x01client.permission.expand({\n" +
 	"    tenantId: \"t1\",\n" +
 	"    metadata: {\n" +
 	"        snapToken: \"\",\n" +
@@ -4322,7 +4332,7 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"        type: \"repository\",\n" +
 	"        id: \"1\"\n" +
 	"    },\n" +
-	"    permission: \"push\",\n" +
+	"    permission: \"push\"\n" +
 	"})\n" +
 	"\xe3\x02*\xe0\x02\n" +
 	"\x0f\n" +
@@ -4419,18 +4429,21 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"  },\n" +
 	"  \"page_size\": 20,\n" +
 	"  \"continuous_token\": \"\",\n" +
-	"}'\x82\xd3\xe4\x93\x026:\x01*\"1/v1/tenants/{tenant_id}/permissions/lookup-entity\x12\xd0\r\n" +
-	"\x12LookupEntityStream\x12&.base.v1.PermissionLookupEntityRequest\x1a-.base.v1.PermissionLookupEntityStreamResponse\"\xe0\f\x92A\x99\f\n" +
+	"}'\x82\xd3\xe4\x93\x026:\x01*\"1/v1/tenants/{tenant_id}/permissions/lookup-entity\x12\xd1\f\n" +
+	"\x12LookupEntityStream\x12&.base.v1.PermissionLookupEntityRequest\x1a-.base.v1.PermissionLookupEntityStreamResponse\"\xe1\v\x92A\x9a\v\n" +
 	"\n" +
-	"Permission\x12\x14lookup entity stream*\x1epermissions.lookupEntityStreamj\xd4\v\n" +
-	"\rx-codeSamples\x12\xc2\v2\xbf\v\n" +
-	"\xc8\x04*\xc5\x04\n" +
+	"Permission\x12\x14lookup entity stream*\x1epermissions.lookupEntityStreamj\xd5\n" +
+	"\n" +
+	"\rx-codeSamples\x12\xc3\n" +
+	"2\xc0\n" +
+	"\n" +
+	"\xc9\x03*\xc6\x03\n" +
 	"\r\n" +
 	"\x05label\x12\x04\x1a\x02go\n" +
 	"\f\n" +
 	"\x04lang\x12\x04\x1a\x02go\n" +
-	"\xa5\x04\n" +
-	"\x06source\x12\x9a\x04\x1a\x97\x04str, err := client.Permission.LookupEntityStream(context.Background(), &v1.PermissionLookupEntityRequest{\n" +
+	"\xa6\x03\n" +
+	"\x06source\x12\x9b\x03\x1a\x98\x03str, err := client.Permission.LookupEntityStream(context.Background(), &v1.PermissionLookupEntityRequest{\n" +
 	"    Metadata: &v1.PermissionLookupEntityRequestMetadata{\n" +
 	"        SnapToken: \"\",\n" +
 	"        SchemaVersion: \"\",\n" +
@@ -4445,17 +4458,6 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"    PageSize: 20,\n" +
 	"    ContinuousToken: \"\",\n" +
 	"})\n" +
-	"\n" +
-	"// handle stream response\n" +
-	"for {\n" +
-	"    res, err := str.Recv()\n" +
-	"\n" +
-	"    if err == io.EOF {\n" +
-	"        break\n" +
-	"    }\n" +
-	"\n" +
-	"    // res.EntityId\n" +
-	"}\n" +
 	"\xf1\x06*\xee\x06\n" +
 	"\x0f\n" +
 	"\x05label\x12\x06\x1a\x04node\n" +
@@ -4868,7 +4870,7 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"--data-raw '{\n" +
 	"    \"page_size\": 20,\n" +
 	"    \"continuous_token\": \"\"\n" +
-	"}'\x82\xd3\xe4\x93\x02):\x01*\"$/v1/tenants/{tenant_id}/schemas/list2\xe5D\n" +
+	"}'\x82\xd3\xe4\x93\x02):\x01*\"$/v1/tenants/{tenant_id}/schemas/list2\xabD\n" +
 	"\x04Data\x12\xb6\x15\n" +
 	"\x05Write\x12\x19.base.v1.DataWriteRequest\x1a\x1a.base.v1.DataWriteResponse\"\xf5\x14\x92A\xc4\x14\n" +
 	"\x04Data\x12\n" +
@@ -5159,11 +5161,13 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"      \"private\"\n" +
 	"    ],\n" +
 	"  }\n" +
-	"}'\x82\xd3\xe4\x93\x021:\x01*\",/v1/tenants/{tenant_id}/data/attributes/read\x12\xa9\f\n" +
-	"\x06Delete\x12\x1a.base.v1.DataDeleteRequest\x1a\x1b.base.v1.DataDeleteResponse\"\xe5\v\x92A\xb3\v\n" +
-	"\x04Data\x12\vdelete data*\vdata.deletej\x90\v\n" +
-	"\rx-codeSamples\x12\xfe\n" +
-	"2\xfb\n" +
+	"}'\x82\xd3\xe4\x93\x021:\x01*\",/v1/tenants/{tenant_id}/data/attributes/read\x12\xed\v\n" +
+	"\x06Delete\x12\x1a.base.v1.DataDeleteRequest\x1a\x1b.base.v1.DataDeleteResponse\"\xa9\v\x92A\xf7\n" +
+	"\n" +
+	"\x04Data\x12\vdelete data*\vdata.deletej\xd4\n" +
+	"\n" +
+	"\rx-codeSamples\x12\xc2\n" +
+	"2\xbf\n" +
 	"\n" +
 	"\x8f\x04*\x8c\x04\n" +
 	"\r\n" +
@@ -5220,40 +5224,35 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"}).then((response) => {\n" +
 	"  // handle response\n" +
 	"})\n" +
-	"\xcf\x03*\xcc\x03\n" +
+	"\x93\x03*\x90\x03\n" +
 	"\x0f\n" +
 	"\x05label\x12\x06\x1a\x04cURL\n" +
 	"\x0e\n" +
 	"\x04lang\x12\x06\x1a\x04curl\n" +
-	"\xa8\x03\n" +
-	"\x06source\x12\x9d\x03\x1a\x9a\x03curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/delete' \\\n" +
+	"\xec\x02\n" +
+	"\x06source\x12\xe1\x02\x1a\xde\x02curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/delete' \\\n" +
 	"--header 'Content-Type: application/json' \\\n" +
 	"--data-raw '{\n" +
 	"  \"tuple_filter\": {\n" +
 	"    \"entity\": {\n" +
 	"      \"type\": \"organization\",\n" +
-	"      \"ids\": [\n" +
-	"        \"1\"\n" +
-	"      ]\n" +
+	"      \"id\": \"1\"\n" +
 	"    },\n" +
 	"    \"relation\": \"admin\",\n" +
 	"    \"subject\": {\n" +
 	"      \"type\": \"user\",\n" +
-	"      \"ids\": [\n" +
-	"        \"1\"\n" +
-	"      ],\n" +
-	"      \"relation\": \"\"\n" +
+	"      \"id\": \"1\"\n" +
 	"    }\n" +
 	"  },\n" +
 	"  \"attribute_filter\": {}\n" +
 	"}'\x82\xd3\xe4\x93\x02(:\x01*\"#/v1/tenants/{tenant_id}/data/delete\x12\xcc\x01\n" +
 	"\x13DeleteRelationships\x12\".base.v1.RelationshipDeleteRequest\x1a#.base.v1.RelationshipDeleteResponse\"l\x92A2\n" +
-	"\x04Data\x12\x14delete relationships*\x14relationships.delete\x82\xd3\xe4\x93\x021:\x01*\",/v1/tenants/{tenant_id}/relationships/delete\x12\xac\b\n" +
-	"\tRunBundle\x12\x19.base.v1.BundleRunRequest\x1a\x1a.base.v1.BundleRunResponse\"\xe7\a\x92A\xb1\a\n" +
+	"\x04Data\x12\x14delete relationships*\x14relationships.delete\x82\xd3\xe4\x93\x021:\x01*\",/v1/tenants/{tenant_id}/relationships/delete\x12\xae\b\n" +
+	"\tRunBundle\x12\x19.base.v1.BundleRunRequest\x1a\x1a.base.v1.BundleRunResponse\"\xe9\a\x92A\xb3\a\n" +
 	"\x04Data\x12\n" +
 	"run bundle*\n" +
-	"bundle.runj\x90\a\n" +
-	"\rx-codeSamples\x12\xfe\x062\xfb\x06\n" +
+	"bundle.runj\x92\a\n" +
+	"\rx-codeSamples\x12\x80\a2\xfd\x06\n" +
 	"\xa5\x02*\xa2\x02\n" +
 	"\r\n" +
 	"\x05label\x12\x04\x1a\x02go\n" +
@@ -5268,14 +5267,14 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"        \"organizationID\": \"789\",\n" +
 	"    },\n" +
 	"})\n" +
-	"\x8a\x02*\x87\x02\n" +
+	"\x8c\x02*\x89\x02\n" +
 	"\x0f\n" +
 	"\x05label\x12\x06\x1a\x04node\n" +
 	"\x14\n" +
 	"\x04lang\x12\f\x1a\n" +
 	"javascript\n" +
-	"\xdd\x01\n" +
-	"\x06source\x12\xd2\x01\x1a\xcf\x01client.data.runBundle({\n" +
+	"\xdf\x01\n" +
+	"\x06source\x12\xd4\x01\x1a\xd1\x01client.bundle.runBundle({\n" +
 	"    tenantId: \"t1\",\n" +
 	"    name: \"organization_created\",\n" +
 	"    arguments: {\n" +

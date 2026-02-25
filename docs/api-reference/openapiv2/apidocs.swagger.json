@@ -475,7 +475,7 @@
           {
             "label": "cURL",
             "lang": "curl",
-            "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/delete' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"tuple_filter\": {\n    \"entity\": {\n      \"type\": \"organization\",\n      \"ids\": [\n        \"1\"\n      ]\n    },\n    \"relation\": \"admin\",\n    \"subject\": {\n      \"type\": \"user\",\n      \"ids\": [\n        \"1\"\n      ],\n      \"relation\": \"\"\n    }\n  },\n  \"attribute_filter\": {}\n}'"
+            "source": "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/delete' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n  \"tuple_filter\": {\n    \"entity\": {\n      \"type\": \"organization\",\n      \"ids\": [\"1\"]\n    },\n    \"relation\": \"admin\",\n    \"subject\": {\n      \"type\": \"user\",\n      \"ids\": [\"1\"]\n    }\n  },\n  \"attribute_filter\": {}\n}'"
           }
         ]
       }
@@ -796,7 +796,7 @@
           {
             "label": "node",
             "lang": "javascript",
-            "source": "client.permission.expand({\n    tenantId: \"t1\",\n    metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\"\n    },\n    entity: {\n        type: \"repository\",\n        id: \"1\"\n    },\n    permission: \"push\",\n})"
+            "source": "client.permission.expand({\n    tenantId: \"t1\",\n    metadata: {\n        snapToken: \"\",\n        schemaVersion: \"\"\n    },\n    entity: {\n        type: \"repository\",\n        id: \"1\"\n    },\n    permission: \"push\"\n})"
           },
           {
             "label": "cURL",
@@ -914,7 +914,7 @@
           {
             "label": "go",
             "lang": "go",
-            "source": "str, err := client.Permission.LookupEntityStream(context.Background(), \u0026v1.PermissionLookupEntityRequest{\n    Metadata: \u0026v1.PermissionLookupEntityRequestMetadata{\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        Depth: 50,\n    },\n    EntityType: \"document\",\n    Permission: \"view\",\n    Subject: \u0026v1.Subject{\n        Type: \"user\",\n        Id: \"1\",\n    },\n    PageSize: 20,\n    ContinuousToken: \"\",\n})\n\n// handle stream response\nfor {\n    res, err := str.Recv()\n\n    if err == io.EOF {\n        break\n    }\n\n    // res.EntityId\n}"
+            "source": "str, err := client.Permission.LookupEntityStream(context.Background(), \u0026v1.PermissionLookupEntityRequest{\n    Metadata: \u0026v1.PermissionLookupEntityRequestMetadata{\n        SnapToken: \"\",\n        SchemaVersion: \"\",\n        Depth: 50,\n    },\n    EntityType: \"document\",\n    Permission: \"view\",\n    Subject: \u0026v1.Subject{\n        Type: \"user\",\n        Id: \"1\",\n    },\n    PageSize: 20,\n    ContinuousToken: \"\",\n})"
           },
           {
             "label": "node",
@@ -1196,7 +1196,7 @@
         "parameters": [
           {
             "name": "tenant_id",
-            "description": "tenant_id is a string that identifies the tenant. It must match the pattern \"[a-zA-Z0-9-,]+\",\nbe a maximum of 64 bytes, and must not be empty.",
+            "description": "tenant_id is a string that identifies the tenant. It must match the pattern \"[a-zA-Z0-9-,]+\",\r\nbe a maximum of 64 bytes, and must not be empty.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1484,7 +1484,7 @@
           "description": "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)"
         }
       },
-      "description": "AttributeReadRequestMetadata defines the structure for the metadata of an attribute read request.\nIt includes the snap_token associated with a particular state of the database."
+      "description": "AttributeReadRequestMetadata defines the structure for the metadata of an attribute read request.\r\nIt includes the snap_token associated with a particular state of the database."
     },
     "AttributeReadResponse": {
       "type": "object",
@@ -1502,7 +1502,7 @@
           "description": "continuous_token is used in the case of paginated reads to retrieve the next page of results."
         }
       },
-      "description": "AttributeReadResponse defines the structure of the response to an attribute read request.\nIt includes the attributes retrieved and a continuous token for handling result pagination."
+      "description": "AttributeReadResponse defines the structure of the response to an attribute read request.\r\nIt includes the attributes retrieved and a continuous token for handling result pagination."
     },
     "AttributeType": {
       "type": "string",
@@ -1556,7 +1556,7 @@
           "description": "Name of the bundle to be deleted."
         }
       },
-      "description": "BundleDeleteRequest is used to request the deletion of a bundle.\nIt contains the tenant_id to specify the tenant and the name of the bundle to be deleted."
+      "description": "BundleDeleteRequest is used to request the deletion of a bundle.\r\nIt contains the tenant_id to specify the tenant and the name of the bundle to be deleted."
     },
     "Bundle.ReadBody": {
       "type": "object",
@@ -1578,7 +1578,7 @@
           "description": "Contains the bundle data to be written."
         }
       },
-      "description": "BundleWriteRequest is used to request the writing of a bundle.\nIt contains the tenant_id to identify the tenant and the Bundles object."
+      "description": "BundleWriteRequest is used to request the writing of a bundle.\r\nIt contains the tenant_id to identify the tenant and the Bundles object."
     },
     "BundleDeleteResponse": {
       "type": "object",
@@ -1604,7 +1604,7 @@
           "description": "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)"
         }
       },
-      "description": "BundleRunResponse is the response for a BundleRunRequest.\nIt includes a snap_token, which may be used for tracking the execution or its results."
+      "description": "BundleRunResponse is the response for a BundleRunRequest.\r\nIt includes a snap_token, which may be used for tracking the execution or its results."
     },
     "BundleWriteResponse": {
       "type": "object",
@@ -1617,7 +1617,7 @@
           "description": "Identifier or acknowledgment of the written bundle."
         }
       },
-      "description": "BundleWriteResponse is the response for a BundleWriteRequest.\nIt includes a name which could be used as an identifier or acknowledgment."
+      "description": "BundleWriteResponse is the response for a BundleWriteRequest.\r\nIt includes a name which could be used as an identifier or acknowledgment."
     },
     "CheckBody": {
       "type": "object",
@@ -1704,6 +1704,10 @@
         "rewrite": {
           "$ref": "#/definitions/Rewrite",
           "description": "Rewrite operation in the permission tree."
+        },
+        "positionInfo": {
+          "$ref": "#/definitions/PositionInfo",
+          "description": "Source position information for this node."
         }
       },
       "description": "Child represents a node in the permission tree."
@@ -1846,7 +1850,7 @@
           "description": "Additional data associated with the context."
         }
       },
-      "description": "Context encapsulates the information related to a single operation,\nincluding the tuples involved and the associated attributes."
+      "description": "Context encapsulates the information related to a single operation,\r\nincluding the tuples involved and the associated attributes."
     },
     "CreateList": {
       "type": "object",
@@ -1900,7 +1904,7 @@
           "description": "attribute_filter specifies the criteria used to select the attributes that should be deleted."
         }
       },
-      "description": "DataDeleteRequest defines the structure of a request to delete data.\nIt includes the tenant_id and filters for selecting tuples and attributes to be deleted."
+      "description": "DataDeleteRequest defines the structure of a request to delete data.\r\nIt includes the tenant_id and filters for selecting tuples and attributes to be deleted."
     },
     "Data.WriteBody": {
       "type": "object",
@@ -1926,7 +1930,7 @@
           "description": "attributes contains the list of attributes (entity-attribute-value triples) that need to be written."
         }
       },
-      "description": "DataWriteRequest defines the structure of a request for writing data.\nIt contains the necessary information such as tenant_id, metadata,\ntuples and attributes for the write operation."
+      "description": "DataWriteRequest defines the structure of a request for writing data.\r\nIt contains the necessary information such as tenant_id, metadata,\r\ntuples and attributes for the write operation."
     },
     "DataBundle": {
       "type": "object",
@@ -1940,7 +1944,7 @@
           "items": {
             "type": "string"
           },
-          "description": "'arguments' is a repeated field, which means it can contain multiple strings.\nThese are used to store a list of arguments related to the DataBundle."
+          "description": "'arguments' is a repeated field, which means it can contain multiple strings.\r\nThese are used to store a list of arguments related to the DataBundle."
         },
         "operations": {
           "type": "array",
@@ -1948,10 +1952,10 @@
             "type": "object",
             "$ref": "#/definitions/v1.Operation"
           },
-          "description": "'operations' is a repeated field containing multiple Operation messages.\nEach Operation represents a specific action or set of actions to be performed."
+          "description": "'operations' is a repeated field containing multiple Operation messages.\r\nEach Operation represents a specific action or set of actions to be performed."
         }
       },
-      "description": "DataBundle is a message representing a bundle of data, which includes a name,\na list of arguments, and a series of operations."
+      "description": "DataBundle is a message representing a bundle of data, which includes a name,\r\na list of arguments, and a series of operations."
     },
     "DataChange": {
       "type": "object",
@@ -2005,7 +2009,7 @@
           "description": "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)"
         }
       },
-      "description": "DataDeleteResponse defines the structure of the response to a data delete request.\nIt includes a snap_token representing the state of the database after the deletion."
+      "description": "DataDeleteResponse defines the structure of the response to a data delete request.\r\nIt includes a snap_token representing the state of the database after the deletion."
     },
     "DataWriteRequestMetadata": {
       "type": "object",
@@ -2015,7 +2019,7 @@
           "description": "schema_version represents the version of the schema for the data being written."
         }
       },
-      "description": "DataWriteRequestMetadata defines the structure of metadata for a write request.\nIt includes the schema version of the data to be written."
+      "description": "DataWriteRequestMetadata defines the structure of metadata for a write request.\r\nIt includes the schema version of the data to be written."
     },
     "DataWriteResponse": {
       "type": "object",
@@ -2025,7 +2029,7 @@
           "description": "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)."
         }
       },
-      "description": "DataWriteResponse defines the structure of the response after writing data.\nIt contains the snap_token generated after the write operation."
+      "description": "DataWriteResponse defines the structure of the response after writing data.\r\nIt contains the snap_token generated after the write operation."
     },
     "DeleteRelationshipsBody": {
       "type": "object",
@@ -2354,16 +2358,16 @@
           "additionalProperties": {
             "$ref": "#/definitions/StringArrayValue"
           },
-          "description": "Scope: A map that associates entity types with lists of identifiers. Each entry\nhelps filter requests by specifying which entities are relevant to the operation."
+          "description": "Scope: A map that associates entity types with lists of identifiers. Each entry\r\nhelps filter requests by specifying which entities are relevant to the operation."
         },
         "page_size": {
           "type": "integer",
           "format": "int64",
-          "description": "page_size is the number of entities to be returned in the response.\nThe value should be between 1 and 100."
+          "description": "page_size is the number of entities to be returned in the response.\r\nThe value should be between 1 and 100."
         },
         "continuous_token": {
           "type": "string",
-          "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
+          "description": "continuous_token is an optional parameter used for pagination.\r\nIt should be the value received in the previous response."
         }
       },
       "description": "PermissionLookupEntityRequest is the request message for the LookupEntity method in the Permission service."
@@ -2396,16 +2400,16 @@
           "additionalProperties": {
             "$ref": "#/definitions/StringArrayValue"
           },
-          "description": "Scope: A map that associates entity types with lists of identifiers. Each entry\nhelps filter requests by specifying which entities are relevant to the operation."
+          "description": "Scope: A map that associates entity types with lists of identifiers. Each entry\r\nhelps filter requests by specifying which entities are relevant to the operation."
         },
         "page_size": {
           "type": "integer",
           "format": "int64",
-          "description": "page_size is the number of entities to be returned in the response.\nThe value should be between 1 and 100."
+          "description": "page_size is the number of entities to be returned in the response.\r\nThe value should be between 1 and 100."
         },
         "continuous_token": {
           "type": "string",
-          "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
+          "description": "continuous_token is an optional parameter used for pagination.\r\nIt should be the value received in the previous response."
         }
       },
       "description": "PermissionLookupEntityRequest is the request message for the LookupEntity method in the Permission service."
@@ -2444,11 +2448,11 @@
         "page_size": {
           "type": "integer",
           "format": "int64",
-          "description": "page_size is the number of subjects to be returned in the response.\nThe value should be between 1 and 100."
+          "description": "page_size is the number of subjects to be returned in the response.\r\nThe value should be between 1 and 100."
         },
         "continuous_token": {
           "type": "string",
-          "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
+          "description": "continuous_token is an optional parameter used for pagination.\r\nIt should be the value received in the previous response."
         }
       },
       "description": "PermissionLookupSubjectRequest is the request message for the LookupSubject method in the Permission service."
@@ -2486,7 +2490,7 @@
           "title": "Map of entity name with the values needed to be updated"
         }
       },
-      "title": "It contains the tenant_id to identify the tenant and metadata of the schema to be edited,\nwith the corresponding edits to various entities"
+      "title": "It contains the tenant_id to identify the tenant and metadata of the schema to be edited,\r\nwith the corresponding edits to various entities"
     },
     "Partials": {
       "type": "object",
@@ -2590,6 +2594,10 @@
           "type": "integer",
           "format": "int32",
           "description": "Query limit when if recursive database queries got in loop"
+        },
+        "coverage_path": {
+          "type": "string",
+          "description": "Path identifier used for coverage tracking during permission evaluation."
         }
       },
       "description": "PermissionCheckRequestMetadata metadata for the PermissionCheckRequest."
@@ -2779,6 +2787,20 @@
       },
       "description": "PermissionSubjectPermissionResponse is the response message for the SubjectPermission method in the Permission service."
     },
+    "PositionInfo": {
+      "type": "object",
+      "description": "Source position information indicating line and column numbers in the schema definition.",
+      "properties": {
+        "line": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "column": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
     "PrimitiveType": {
       "type": "string",
       "enum": [
@@ -2805,14 +2827,14 @@
         "page_size": {
           "type": "integer",
           "format": "int64",
-          "description": "page_size specifies the number of results to return in a single page.\nIf more results are available, a continuous_token is included in the response."
+          "description": "page_size specifies the number of results to return in a single page.\r\nIf more results are available, a continuous_token is included in the response."
         },
         "continuous_token": {
           "type": "string",
           "description": "continuous_token is used in case of paginated reads to get the next page of results."
         }
       },
-      "description": "AttributeReadRequest defines the structure of a request for reading attributes.\nIt includes the tenant_id, metadata, attribute filter, page size for pagination, and a continuous token for multi-page results."
+      "description": "AttributeReadRequest defines the structure of a request for reading attributes.\r\nIt includes the tenant_id, metadata, attribute filter, page size for pagination, and a continuous token for multi-page results."
     },
     "ReadRelationshipsBody": {
       "type": "object",
@@ -2828,14 +2850,14 @@
         "page_size": {
           "type": "integer",
           "format": "int64",
-          "description": "page_size specifies the number of results to return in a single page.\nIf more results are available, a continuous_token is included in the response."
+          "description": "page_size specifies the number of results to return in a single page.\r\nIf more results are available, a continuous_token is included in the response."
         },
         "continuous_token": {
           "type": "string",
           "description": "continuous_token is used in case of paginated reads to get the next page of results."
         }
       },
-      "description": "RelationshipReadRequest defines the structure of a request for reading relationships.\nIt contains the necessary information such as tenant_id, metadata, and filter for the read operation."
+      "description": "RelationshipReadRequest defines the structure of a request for reading relationships.\r\nIt contains the necessary information such as tenant_id, metadata, and filter for the read operation."
     },
     "RelationDefinition": {
       "type": "object",
@@ -2887,7 +2909,7 @@
           "description": "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)"
         }
       },
-      "description": "RelationshipReadRequestMetadata defines the structure of the metadata for a read request focused on relationships.\nIt includes the snap_token associated with a particular state of the database."
+      "description": "RelationshipReadRequestMetadata defines the structure of the metadata for a read request focused on relationships.\r\nIt includes the snap_token associated with a particular state of the database."
     },
     "RelationshipReadResponse": {
       "type": "object",
@@ -2905,7 +2927,7 @@
           "description": "continuous_token is used in the case of paginated reads to retrieve the next page of results."
         }
       },
-      "description": "RelationshipReadResponse defines the structure of the response after reading relationships.\nIt includes the tuples representing the relationships and a continuous token for handling result pagination."
+      "description": "RelationshipReadResponse defines the structure of the response after reading relationships.\r\nIt includes the tuples representing the relationships and a continuous token for handling result pagination."
     },
     "RelationshipWriteRequestMetadata": {
       "type": "object",
@@ -2942,7 +2964,7 @@
           "description": "A list of children that are operated upon by the rewrite operation."
         }
       },
-      "description": "The Rewrite message represents a specific rewrite operation.\nThis operation could be one of the following: union, intersection, or exclusion."
+      "description": "The Rewrite message represents a specific rewrite operation.\r\nThis operation could be one of the following: union, intersection, or exclusion."
     },
     "Rewrite.Operation": {
       "type": "string",
@@ -2951,7 +2973,7 @@
         "OPERATION_INTERSECTION",
         "OPERATION_EXCLUSION"
       ],
-      "description": "Operation enum includes potential rewrite operations.\nOPERATION_UNION: Represents a union operation.\nOPERATION_INTERSECTION: Represents an intersection operation.\nOPERATION_EXCLUSION: Represents an exclusion operation.\n\n - OPERATION_UNION: Represents a union operation.\n - OPERATION_INTERSECTION: Represents an intersection operation.\n - OPERATION_EXCLUSION: Represents an exclusion operation."
+      "description": "Operation enum includes potential rewrite operations.\r\nOPERATION_UNION: Represents a union operation.\r\nOPERATION_INTERSECTION: Represents an intersection operation.\r\nOPERATION_EXCLUSION: Represents an exclusion operation.\n\n - OPERATION_UNION: Represents a union operation.\n - OPERATION_INTERSECTION: Represents an intersection operation.\n - OPERATION_EXCLUSION: Represents an exclusion operation."
     },
     "RuleDefinition": {
       "type": "object",
@@ -2989,7 +3011,7 @@
           "description": "Additional key-value pairs for execution arguments."
         }
       },
-      "description": "BundleRunRequest is used to request the execution of a bundle.\nIt includes tenant_id, the name of the bundle, and additional arguments for execution."
+      "description": "BundleRunRequest is used to request the execution of a bundle.\r\nIt includes tenant_id, the name of the bundle, and additional arguments for execution."
     },
     "Schema.ListBody": {
       "type": "object",
@@ -2997,14 +3019,14 @@
         "page_size": {
           "type": "integer",
           "format": "int64",
-          "description": "page_size is the number of schemas to be returned in the response.\nThe value should be between 1 and 100."
+          "description": "page_size is the number of schemas to be returned in the response.\r\nThe value should be between 1 and 100."
         },
         "continuous_token": {
           "type": "string",
-          "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
+          "description": "continuous_token is an optional parameter used for pagination.\r\nIt should be the value received in the previous response."
         }
       },
-      "description": "SchemaListRequest is the request message for the List method in the Schema service.\nIt contains tenant_id for which the schemas are to be listed."
+      "description": "SchemaListRequest is the request message for the List method in the Schema service.\r\nIt contains tenant_id for which the schemas are to be listed."
     },
     "Schema.ReadBody": {
       "type": "object",
@@ -3014,7 +3036,7 @@
           "description": "metadata is the additional information needed for the Read request."
         }
       },
-      "description": "SchemaReadRequest is the request message for the Read method in the Schema service.\nIt contains tenant_id and metadata about the schema to be read."
+      "description": "SchemaReadRequest is the request message for the Read method in the Schema service.\r\nIt contains tenant_id and metadata about the schema to be read."
     },
     "Schema.WriteBody": {
       "type": "object",
@@ -3024,7 +3046,7 @@
           "description": "schema is the string representation of the schema to be written."
         }
       },
-      "description": "SchemaWriteRequest is the request message for the Write method in the Schema service.\nIt contains tenant_id and the schema to be written."
+      "description": "SchemaWriteRequest is the request message for the Write method in the Schema service.\r\nIt contains tenant_id and the schema to be written."
     },
     "SchemaDefinition": {
       "type": "object",
@@ -3051,7 +3073,7 @@
           "description": "Map of references to signify whether a string refers to an entity or a rule."
         }
       },
-      "description": "The SchemaDefinition message provides definitions for entities and rules,\nand includes references to clarify whether a name refers to an entity or a rule."
+      "description": "The SchemaDefinition message provides definitions for entities and rules,\r\nand includes references to clarify whether a name refers to an entity or a rule."
     },
     "SchemaDefinition.Reference": {
       "type": "string",
@@ -3093,7 +3115,7 @@
           "description": "continuous_token is a string that can be used to paginate and retrieve the next set of results."
         }
       },
-      "title": "SchemaListResponse is the response message for the List method in the Schema service.\nIt returns a paginated list of schemas"
+      "title": "SchemaListResponse is the response message for the List method in the Schema service.\r\nIt returns a paginated list of schemas"
     },
     "SchemaPartialWriteRequestMetadata": {
       "type": "object",
@@ -3103,7 +3125,7 @@
           "description": "schema_version is the string that identifies the version of the schema to be read."
         }
       },
-      "description": "SchemaPartialWriteRequestMetadata provides additional information for the Schema Partial Write request.\nIt contains schema_version to specify which version of the schema should be read."
+      "description": "SchemaPartialWriteRequestMetadata provides additional information for the Schema Partial Write request.\r\nIt contains schema_version to specify which version of the schema should be read."
     },
     "SchemaPartialWriteResponse": {
       "type": "object",
@@ -3113,7 +3135,7 @@
           "description": "schema_version is the string that identifies the version of the written schema."
         }
       },
-      "description": "SchemaPartialWriteResponse is the response message for the Parietal Write method in the Schema service.\nIt returns the requested schema."
+      "description": "SchemaPartialWriteResponse is the response message for the Parietal Write method in the Schema service.\r\nIt returns the requested schema."
     },
     "SchemaReadRequestMetadata": {
       "type": "object",
@@ -3123,7 +3145,7 @@
           "description": "schema_version is the string that identifies the version of the schema to be read."
         }
       },
-      "description": "SchemaReadRequestMetadata provides additional information for the Schema Read request.\nIt contains schema_version to specify which version of the schema should be read."
+      "description": "SchemaReadRequestMetadata provides additional information for the Schema Read request.\r\nIt contains schema_version to specify which version of the schema should be read."
     },
     "SchemaReadResponse": {
       "type": "object",
@@ -3133,7 +3155,7 @@
           "description": "schema is the SchemaDefinition that represents the read schema."
         }
       },
-      "description": "SchemaReadResponse is the response message for the Read method in the Schema service.\nIt returns the requested schema."
+      "description": "SchemaReadResponse is the response message for the Read method in the Schema service.\r\nIt returns the requested schema."
     },
     "SchemaWriteResponse": {
       "type": "object",
@@ -3143,7 +3165,7 @@
           "description": "schema_version is the string that identifies the version of the written schema."
         }
       },
-      "description": "SchemaWriteResponse is the response message for the Write method in the Schema service.\nIt returns the version of the written schema."
+      "description": "SchemaWriteResponse is the response message for the Write method in the Schema service.\r\nIt returns the version of the written schema."
     },
     "Select": {
       "type": "object",
@@ -3370,11 +3392,11 @@
         "page_size": {
           "type": "integer",
           "format": "int64",
-          "description": "page_size is the number of tenants to be returned in the response.\nThe value should be between 1 and 100."
+          "description": "page_size is the number of tenants to be returned in the response.\r\nThe value should be between 1 and 100."
         },
         "continuous_token": {
           "type": "string",
-          "description": "continuous_token is an optional parameter used for pagination.\nIt should be the value received in the previous response."
+          "description": "continuous_token is an optional parameter used for pagination.\r\nIt should be the value received in the previous response."
         }
       },
       "description": "TenantListRequest is the message used for the request to list all tenants."
@@ -3486,7 +3508,7 @@
           "description": "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)."
         }
       },
-      "description": "WatchRequest is the request message for the Watch RPC. It contains the\ndetails needed to establish a watch stream."
+      "description": "WatchRequest is the request message for the Watch RPC. It contains the\r\ndetails needed to establish a watch stream."
     },
     "WatchResponse": {
       "type": "object",
@@ -3496,7 +3518,7 @@
           "description": "Changes in the data."
         }
       },
-      "description": "WatchResponse is the response message for the Watch RPC. It contains the\nchanges in the data that are being watched."
+      "description": "WatchResponse is the response message for the Watch RPC. It contains the\r\nchanges in the data that are being watched."
     },
     "WellKnownType": {
       "type": "string",
@@ -3571,7 +3593,7 @@
           "description": "leaf contains a set of subjects."
         }
       },
-      "description": "Expand is used to define a hierarchical structure for permissions.\nIt has an entity, permission, and arguments. The node can be either another hierarchical structure or a set of subjects."
+      "description": "Expand is used to define a hierarchical structure for permissions.\r\nIt has an entity, permission, and arguments. The node can be either another hierarchical structure or a set of subjects."
     },
     "v1.Operation": {
       "type": "object",
@@ -3581,31 +3603,31 @@
           "items": {
             "type": "string"
           },
-          "description": "'relationships_write' is a repeated string field for storing relationship keys\nthat are to be written or created."
+          "description": "'relationships_write' is a repeated string field for storing relationship keys\r\nthat are to be written or created."
         },
         "relationships_delete": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "'relationships_delete' is a repeated string field for storing relationship keys\nthat are to be deleted or removed."
+          "description": "'relationships_delete' is a repeated string field for storing relationship keys\r\nthat are to be deleted or removed."
         },
         "attributes_write": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "'attributes_write' is a repeated string field for storing attribute keys\nthat are to be written or created."
+          "description": "'attributes_write' is a repeated string field for storing attribute keys\r\nthat are to be written or created."
         },
         "attributes_delete": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "'attributes_delete' is a repeated string field for storing attribute keys\nthat are to be deleted or removed."
+          "description": "'attributes_delete' is a repeated string field for storing attribute keys\r\nthat are to be deleted or removed."
         }
       },
-      "description": "Operation is a message representing a series of operations that can be performed.\nIt includes fields for writing and deleting relationships and attributes."
+      "description": "Operation is a message representing a series of operations that can be performed.\r\nIt includes fields for writing and deleting relationships and attributes."
     },
     "v1alpha1.Reference": {
       "type": "object",

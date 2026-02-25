@@ -13,6 +13,33 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
+// stripPositionInfo removes PositionInfo from all Child nodes for test comparison.
+// The compiler adds PositionInfo for coverage/debugging; tests compare structural output.
+func stripPositionInfo(entities []*base.EntityDefinition) []*base.EntityDefinition {
+	for _, e := range entities {
+		if e != nil && e.Permissions != nil {
+			for _, p := range e.Permissions {
+				if p != nil {
+					stripPositionInfoFromChildInPlace(p.Child)
+				}
+			}
+		}
+	}
+	return entities
+}
+
+func stripPositionInfoFromChildInPlace(c *base.Child) {
+	if c == nil {
+		return
+	}
+	c.PositionInfo = nil
+	if rw := c.GetRewrite(); rw != nil {
+		for _, ch := range rw.Children {
+			stripPositionInfoFromChildInPlace(ch)
+		}
+	}
+}
+
 // TestCompiler -
 func TestCompiler(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -33,7 +60,7 @@ var _ = Describe("compiler", func() {
 			is, _, err = c.Compile()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(is).Should(Equal([]*base.EntityDefinition{
+			Expect(stripPositionInfo(is)).Should(Equal([]*base.EntityDefinition{
 				{
 					Name:        "user",
 					Relations:   map[string]*base.RelationDefinition{},
@@ -140,7 +167,7 @@ var _ = Describe("compiler", func() {
 				},
 			}
 
-			Expect(is).Should(Equal(i))
+			Expect(stripPositionInfo(is)).Should(Equal(i))
 		})
 
 		It("Case 3", func() {
@@ -259,7 +286,7 @@ var _ = Describe("compiler", func() {
 				},
 			}
 
-			Expect(is).Should(Equal(i))
+			Expect(stripPositionInfo(is)).Should(Equal(i))
 		})
 
 		It("Case 4", func() {
@@ -338,7 +365,7 @@ var _ = Describe("compiler", func() {
 				},
 			}
 
-			Expect(is).Should(Equal(i))
+			Expect(stripPositionInfo(is)).Should(Equal(i))
 		})
 
 		It("Case 5", func() {
@@ -592,7 +619,7 @@ var _ = Describe("compiler", func() {
 				},
 			}
 
-			Expect(is).Should(Equal(i))
+			Expect(stripPositionInfo(is)).Should(Equal(i))
 		})
 
 		It("Case 8", func() {
@@ -803,7 +830,7 @@ var _ = Describe("compiler", func() {
 				},
 			}
 
-			Expect(is).Should(Equal(i))
+			Expect(stripPositionInfo(is)).Should(Equal(i))
 		})
 
 		It("Case 9", func() {
@@ -1002,7 +1029,7 @@ var _ = Describe("compiler", func() {
 				},
 			}
 
-			Expect(is).Should(Equal(i))
+			Expect(stripPositionInfo(is)).Should(Equal(i))
 		})
 
 		It("Case 11", func() {
@@ -1171,7 +1198,7 @@ var _ = Describe("compiler", func() {
 				},
 			}
 
-			Expect(is).Should(Equal(i))
+			Expect(stripPositionInfo(is)).Should(Equal(i))
 		})
 
 		It("Case 12", func() {
@@ -1296,7 +1323,7 @@ var _ = Describe("compiler", func() {
 				},
 			}
 
-			Expect(is).Should(Equal(i))
+			Expect(stripPositionInfo(is)).Should(Equal(i))
 		})
 
 		It("Case 13", func() {
@@ -1479,7 +1506,7 @@ var _ = Describe("compiler", func() {
 				},
 			}
 
-			Expect(is).Should(Equal(i))
+			Expect(stripPositionInfo(is)).Should(Equal(i))
 		})
 
 		It("Case 14", func() {
@@ -1639,7 +1666,7 @@ var _ = Describe("compiler", func() {
 				},
 			}
 
-			Expect(eIs).Should(Equal(eI))
+			Expect(stripPositionInfo(eIs)).Should(Equal(eI))
 			Expect(rIs).Should(Equal(rI))
 		})
 
@@ -1847,7 +1874,7 @@ var _ = Describe("compiler", func() {
 				},
 			}
 
-			Expect(eIs).Should(Equal(eI))
+			Expect(stripPositionInfo(eIs)).Should(Equal(eI))
 		})
 
 		It("Case 17", func() {
@@ -2057,7 +2084,7 @@ var _ = Describe("compiler", func() {
 				},
 			}
 
-			Expect(eIs).Should(Equal(eI))
+			Expect(stripPositionInfo(eIs)).Should(Equal(eI))
 			Expect(rIs).Should(Equal(rI))
 		})
 
