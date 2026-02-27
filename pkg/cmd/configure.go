@@ -92,8 +92,9 @@ func (t TokenAuth) GetRequestMetadata(ctx context.Context, uri ...string) (map[s
 	}, nil
 }
 
+// FIX: Blindamos el envío del token (Security Risk)
 func (TokenAuth) RequireTransportSecurity() bool {
-	return false
+	return true
 }
 
 func ConfiguredGRPCClient() ([]grpc.DialOption, string, error) {
@@ -119,8 +120,10 @@ func ConfiguredGRPCClient() ([]grpc.DialOption, string, error) {
 		if err != nil {
 			return nil, "", fmt.Errorf("could not load client key pair: %w", err)
 		}
+		// FIX: Forzamos la versión mínima de TLS
 		tlsConfig := &tls.Config{
 			Certificates: []tls.Certificate{cert},
+			MinVersion:   tls.VersionTLS12,
 		}
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 	} else {

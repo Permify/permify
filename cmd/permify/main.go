@@ -25,7 +25,7 @@ func main() {
 	root.AddCommand(cmd.NewConfigCommand())
 	root.AddCommand(cmd.NewRepairCommand())
 	
-	// Comando inyectado
+	// Add configure command
 	root.AddCommand(cmd.NewConfigureCommand())
 
 	if err := root.Execute(); err != nil {
