@@ -572,6 +572,35 @@ limiting, cache size).
 pprof is a performance profiler for Go programs. It allows developers to analyze and understand the performance
 characteristics of their code by generating detailed profiles of program execution
 
+When enabled, Permify exposes Go's standard pprof HTTP endpoints on the configured port (default `6060`):
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /debug/pprof/profile?seconds=30` | CPU profile — shows which functions are consuming CPU cycles over the sampling window |
+| `GET /debug/pprof/trace?seconds=5` | Execution trace — records goroutine scheduling, GC, and syscall events |
+| `GET /debug/pprof/heap` | Heap allocation snapshot — identifies memory-heavy code paths |
+| `GET /debug/pprof/goroutine` | List all goroutines and their stack traces — useful for detecting goroutine leaks |
+| `GET /debug/pprof/` | Index of all available profiles |
+
+You can analyse captured profiles locally using Go's built-in tooling:
+
+```bash
+# Download and open a 30-second CPU profile in the interactive UI
+go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30
+```
+
+**When to enable the profiler:**
+
+- Investigating a CPU spike or unexpectedly high latency in Permify.
+- During load or capacity testing to identify bottlenecks before production.
+- When suspecting a performance regression after a version upgrade.
+
+**Best practice:** Enable the profiler **temporarily** when needed, then disable it again. Keeping it permanently open in production is not recommended — it exposes an unauthenticated HTTP endpoint and adds a small constant overhead.
+
+<Warning>
+  The pprof endpoint has no built-in authentication. Restrict network access to it (e.g. via a sidecar, internal network policy, or firewall rule) so it is not reachable from the public internet.
+</Warning>
+
 #### Structure
 
 ```
