@@ -50,6 +50,27 @@ The cache library used is: https://github.com/dgraph-io/ristretto
 
 Note: Another advantage of the MVCC pattern is the ability to historically store data. However, it has a downside of accumulation of too many relationships. For this, we have developed a garbage collector that will delete old data at a time period you specify.
 
+### Cache Sizing & Eviction (Snap Tokens)
+
+There is **no separate, dedicated cache for snap tokens**. The snap token is simply part of the permission cache key:
+
+```
+check_{tenant_id}_{schema_version}:{snapshot_token}:{check_request}
+```
+
+This means the snap-token "cache" is sized entirely through the same `permission.cache` settings shown above:
+
+| Config key | Purpose |
+|---|---|
+| `service.permission.cache.max_cost` | Maximum memory budget for the permission cache (e.g. `10MiB`, `256MiB`). This is the effective size limit that gates how many snap-token-keyed entries can reside in memory at once. |
+| `service.permission.cache.number_of_counters` | Number of TinyLFU admission counters. A good rule of thumb is ~10× the expected number of unique cached items. |
+
+No TTL is configured by default. Eviction is driven purely by **memory pressure** against `max_cost`, using Ristretto's TinyLFU admission policy combined with a SampledLFU eviction policy. Entries are evicted when new items need space and the budget is exhausted — not after a fixed time window.
+
+<Note>
+  If you observe high cache miss rates after a schema version change, it is expected: the `schema_version` component of the key changes, making all prior entries stale. Size your `max_cost` to hold a comfortable working set for the most recent schema version in use.
+</Note>
+
 ## Distributed Cache
 
 Permify does provide a distributed cache across availability zones (within an AWS region) via **Consistent Hashing**. Permify uses Consistent Hashing across its distributed instances for more efficient use of their individual caches.
@@ -74,6 +95,19 @@ You can learn more about consistent hashing from the following blog post: [Intro
   is used effectively (i.e., that it reads from and writes to the cache
   appropriately).
 </Note>
+
+### Scaling Events — Adding or Removing Pods
+
+When you scale out (add pods) or scale in (remove pods) in Kubernetes, here is what happens at the cache level:
+
+**Key rebalancing is partial, not global.** The consistent hash ring updates and only the key ranges that mapped to the affected pod(s) need to move. The rest of the ring — and its cached entries — is undisturbed.
+
+**Each pod's cache is local and in-memory.** Permify uses Ristretto as a process-local cache; there is no shared cache layer. This has two practical consequences:
+
+- **Scale-out (new pod joins):** The new pod starts with a cold cache. For the key range now routed to it, requests will miss the cache and fall through to the database until the cache warms up. Expect a temporary increase in database load and response latency immediately after a pod is added.
+- **Scale-in (pod removed):** All entries cached in that pod's memory are lost. The key range is reassigned to a remaining pod, which will experience cold-cache behaviour for those keys until they warm up.
+
+A **brief hit-rate drop is normal** during any scale event. The warm-up period depends on your `max_cost` budget and request rate — under typical read-heavy workloads this resolves within minutes.
 
 Here is an example configuration:
 

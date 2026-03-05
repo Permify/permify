@@ -1,0 +1,50 @@
+---
+icon: tower-broadcast
+title: Watch
+---
+
+This page covers operational guidance for running the Watch API at scale. For setup and API details, see the [Watch API reference](/api-reference/watch/watch-changes).
+
+## Performance
+
+Each active Watch stream opens a long-lived connection with a continuous polling loop against the database. At high connection counts, this can result in significant CPU and I/O usage.
+
+### Mitigation Strategies
+
+**1. Fan-in / fan-out architecture**
+
+Instead of each application service or pod opening its own Watch stream:
+
+- Run a **small number of dedicated Watch consumers** (e.g. 2–4 Permify pods receiving Watch streams).
+- Distribute permission-change events internally via a pub/sub system (Kafka, Redis Pub/Sub, NATS, etc.) to the rest of your fleet.
+
+This limits the number of concurrent Watch connections to a fixed, controlled count regardless of how many application pods you run.
+
+**2. Control mass reconnections**
+
+After a Permify restart or rolling deployment, all Watch clients reconnect simultaneously. Implement:
+
+- **Exponential backoff** — double the wait time after each failed attempt.
+- **Jitter** — add a random offset to the backoff to spread reconnects over time.
+- **Connection budgets** — limit the maximum reconnect rate per client.
+
+**3. Separate Watch and Check deployments**
+
+Run Watch-heavy workloads on a **dedicated Permify deployment** with its own Horizontal Pod Autoscaler (HPA), separate from the fleet serving Check, LookupEntity, and other read APIs. This prevents Watch load from affecting Check API capacity and vice versa.
+
+### Tuning `watch_buffer_size`
+
+The `database.watch_buffer_size` config key (default: `100`) controls how many pending change events can be queued per Watch stream before back-pressure is applied. If your write rate is high and consumers are slow, increasing this value reduces the risk of events being dropped. See [Database Configurations](/setting-up/configuration#database--database-configurations) for details.
+
+## Stream Disconnection & Reconnection
+
+Watch streams are **pod-specific** and are not handed off when a Permify instance terminates. If a pod running an active Watch stream shuts down (scale-in, rolling restart, node eviction):
+
+- The gRPC stream is terminated.
+- Clients **must reconnect** and open a new Watch stream, ideally passing their last received `snap_token` so they can resume from where they left off without replaying the full history.
+
+**Best practices:**
+
+- Store the last received `snap_token` durably (e.g. in Redis or your application database) so reconnects are resumable without data loss.
+- Implement **exponential backoff with jitter** on reconnect to avoid a wave of simultaneous reconnections after a rolling deployment or pod restart.
+- Apply a **connection budget** per client to cap the maximum reconnect rate.

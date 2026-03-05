@@ -80,6 +80,41 @@ We recommend applying the following pattern to safely handle schema changes:
 -  Centrally check and approve every change before deploying it via CI pipeline that utilizes the **Write Schema API**. We recommend adding our [schema validator](https://github.com/Permify/permify-validate-action) to the pipeline to ensure that any changes are automatically validated.
 - After successful deployment, you can use the newly created schema on further API calls by either specifying its schema ID or by not providing any schema ID, which will automatically retrieve the latest schema on API calls.
 
+#### Changing an Attribute's Type (e.g. `integer` → `boolean`)
+
+Adding a new attribute or relation to your schema is safe — existing data is unaffected. The risk begins when you **change the type of an existing attribute**.
+
+Existing attribute records stored in the database are **not automatically migrated**. If you:
+
+1. Define an attribute as `integer`, insert data, then
+2. Change the schema so that same attribute becomes `boolean`
+
+the following can happen:
+
+- **New writes** may fail with a type-mismatch error.
+- **Existing incompatible records** may cause check errors or result in an implicit deny, because the stored value cannot be evaluated against the new type expectation.
+- There is **no automatic data transformation** — Permify does not back-fill or convert stored attribute values when you change the schema.
+
+**Required steps before switching to the new schema version in production:**
+
+1. **Backfill migration** — rewrite all existing attribute records for the affected attribute to values valid under the new type.
+2. **Gradual rollout** — deploy the new schema to a staging environment first, verify that all checks pass with the migrated data, then promote to production.
+3. Only then update clients/services to use the new schema version.
+
+<Note>
+The same caution applies to `rule` definitions inside your schema. Both entity definitions and rules are stored as a single versioned schema document in the `schema_definitions` table — changing a rule's logic or its referenced attribute types follows the same migration discipline described above.
+</Note>
+
+### How Are Rules and Entity Definitions Stored in the Database?
+
+Both `entity` blocks and `rule` blocks from your schema are stored together in the `schema_definitions` table — there is no separate physical table for rules. Each row holds a versioned, serialised copy of the full schema document.
+
+The distinction between an entity and a rule exists only at read time:
+
+- `ReadEntityDefinition(...)` — parses the stored document and returns the entity block.
+- `ReadRuleDefinition(...)` — parses the same stored document and returns the rule block.
+
+Shared storage, different interpretation.
 
 ### What is the Preferred Deployment Pattern For Permify?
 

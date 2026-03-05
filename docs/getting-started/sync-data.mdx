@@ -360,11 +360,12 @@ curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/data/write
 </Tabs>
 
 <Note>
-Note: `relation: “...”` used when subject type is different from **user** entity. **#…** represents a relation that does not affect the semantics of the tuple.
+The `relation` field in the subject object controls what the subject refers to:
 
-Simply, the usage of ... is straightforward: if you're using the user entity as a subject, you should not be using the `...` If you're using another subject rather than the user entity then you need to use the `...` .
+- **Empty (`""`)** — the subject is a direct, individual user (e.g. `user:123`).
+- **`"..."`** — used when the subject type is not the `user` entity. It represents the entity itself without a specific sub-relation.
+- **A named relation (e.g. `"member"`)** — the subject is a userset: everyone who holds that relation on the subject entity. For example, `document:1#maintainer@organization:2#member` means all members of organization 2 are maintainers of document 1. This is how Permify supports group-based permissions without enumerating individual users.
 </Note>
-
 ### Organization Members Are Maintainers Of A Specific Doc
 
 **Created relational tuple:** document:1#maintainer@organization:2#member

@@ -169,3 +169,13 @@ kubectl apply -f service.yaml
 ```
 
 Last but not least, we can check our pods & nodes. And we can start using the container with load balancer
+
+## Operational Notes for Scaling
+
+### Cache Warm-up After Scale Events
+
+Permify's permission cache is **pod-local**. When a pod is added or removed, the key ranges reassigned to the affected pod start cold. Expect a temporary increase in database read load until the cache warms up. See [Cache Mechanisms — Scaling Events](/operations/cache#scaling-events--adding-or-removing-pods) for a detailed explanation.
+
+### Watch API — gRPC Stream Reconnection
+
+Watch streams are pod-specific and are not handed off when a pod terminates. Clients must reconnect after a scale-in or rolling restart event. See [Watch — Operations](/operations/watch#stream-disconnection--reconnection) for client best practices.
