@@ -29,6 +29,13 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
+	if err = viper.BindPFlag("server.host", flags.Lookup("server-host")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("server.host", "PERMIFY_SERVER_HOST"); err != nil {
+		panic(err)
+	}
+
 	if err = viper.BindPFlag("server.name_override", flags.Lookup("server-name-override")); err != nil {
 		panic(err)
 	}
@@ -77,6 +84,13 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 	if err = viper.BindEnv("server.http.port", "PERMIFY_HTTP_PORT"); err != nil {
+		panic(err)
+	}
+
+	if err = viper.BindPFlag("server.http.grpc_target_host", flags.Lookup("http-grpc-target-host")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("server.http.grpc_target_host", "PERMIFY_HTTP_GRPC_TARGET_HOST"); err != nil {
 		panic(err)
 	}
 

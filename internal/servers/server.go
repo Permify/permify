@@ -269,8 +269,8 @@ func (s *Container) Run(
 			options = append(options, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		}
 
-		targetAddr := net.JoinHostPort(srv.Host, srv.GRPC.Port) // gRPC server address
-		conn, err := grpc.NewClient(targetAddr, options...)     // Create gRPC client connection
+		targetAddr := net.JoinHostPort(srv.HTTP.GRPCTargetHost, srv.GRPC.Port)
+		conn, err := grpc.NewClient(targetAddr, options...) // Create gRPC client connection
 		if err != nil {
 			return err
 		}

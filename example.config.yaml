@@ -4,10 +4,12 @@ account_id: ""
 # including whether or not TLS is enabled and the certificate and
 # key file locations.
 server:
+  host: ""
   rate_limit: 100
   http:
     enabled: true
     port: 3476
+    grpc_target_host: 127.0.0.1
     tls:
       enabled: false
       cert: /etc/letsencrypt/live/yourdomain.com/fullchain.pem

@@ -23,10 +23,12 @@ docker run -p 3476:3476 -p 3478:3478 ghcr.io/permify/permify --help
 # including whether or not TLS is enabled and the certificate and
 # key file locations.
 server:
+  host: ""
   rate_limit: 100
   http:
     enabled: true
     port: 3476
+    grpc_target_host: 127.0.0.1
     tls:
       enabled: true
       cert: /etc/letsencrypt/live/yourdomain.com/fullchain.pem
@@ -137,10 +139,12 @@ Server options to run Permify. (`grpc` and `http` available for now.)
 
 ```
 ├── server
+    ├── host
     ├── rate_limit
     ├── (`grpc` or `http`)
     │   ├── enabled
     │   ├── port
+    │   ├── grpc_target_host
     │   └── tls
     │       ├── enabled
     │       ├── cert
@@ -151,10 +155,12 @@ Server options to run Permify. (`grpc` and `http` available for now.)
 
 | Required | Argument                  | Default | Description                                                         |
 |----------|---------------------------|---------|---------------------------------------------------------------------|
+| [ ]      | host                      | ""      | host/interface to bind the HTTP server.                             |
 | [ ]      | rate_limit                | 100     | the maximum number of requests the server should handle per second. |
 | [x]      | [ server_type ]           | -       | server option type can either be `grpc` or `http`.                  |
 | [ ]      | enabled (for server type) | true    | switch option for server.                                           |
 | [x]      | port                      | -       | port that server run on.                                            |
+| [ ]      | grpc_target_host (HTTP)   |127.0.0.1| host the HTTP gateway uses to connect to the local gRPC server.     |
 | [x]      | tls                       | -       | transport layer security options.                                   |
 | [ ]      | enabled (for tls)         | false   | switch option for tls                                               |
 | [ ]      | cert                      | -       | tls certificate path.                                               |
@@ -164,6 +170,7 @@ Server options to run Permify. (`grpc` and `http` available for now.)
 
 | Argument                  | ENV                               | Type         |
 |---------------------------|-----------------------------------|--------------|
+| server-host               | PERMIFY_SERVER_HOST               | string       |
 | rate_limit                | PERMIFY_RATE_LIMIT                | int          |
 | grpc-port                 | PERMIFY_GRPC_PORT                 | string       |
 | grpc-tls-enabled          | PERMIFY_GRPC_TLS_ENABLED          | boolean      |
@@ -171,6 +178,7 @@ Server options to run Permify. (`grpc` and `http` available for now.)
 | grpc-tls-cert-path        | PERMIFY_GRPC_TLS_CERT_PATH        | string       |
 | http-enabled              | PERMIFY_HTTP_ENABLED              | boolean      |
 | http-port                 | PERMIFY_HTTP_PORT                 | string       |
+| http-grpc-target-host     | PERMIFY_HTTP_GRPC_TARGET_HOST     | string       |
 | http-tls-key-path         | PERMIFY_HTTP_TLS_KEY_PATH         | string       |
 | http-tls-cert-path        | PERMIFY_HTTP_TLS_CERT_PATH        | string       |
 | http-cors-allowed-origins | PERMIFY_HTTP_CORS_ALLOWED_ORIGINS | string array |
