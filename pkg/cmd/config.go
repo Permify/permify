@@ -30,12 +30,14 @@ func NewConfigCommand() *cobra.Command {
 	f.Bool("http-enabled", conf.Server.HTTP.Enabled, "switch option for HTTP server")
 	f.String("account-id", conf.AccountID, "account id")
 	f.Int64("server-rate-limit", conf.Server.RateLimit, "the maximum number of requests the server should handle per second")
+	f.String("server-host", conf.Server.Host, "host/interface to bind the HTTP server")
 	f.String("server-name-override", conf.Server.NameOverride, "server name override")
 	f.String("grpc-port", conf.Server.GRPC.Port, "port that GRPC server run on")
 	f.Bool("grpc-tls-enabled", conf.Server.GRPC.TLSConfig.Enabled, "switch option for GRPC tls server")
 	f.String("grpc-tls-key-path", conf.Server.GRPC.TLSConfig.KeyPath, "GRPC tls key path")
 	f.String("grpc-tls-cert-path", conf.Server.GRPC.TLSConfig.CertPath, "GRPC tls certificate path")
 	f.String("http-port", conf.Server.HTTP.Port, "HTTP port address")
+	f.String("http-grpc-target-host", conf.Server.HTTP.GRPCTargetHost, "host the HTTP gateway uses to connect to the local gRPC server")
 	f.Bool("http-tls-enabled", conf.Server.HTTP.TLSConfig.Enabled, "switch option for HTTP tls server")
 	f.String("http-tls-key-path", conf.Server.HTTP.TLSConfig.KeyPath, "HTTP tls key path")
 	f.String("http-tls-cert-path", conf.Server.HTTP.TLSConfig.CertPath, "HTTP tls certificate path")
@@ -154,12 +156,14 @@ func conf() func(cmd *cobra.Command, args []string) error { // Return config han
 		data = append(data,
 			[]string{"account_id", cfg.AccountID, getKeyOrigin(cmd, "account-id", "PERMIFY_ACCOUNT_ID")},
 			// SERVER
+			[]string{"server.host", cfg.Server.Host, getKeyOrigin(cmd, "server-host", "PERMIFY_SERVER_HOST")},
 			[]string{"server.name_override", fmt.Sprintf("%v", cfg.Server.NameOverride), getKeyOrigin(cmd, "server-name-override", "PERMIFY_NAME_OVERRIDE")},
 			[]string{"server.rate_limit", fmt.Sprintf("%v", cfg.Server.RateLimit), getKeyOrigin(cmd, "server-rate-limit", "PERMIFY_RATE_LIMIT")},
 			[]string{"server.grpc.port", cfg.Server.GRPC.Port, getKeyOrigin(cmd, "grpc-port", "PERMIFY_GRPC_PORT")},
 			[]string{"server.grpc.tls.enabled", fmt.Sprintf("%v", cfg.Server.GRPC.TLSConfig.Enabled), getKeyOrigin(cmd, "grpc-tls-enabled", "PERMIFY_GRPC_TLS_ENABLED")},
 			[]string{"server.grpc.tls.cert", cfg.Server.GRPC.TLSConfig.CertPath, getKeyOrigin(cmd, "grpc-tls-cert-path", "PERMIFY_GRPC_TLS_CERT_PATH")},
 			[]string{"server.http.enabled", fmt.Sprintf("%v", cfg.Server.HTTP.Enabled), getKeyOrigin(cmd, "http-enabled", "PERMIFY_HTTP_ENABLED")},
+			[]string{"server.http.grpc_target_host", cfg.Server.HTTP.GRPCTargetHost, getKeyOrigin(cmd, "http-grpc-target-host", "PERMIFY_HTTP_GRPC_TARGET_HOST")},
 			[]string{"server.http.tls.enabled", fmt.Sprintf("%v", cfg.Server.HTTP.TLSConfig.Enabled), getKeyOrigin(cmd, "http-tls-enabled", "PERMIFY_HTTP_TLS_ENABLED")},
 			[]string{"server.http.tls.key", HideSecret(cfg.Server.HTTP.TLSConfig.KeyPath), getKeyOrigin(cmd, "http-tls-key-path", "PERMIFY_HTTP_TLS_KEY_PATH")},
 			[]string{"server.http.tls.cert", HideSecret(cfg.Server.HTTP.TLSConfig.CertPath), getKeyOrigin(cmd, "http-tls-cert-path", "PERMIFY_HTTP_TLS_CERT_PATH")},

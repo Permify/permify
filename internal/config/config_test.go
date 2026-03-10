@@ -18,7 +18,9 @@ func TestNewConfig_FileNotFound(t *testing.T) {
 	assert.NotNil(t, cfg)
 
 	// Check if default values are applied correctly
+	assert.Equal(t, "", cfg.Server.Host)
 	assert.Equal(t, "3476", cfg.Server.HTTP.Port)
+	assert.Equal(t, "127.0.0.1", cfg.Server.HTTP.GRPCTargetHost)
 	assert.Equal(t, "3478", cfg.Server.GRPC.Port)
 	assert.Equal(t, "info", cfg.Log.Level)
 }
@@ -59,6 +61,8 @@ logger:
 	assert.Equal(t, "debug", cfg.Log.Level)
 
 	// Check if default values are applied correctly
+	assert.Equal(t, "", cfg.Server.Host)
+	assert.Equal(t, "127.0.0.1", cfg.Server.HTTP.GRPCTargetHost)
 	assert.False(t, cfg.Server.HTTP.TLSConfig.Enabled)
 	assert.False(t, cfg.Server.GRPC.TLSConfig.Enabled)
 	assert.False(t, cfg.Profiler.Enabled)
@@ -131,6 +135,8 @@ database:
 	assert.Equal(t, "postgres://user:password@localhost/dbname", cfg.Database.URI)
 
 	// Check if default values are applied correctly
+	assert.Equal(t, "", cfg.Server.Host)
+	assert.Equal(t, "127.0.0.1", cfg.Server.HTTP.GRPCTargetHost)
 	assert.Equal(t, "3478", cfg.Server.GRPC.Port)
 	assert.False(t, cfg.Server.HTTP.TLSConfig.Enabled)
 	assert.False(t, cfg.Server.GRPC.TLSConfig.Enabled)
