@@ -29,9 +29,6 @@
     "dismissible": false
   },
   "analytics": {
-    "plausible": {
-      "domain": "docs.permify.co"
-    },
     "ga4": {
       "measurementId": "G-BSRXWHBYR1"
     }
