@@ -32,29 +32,24 @@ entity group {
     permission view = edit or partner.view
 }
 
-entity state {
-    attribute age_limit integer
-
-    rule check_age(age integer) {
-        this.age_limit > age
-    }
-}
-
 entity patient {
-    // Patients can have multiple doctors and be linked to groups and states.
+    // Patients can have multiple doctors and be linked to groups.
     relation primary_doctor @doctor
     relation consultant @doctor
     relation group @group
-    relation state @state
     relation owner @user
     relation guardian @user
 
     attribute age integer
 
     // Permissions for accessing patient data.
-    permission parent_access = state.check_age(age)
+    permission parent_access = check_age(age)
     permission edit = owner or group.edit or primary_doctor or consultant
     permission view = edit or group.view or guardian
+}
+
+rule check_age(age integer) {
+    age < 18
 }
 
 entity medical_record {
@@ -137,30 +132,27 @@ Here’s a breakdown of the combined schema, explaining each part and how it fun
   - `permission view = edit or partner.view`: The view permission is granted if a user has edit access or if the partner can view.
 - **Explanation**: Groups are collections that can include doctors and be tied to partners. This entity manages permissions for actions within the group, such as editing or viewing.
 
-### 5. `entity state { ... }`
-
-- **Attributes**:
-  - `attribute age_limit integer`: The state entity has an `age_limit` attribute of type integer.
-- **Rules**:
-  - `rule check_age(age integer) { this.age_limit > age }`: This rule checks if the state's age limit is greater than a specified age.
-- **Explanation**: This entity allows defining conditions or rules based on age, which can be used in permissions for entities like patients.
-
-### 6. `entity patient { ... }`
+### 5. `entity patient { ... }`
 
 - **Relations**:
   - `relation primary_doctor @doctor`: A patient has a primary doctor.
   - `relation consultant @doctor`: A patient can have consultant doctors.
   - `relation group @group`: Patients can be linked to groups (e.g., departments).
-  - `relation state @state`: Patients have a state, potentially linked to age-based permissions.
   - `relation owner @user`: An owner (usually a guardian or caregiver) is associated with the patient.
   - `relation guardian @user`: A guardian can also be linked to a patient.
 - **Attributes**:
   - `attribute age integer`: Represents the patient's age.
 - **Permissions**:
-  - `permission parent_access = state.check_age(age)`: The permission for parent access is granted if the state’s `check_age` rule is met.
+  - `permission parent_access = check_age(age)`: The permission for parent access is granted when the schema-level `check_age` rule evaluates true for underage patients.
   - `permission edit = owner or group.edit or primary_doctor or consultant`: Editing permissions are granted to the owner, group members with edit rights, or the doctors.
   - `permission view = edit or group.view or guardian`: View permissions extend to anyone who can edit, group members who can view, or the guardian.
-- **Explanation**: This entity models patients and defines relationships with doctors, groups, and guardians. Permissions are fine-grained, involving rules based on age and relationships with other entities.
+- **Explanation**: This entity models patients and defines relationships with doctors, groups, and guardians. Permissions are fine-grained, including a simple age-based rule for underage access.
+
+### 6. `rule check_age(age integer)`
+
+- **Rule**:
+  - `rule check_age(age integer) { age < 18 }`: This rule evaluates an age-based condition and returns a boolean result.
+- **Explanation**: In Permify, rules are schema-level definitions that evaluate conditions and return a boolean result. This rule is used to determine whether a patient qualifies for age-based access.
 
 ### 7. `entity medical_record { ... }`
 
