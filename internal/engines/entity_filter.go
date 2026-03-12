@@ -3,6 +3,7 @@ package engines
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"golang.org/x/sync/errgroup"
 
@@ -13,6 +14,9 @@ import (
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
+
+// _maxBFSDepth bounds same-type recursive relation expansion in entity lookup.
+const _maxBFSDepth = 100
 
 // EntityFilter is a struct that performs permission checks on a set of entities
 type EntityFilter struct {
@@ -306,7 +310,13 @@ func (engine *EntityFilter) expandRecursiveRelation(
 		queue = append(queue, id)
 	}
 
+	hops := 0
 	for len(queue) > 0 {
+		if hops >= _maxBFSDepth {
+			return fmt.Errorf("recursive relation expansion exceeded maximum depth (%d)", _maxBFSDepth)
+		}
+		hops++
+
 		currentIDs := queue
 		queue = nil
 

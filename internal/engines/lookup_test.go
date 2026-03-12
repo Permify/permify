@@ -6499,6 +6499,72 @@ entity group_perms {
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.GetEntityIds()).To(ConsistOf("za", "zb", "zc"))
 		})
+
+		It("should stop same-type recursive attribute expansion at the BFS depth limit", func() {
+			schema := `
+			entity user {}
+
+			entity resource {
+				relation parent @resource
+				attribute is_public boolean
+				permission view = is_public or parent.view
+			}
+			`
+
+			db, err := factories.DatabaseFactory(config.Database{Engine: "memory"})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			var tuples []*base.Tuple
+			for i := 1; i <= _maxBFSDepth; i++ {
+				t, err := tuple.Tuple(fmt.Sprintf("resource:r%d#parent@resource:r%d", i, i-1))
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			publicAttr, err := attribute.Attribute("resource:r0$is_public|boolean:true")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = dataWriter.Write(
+				context.Background(),
+				"t1",
+				database.NewTupleCollection(tuples...),
+				database.NewAttributeCollection(publicAttr),
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			lookupEngine := NewLookupEngine(checkEngine, schemaReader, dataReader)
+			invoker := invoke.NewDirectInvoker(schemaReader, dataReader, checkEngine, nil, lookupEngine, nil)
+			checkEngine.SetInvoker(invoker)
+
+			_, err = invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+				TenantId:   "t1",
+				EntityType: "resource",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "u1",
+				},
+				Permission: "view",
+				Metadata: &base.PermissionLookupEntityRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+					Depth:         20,
+				},
+			})
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("recursive relation expansion exceeded maximum depth"))
+		})
 	})
 
 	Context("Entity Filter Cursor", func() {
