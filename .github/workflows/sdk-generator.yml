@@ -18,7 +18,7 @@ jobs:
               uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
             - name: Invoke generator workflow Permify/permify-java repo
-              uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
+              uses: benc-uk/workflow-dispatch@7a027648b88c2413826b6ddd6c76114894dc5ec4 # v1.3.1
               with:
                 workflow: generator.yml
                 repo: Permify/permify-java
@@ -26,7 +26,7 @@ jobs:
                 token: "${{ secrets.SDK_GH_TOKEN }}"
         
             - name: Invoke generator workflow Permify/permify-python repo
-              uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
+              uses: benc-uk/workflow-dispatch@7a027648b88c2413826b6ddd6c76114894dc5ec4 # v1.3.1
               with:
                 workflow: generator.yml
                 repo: Permify/permify-python
