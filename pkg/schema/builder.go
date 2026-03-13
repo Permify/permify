@@ -74,23 +74,23 @@ func Entities(defs ...*base.EntityDefinition) []*base.EntityDefinition {
 }
 
 // Rule is a function that generates a rule definition given a name,
-// a map of argument names to attribute types, and an expression string.
+// a slice of named arguments, and an expression string.
 // The expression string is compiled and transformed to a checked expression.
-func Rule(name string, arguments map[string]base.AttributeType, expression string) *base.RuleDefinition {
+func Rule(name string, arguments []*base.NamedArgument, expression string) *base.RuleDefinition {
 	// Initialize an empty slice of environment options.
 	var envOptions []cel.EnvOption
 	envOptions = append(envOptions, cel.Variable("context", cel.DynType))
 
 	// Iterate through each argument.
-	for name, ty := range arguments {
+	for _, arg := range arguments {
 		// Convert the attribute type to CEL type.
-		cType, err := utils.GetCelType(ty)
+		cType, err := utils.GetCelType(arg.GetType())
 		if err != nil {
 			return nil
 		}
 
 		// Append a new environment option which represents a variable and its type.
-		envOptions = append(envOptions, cel.Variable(name, cType))
+		envOptions = append(envOptions, cel.Variable(arg.GetName(), cType))
 	}
 
 	// Create a new CEL environment with the environment options.

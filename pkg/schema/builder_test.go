@@ -566,8 +566,8 @@ var _ = Describe("schema", func() {
 				),
 				Rules(
 					Rule("is_workday",
-						map[string]base.AttributeType{
-							"is_public": base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN,
+						[]*base.NamedArgument{
+							{Name: "is_public", Type: base.AttributeType_ATTRIBUTE_TYPE_BOOLEAN},
 						},
 						"is_public == true && (context.data.day_of_week != 'saturday' && context.data.day_of_week != 'sunday')",
 					),

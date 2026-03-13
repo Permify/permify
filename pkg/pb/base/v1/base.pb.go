@@ -209,7 +209,7 @@ func (x Rewrite_Operation) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Rewrite_Operation.Descriptor instead.
 func (Rewrite_Operation) EnumDescriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{3, 0}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{4, 0}
 }
 
 // The Reference enum helps distinguish whether a name corresponds to an entity or a rule.
@@ -259,7 +259,7 @@ func (x SchemaDefinition_Reference) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SchemaDefinition_Reference.Descriptor instead.
 func (SchemaDefinition_Reference) EnumDescriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{4, 0}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{5, 0}
 }
 
 // The Reference enum specifies whether a name pertains to a relation, permission, or attribute.
@@ -312,7 +312,7 @@ func (x EntityDefinition_Reference) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use EntityDefinition_Reference.Descriptor instead.
 func (EntityDefinition_Reference) EnumDescriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{5, 0}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{6, 0}
 }
 
 // Operation is an enum representing the type of operation to be applied on the tree node.
@@ -365,7 +365,7 @@ func (x ExpandTreeNode_Operation) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ExpandTreeNode_Operation.Descriptor instead.
 func (ExpandTreeNode_Operation) EnumDescriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{29, 0}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{30, 0}
 }
 
 type DataChange_Operation int32
@@ -414,7 +414,62 @@ func (x DataChange_Operation) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use DataChange_Operation.Descriptor instead.
 func (DataChange_Operation) EnumDescriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{36, 0}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{37, 0}
+}
+
+// NamedArgument represents a named argument with its type.
+type NamedArgument struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The name of the argument.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The type of the argument.
+	Type          AttributeType `protobuf:"varint,2,opt,name=type,proto3,enum=base.v1.AttributeType" json:"type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NamedArgument) Reset() {
+	*x = NamedArgument{}
+	mi := &file_base_v1_base_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NamedArgument) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NamedArgument) ProtoMessage() {}
+
+func (x *NamedArgument) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_base_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NamedArgument.ProtoReflect.Descriptor instead.
+func (*NamedArgument) Descriptor() ([]byte, []int) {
+	return file_base_v1_base_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *NamedArgument) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *NamedArgument) GetType() AttributeType {
+	if x != nil {
+		return x.Type
+	}
+	return AttributeType_ATTRIBUTE_TYPE_UNSPECIFIED
 }
 
 // Context encapsulates the information related to a single operation,
@@ -433,7 +488,7 @@ type Context struct {
 
 func (x *Context) Reset() {
 	*x = Context{}
-	mi := &file_base_v1_base_proto_msgTypes[0]
+	mi := &file_base_v1_base_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -445,7 +500,7 @@ func (x *Context) String() string {
 func (*Context) ProtoMessage() {}
 
 func (x *Context) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[0]
+	mi := &file_base_v1_base_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -458,7 +513,7 @@ func (x *Context) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Context.ProtoReflect.Descriptor instead.
 func (*Context) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{0}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Context) GetTuples() []*Tuple {
@@ -498,7 +553,7 @@ type Child struct {
 
 func (x *Child) Reset() {
 	*x = Child{}
-	mi := &file_base_v1_base_proto_msgTypes[1]
+	mi := &file_base_v1_base_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -510,7 +565,7 @@ func (x *Child) String() string {
 func (*Child) ProtoMessage() {}
 
 func (x *Child) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[1]
+	mi := &file_base_v1_base_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -523,7 +578,7 @@ func (x *Child) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Child.ProtoReflect.Descriptor instead.
 func (*Child) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{1}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Child) GetType() isChild_Type {
@@ -587,7 +642,7 @@ type Leaf struct {
 
 func (x *Leaf) Reset() {
 	*x = Leaf{}
-	mi := &file_base_v1_base_proto_msgTypes[2]
+	mi := &file_base_v1_base_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -599,7 +654,7 @@ func (x *Leaf) String() string {
 func (*Leaf) ProtoMessage() {}
 
 func (x *Leaf) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[2]
+	mi := &file_base_v1_base_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -612,7 +667,7 @@ func (x *Leaf) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Leaf.ProtoReflect.Descriptor instead.
 func (*Leaf) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{2}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Leaf) GetType() isLeaf_Type {
@@ -704,7 +759,7 @@ type Rewrite struct {
 
 func (x *Rewrite) Reset() {
 	*x = Rewrite{}
-	mi := &file_base_v1_base_proto_msgTypes[3]
+	mi := &file_base_v1_base_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -716,7 +771,7 @@ func (x *Rewrite) String() string {
 func (*Rewrite) ProtoMessage() {}
 
 func (x *Rewrite) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[3]
+	mi := &file_base_v1_base_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -729,7 +784,7 @@ func (x *Rewrite) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Rewrite.ProtoReflect.Descriptor instead.
 func (*Rewrite) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{3}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Rewrite) GetRewriteOperation() Rewrite_Operation {
@@ -762,7 +817,7 @@ type SchemaDefinition struct {
 
 func (x *SchemaDefinition) Reset() {
 	*x = SchemaDefinition{}
-	mi := &file_base_v1_base_proto_msgTypes[4]
+	mi := &file_base_v1_base_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -774,7 +829,7 @@ func (x *SchemaDefinition) String() string {
 func (*SchemaDefinition) ProtoMessage() {}
 
 func (x *SchemaDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[4]
+	mi := &file_base_v1_base_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -787,7 +842,7 @@ func (x *SchemaDefinition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchemaDefinition.ProtoReflect.Descriptor instead.
 func (*SchemaDefinition) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{4}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SchemaDefinition) GetEntityDefinitions() map[string]*EntityDefinition {
@@ -830,7 +885,7 @@ type EntityDefinition struct {
 
 func (x *EntityDefinition) Reset() {
 	*x = EntityDefinition{}
-	mi := &file_base_v1_base_proto_msgTypes[5]
+	mi := &file_base_v1_base_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -842,7 +897,7 @@ func (x *EntityDefinition) String() string {
 func (*EntityDefinition) ProtoMessage() {}
 
 func (x *EntityDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[5]
+	mi := &file_base_v1_base_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -855,7 +910,7 @@ func (x *EntityDefinition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EntityDefinition.ProtoReflect.Descriptor instead.
 func (*EntityDefinition) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{5}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *EntityDefinition) GetName() string {
@@ -898,8 +953,8 @@ type RuleDefinition struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The name of the rule, which follows a specific string pattern and has a maximum byte size.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Map of arguments for this rule. The key is the attribute name, and the value is the AttributeType.
-	Arguments map[string]AttributeType `protobuf:"bytes,2,rep,name=arguments,proto3" json:"arguments,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value,enum=base.v1.AttributeType"`
+	// Ordered list of arguments for this rule.
+	Arguments []*NamedArgument `protobuf:"bytes,2,rep,name=arguments,proto3" json:"arguments,omitempty"`
 	// The expression for this rule in the form of a google.api.expr.v1alpha1.CheckedExpr.
 	Expression    *v1alpha1.CheckedExpr `protobuf:"bytes,3,opt,name=expression,proto3" json:"expression,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -908,7 +963,7 @@ type RuleDefinition struct {
 
 func (x *RuleDefinition) Reset() {
 	*x = RuleDefinition{}
-	mi := &file_base_v1_base_proto_msgTypes[6]
+	mi := &file_base_v1_base_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -920,7 +975,7 @@ func (x *RuleDefinition) String() string {
 func (*RuleDefinition) ProtoMessage() {}
 
 func (x *RuleDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[6]
+	mi := &file_base_v1_base_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -933,7 +988,7 @@ func (x *RuleDefinition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RuleDefinition.ProtoReflect.Descriptor instead.
 func (*RuleDefinition) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{6}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *RuleDefinition) GetName() string {
@@ -943,7 +998,7 @@ func (x *RuleDefinition) GetName() string {
 	return ""
 }
 
-func (x *RuleDefinition) GetArguments() map[string]AttributeType {
+func (x *RuleDefinition) GetArguments() []*NamedArgument {
 	if x != nil {
 		return x.Arguments
 	}
@@ -970,7 +1025,7 @@ type AttributeDefinition struct {
 
 func (x *AttributeDefinition) Reset() {
 	*x = AttributeDefinition{}
-	mi := &file_base_v1_base_proto_msgTypes[7]
+	mi := &file_base_v1_base_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -982,7 +1037,7 @@ func (x *AttributeDefinition) String() string {
 func (*AttributeDefinition) ProtoMessage() {}
 
 func (x *AttributeDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[7]
+	mi := &file_base_v1_base_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -995,7 +1050,7 @@ func (x *AttributeDefinition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttributeDefinition.ProtoReflect.Descriptor instead.
 func (*AttributeDefinition) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{7}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *AttributeDefinition) GetName() string {
@@ -1025,7 +1080,7 @@ type RelationDefinition struct {
 
 func (x *RelationDefinition) Reset() {
 	*x = RelationDefinition{}
-	mi := &file_base_v1_base_proto_msgTypes[8]
+	mi := &file_base_v1_base_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1037,7 +1092,7 @@ func (x *RelationDefinition) String() string {
 func (*RelationDefinition) ProtoMessage() {}
 
 func (x *RelationDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[8]
+	mi := &file_base_v1_base_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1050,7 +1105,7 @@ func (x *RelationDefinition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RelationDefinition.ProtoReflect.Descriptor instead.
 func (*RelationDefinition) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{8}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *RelationDefinition) GetName() string {
@@ -1080,7 +1135,7 @@ type PermissionDefinition struct {
 
 func (x *PermissionDefinition) Reset() {
 	*x = PermissionDefinition{}
-	mi := &file_base_v1_base_proto_msgTypes[9]
+	mi := &file_base_v1_base_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1092,7 +1147,7 @@ func (x *PermissionDefinition) String() string {
 func (*PermissionDefinition) ProtoMessage() {}
 
 func (x *PermissionDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[9]
+	mi := &file_base_v1_base_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1105,7 +1160,7 @@ func (x *PermissionDefinition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionDefinition.ProtoReflect.Descriptor instead.
 func (*PermissionDefinition) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{9}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *PermissionDefinition) GetName() string {
@@ -1135,7 +1190,7 @@ type RelationReference struct {
 
 func (x *RelationReference) Reset() {
 	*x = RelationReference{}
-	mi := &file_base_v1_base_proto_msgTypes[10]
+	mi := &file_base_v1_base_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1147,7 +1202,7 @@ func (x *RelationReference) String() string {
 func (*RelationReference) ProtoMessage() {}
 
 func (x *RelationReference) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[10]
+	mi := &file_base_v1_base_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1160,7 +1215,7 @@ func (x *RelationReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RelationReference.ProtoReflect.Descriptor instead.
 func (*RelationReference) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{10}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *RelationReference) GetType() string {
@@ -1189,7 +1244,7 @@ type Entrance struct {
 
 func (x *Entrance) Reset() {
 	*x = Entrance{}
-	mi := &file_base_v1_base_proto_msgTypes[11]
+	mi := &file_base_v1_base_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1201,7 +1256,7 @@ func (x *Entrance) String() string {
 func (*Entrance) ProtoMessage() {}
 
 func (x *Entrance) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[11]
+	mi := &file_base_v1_base_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1214,7 +1269,7 @@ func (x *Entrance) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Entrance.ProtoReflect.Descriptor instead.
 func (*Entrance) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{11}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Entrance) GetType() string {
@@ -1244,7 +1299,7 @@ type Argument struct {
 
 func (x *Argument) Reset() {
 	*x = Argument{}
-	mi := &file_base_v1_base_proto_msgTypes[12]
+	mi := &file_base_v1_base_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1256,7 +1311,7 @@ func (x *Argument) String() string {
 func (*Argument) ProtoMessage() {}
 
 func (x *Argument) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[12]
+	mi := &file_base_v1_base_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1269,7 +1324,7 @@ func (x *Argument) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Argument.ProtoReflect.Descriptor instead.
 func (*Argument) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{12}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Argument) GetType() isArgument_Type {
@@ -1309,7 +1364,7 @@ type Call struct {
 
 func (x *Call) Reset() {
 	*x = Call{}
-	mi := &file_base_v1_base_proto_msgTypes[13]
+	mi := &file_base_v1_base_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1321,7 +1376,7 @@ func (x *Call) String() string {
 func (*Call) ProtoMessage() {}
 
 func (x *Call) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[13]
+	mi := &file_base_v1_base_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1334,7 +1389,7 @@ func (x *Call) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Call.ProtoReflect.Descriptor instead.
 func (*Call) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{13}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *Call) GetRuleName() string {
@@ -1361,7 +1416,7 @@ type ComputedAttribute struct {
 
 func (x *ComputedAttribute) Reset() {
 	*x = ComputedAttribute{}
-	mi := &file_base_v1_base_proto_msgTypes[14]
+	mi := &file_base_v1_base_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1373,7 +1428,7 @@ func (x *ComputedAttribute) String() string {
 func (*ComputedAttribute) ProtoMessage() {}
 
 func (x *ComputedAttribute) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[14]
+	mi := &file_base_v1_base_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1386,7 +1441,7 @@ func (x *ComputedAttribute) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ComputedAttribute.ProtoReflect.Descriptor instead.
 func (*ComputedAttribute) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{14}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ComputedAttribute) GetName() string {
@@ -1406,7 +1461,7 @@ type ComputedUserSet struct {
 
 func (x *ComputedUserSet) Reset() {
 	*x = ComputedUserSet{}
-	mi := &file_base_v1_base_proto_msgTypes[15]
+	mi := &file_base_v1_base_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1418,7 +1473,7 @@ func (x *ComputedUserSet) String() string {
 func (*ComputedUserSet) ProtoMessage() {}
 
 func (x *ComputedUserSet) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[15]
+	mi := &file_base_v1_base_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1431,7 +1486,7 @@ func (x *ComputedUserSet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ComputedUserSet.ProtoReflect.Descriptor instead.
 func (*ComputedUserSet) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{15}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ComputedUserSet) GetRelation() string {
@@ -1452,7 +1507,7 @@ type TupleToUserSet struct {
 
 func (x *TupleToUserSet) Reset() {
 	*x = TupleToUserSet{}
-	mi := &file_base_v1_base_proto_msgTypes[16]
+	mi := &file_base_v1_base_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1464,7 +1519,7 @@ func (x *TupleToUserSet) String() string {
 func (*TupleToUserSet) ProtoMessage() {}
 
 func (x *TupleToUserSet) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[16]
+	mi := &file_base_v1_base_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1477,7 +1532,7 @@ func (x *TupleToUserSet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TupleToUserSet.ProtoReflect.Descriptor instead.
 func (*TupleToUserSet) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{16}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *TupleToUserSet) GetTupleSet() *TupleSet {
@@ -1504,7 +1559,7 @@ type TupleSet struct {
 
 func (x *TupleSet) Reset() {
 	*x = TupleSet{}
-	mi := &file_base_v1_base_proto_msgTypes[17]
+	mi := &file_base_v1_base_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1516,7 +1571,7 @@ func (x *TupleSet) String() string {
 func (*TupleSet) ProtoMessage() {}
 
 func (x *TupleSet) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[17]
+	mi := &file_base_v1_base_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1529,7 +1584,7 @@ func (x *TupleSet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TupleSet.ProtoReflect.Descriptor instead.
 func (*TupleSet) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{17}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *TupleSet) GetRelation() string {
@@ -1551,7 +1606,7 @@ type Tuple struct {
 
 func (x *Tuple) Reset() {
 	*x = Tuple{}
-	mi := &file_base_v1_base_proto_msgTypes[18]
+	mi := &file_base_v1_base_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1563,7 +1618,7 @@ func (x *Tuple) String() string {
 func (*Tuple) ProtoMessage() {}
 
 func (x *Tuple) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[18]
+	mi := &file_base_v1_base_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1576,7 +1631,7 @@ func (x *Tuple) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Tuple.ProtoReflect.Descriptor instead.
 func (*Tuple) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{18}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *Tuple) GetEntity() *Entity {
@@ -1612,7 +1667,7 @@ type Attribute struct {
 
 func (x *Attribute) Reset() {
 	*x = Attribute{}
-	mi := &file_base_v1_base_proto_msgTypes[19]
+	mi := &file_base_v1_base_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1624,7 +1679,7 @@ func (x *Attribute) String() string {
 func (*Attribute) ProtoMessage() {}
 
 func (x *Attribute) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[19]
+	mi := &file_base_v1_base_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1637,7 +1692,7 @@ func (x *Attribute) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Attribute.ProtoReflect.Descriptor instead.
 func (*Attribute) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{19}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *Attribute) GetEntity() *Entity {
@@ -1671,7 +1726,7 @@ type Tuples struct {
 
 func (x *Tuples) Reset() {
 	*x = Tuples{}
-	mi := &file_base_v1_base_proto_msgTypes[20]
+	mi := &file_base_v1_base_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1683,7 +1738,7 @@ func (x *Tuples) String() string {
 func (*Tuples) ProtoMessage() {}
 
 func (x *Tuples) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[20]
+	mi := &file_base_v1_base_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1696,7 +1751,7 @@ func (x *Tuples) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Tuples.ProtoReflect.Descriptor instead.
 func (*Tuples) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{20}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *Tuples) GetTuples() []*Tuple {
@@ -1716,7 +1771,7 @@ type Attributes struct {
 
 func (x *Attributes) Reset() {
 	*x = Attributes{}
-	mi := &file_base_v1_base_proto_msgTypes[21]
+	mi := &file_base_v1_base_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1728,7 +1783,7 @@ func (x *Attributes) String() string {
 func (*Attributes) ProtoMessage() {}
 
 func (x *Attributes) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[21]
+	mi := &file_base_v1_base_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1741,7 +1796,7 @@ func (x *Attributes) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Attributes.ProtoReflect.Descriptor instead.
 func (*Attributes) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{21}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *Attributes) GetAttributes() []*Attribute {
@@ -1762,7 +1817,7 @@ type Entity struct {
 
 func (x *Entity) Reset() {
 	*x = Entity{}
-	mi := &file_base_v1_base_proto_msgTypes[22]
+	mi := &file_base_v1_base_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1774,7 +1829,7 @@ func (x *Entity) String() string {
 func (*Entity) ProtoMessage() {}
 
 func (x *Entity) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[22]
+	mi := &file_base_v1_base_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1787,7 +1842,7 @@ func (x *Entity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Entity.ProtoReflect.Descriptor instead.
 func (*Entity) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{22}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *Entity) GetType() string {
@@ -1815,7 +1870,7 @@ type EntityAndRelation struct {
 
 func (x *EntityAndRelation) Reset() {
 	*x = EntityAndRelation{}
-	mi := &file_base_v1_base_proto_msgTypes[23]
+	mi := &file_base_v1_base_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1827,7 +1882,7 @@ func (x *EntityAndRelation) String() string {
 func (*EntityAndRelation) ProtoMessage() {}
 
 func (x *EntityAndRelation) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[23]
+	mi := &file_base_v1_base_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1840,7 +1895,7 @@ func (x *EntityAndRelation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EntityAndRelation.ProtoReflect.Descriptor instead.
 func (*EntityAndRelation) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{23}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *EntityAndRelation) GetEntity() *Entity {
@@ -1869,7 +1924,7 @@ type Subject struct {
 
 func (x *Subject) Reset() {
 	*x = Subject{}
-	mi := &file_base_v1_base_proto_msgTypes[24]
+	mi := &file_base_v1_base_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1881,7 +1936,7 @@ func (x *Subject) String() string {
 func (*Subject) ProtoMessage() {}
 
 func (x *Subject) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[24]
+	mi := &file_base_v1_base_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1894,7 +1949,7 @@ func (x *Subject) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Subject.ProtoReflect.Descriptor instead.
 func (*Subject) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{24}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *Subject) GetType() string {
@@ -1929,7 +1984,7 @@ type AttributeFilter struct {
 
 func (x *AttributeFilter) Reset() {
 	*x = AttributeFilter{}
-	mi := &file_base_v1_base_proto_msgTypes[25]
+	mi := &file_base_v1_base_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1941,7 +1996,7 @@ func (x *AttributeFilter) String() string {
 func (*AttributeFilter) ProtoMessage() {}
 
 func (x *AttributeFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[25]
+	mi := &file_base_v1_base_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1954,7 +2009,7 @@ func (x *AttributeFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttributeFilter.ProtoReflect.Descriptor instead.
 func (*AttributeFilter) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{25}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *AttributeFilter) GetEntity() *EntityFilter {
@@ -1983,7 +2038,7 @@ type TupleFilter struct {
 
 func (x *TupleFilter) Reset() {
 	*x = TupleFilter{}
-	mi := &file_base_v1_base_proto_msgTypes[26]
+	mi := &file_base_v1_base_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1995,7 +2050,7 @@ func (x *TupleFilter) String() string {
 func (*TupleFilter) ProtoMessage() {}
 
 func (x *TupleFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[26]
+	mi := &file_base_v1_base_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2008,7 +2063,7 @@ func (x *TupleFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TupleFilter.ProtoReflect.Descriptor instead.
 func (*TupleFilter) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{26}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *TupleFilter) GetEntity() *EntityFilter {
@@ -2043,7 +2098,7 @@ type EntityFilter struct {
 
 func (x *EntityFilter) Reset() {
 	*x = EntityFilter{}
-	mi := &file_base_v1_base_proto_msgTypes[27]
+	mi := &file_base_v1_base_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2055,7 +2110,7 @@ func (x *EntityFilter) String() string {
 func (*EntityFilter) ProtoMessage() {}
 
 func (x *EntityFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[27]
+	mi := &file_base_v1_base_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2068,7 +2123,7 @@ func (x *EntityFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EntityFilter.ProtoReflect.Descriptor instead.
 func (*EntityFilter) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{27}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *EntityFilter) GetType() string {
@@ -2097,7 +2152,7 @@ type SubjectFilter struct {
 
 func (x *SubjectFilter) Reset() {
 	*x = SubjectFilter{}
-	mi := &file_base_v1_base_proto_msgTypes[28]
+	mi := &file_base_v1_base_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2109,7 +2164,7 @@ func (x *SubjectFilter) String() string {
 func (*SubjectFilter) ProtoMessage() {}
 
 func (x *SubjectFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[28]
+	mi := &file_base_v1_base_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2122,7 +2177,7 @@ func (x *SubjectFilter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubjectFilter.ProtoReflect.Descriptor instead.
 func (*SubjectFilter) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{28}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *SubjectFilter) GetType() string {
@@ -2157,7 +2212,7 @@ type ExpandTreeNode struct {
 
 func (x *ExpandTreeNode) Reset() {
 	*x = ExpandTreeNode{}
-	mi := &file_base_v1_base_proto_msgTypes[29]
+	mi := &file_base_v1_base_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2169,7 +2224,7 @@ func (x *ExpandTreeNode) String() string {
 func (*ExpandTreeNode) ProtoMessage() {}
 
 func (x *ExpandTreeNode) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[29]
+	mi := &file_base_v1_base_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2182,7 +2237,7 @@ func (x *ExpandTreeNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExpandTreeNode.ProtoReflect.Descriptor instead.
 func (*ExpandTreeNode) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{29}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ExpandTreeNode) GetOperation() ExpandTreeNode_Operation {
@@ -2222,7 +2277,7 @@ type Expand struct {
 
 func (x *Expand) Reset() {
 	*x = Expand{}
-	mi := &file_base_v1_base_proto_msgTypes[30]
+	mi := &file_base_v1_base_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2234,7 +2289,7 @@ func (x *Expand) String() string {
 func (*Expand) ProtoMessage() {}
 
 func (x *Expand) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[30]
+	mi := &file_base_v1_base_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2247,7 +2302,7 @@ func (x *Expand) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Expand.ProtoReflect.Descriptor instead.
 func (*Expand) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{30}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *Expand) GetEntity() *Entity {
@@ -2329,7 +2384,7 @@ type ExpandLeaf struct {
 
 func (x *ExpandLeaf) Reset() {
 	*x = ExpandLeaf{}
-	mi := &file_base_v1_base_proto_msgTypes[31]
+	mi := &file_base_v1_base_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2341,7 +2396,7 @@ func (x *ExpandLeaf) String() string {
 func (*ExpandLeaf) ProtoMessage() {}
 
 func (x *ExpandLeaf) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[31]
+	mi := &file_base_v1_base_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2354,7 +2409,7 @@ func (x *ExpandLeaf) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExpandLeaf.ProtoReflect.Descriptor instead.
 func (*ExpandLeaf) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{31}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ExpandLeaf) GetType() isExpandLeaf_Type {
@@ -2425,7 +2480,7 @@ type Values struct {
 
 func (x *Values) Reset() {
 	*x = Values{}
-	mi := &file_base_v1_base_proto_msgTypes[32]
+	mi := &file_base_v1_base_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2437,7 +2492,7 @@ func (x *Values) String() string {
 func (*Values) ProtoMessage() {}
 
 func (x *Values) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[32]
+	mi := &file_base_v1_base_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2450,7 +2505,7 @@ func (x *Values) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Values.ProtoReflect.Descriptor instead.
 func (*Values) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{32}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *Values) GetValues() map[string]*anypb.Any {
@@ -2470,7 +2525,7 @@ type Subjects struct {
 
 func (x *Subjects) Reset() {
 	*x = Subjects{}
-	mi := &file_base_v1_base_proto_msgTypes[33]
+	mi := &file_base_v1_base_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2482,7 +2537,7 @@ func (x *Subjects) String() string {
 func (*Subjects) ProtoMessage() {}
 
 func (x *Subjects) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[33]
+	mi := &file_base_v1_base_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2495,7 +2550,7 @@ func (x *Subjects) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Subjects.ProtoReflect.Descriptor instead.
 func (*Subjects) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{33}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *Subjects) GetSubjects() []*Subject {
@@ -2517,7 +2572,7 @@ type Tenant struct {
 
 func (x *Tenant) Reset() {
 	*x = Tenant{}
-	mi := &file_base_v1_base_proto_msgTypes[34]
+	mi := &file_base_v1_base_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2529,7 +2584,7 @@ func (x *Tenant) String() string {
 func (*Tenant) ProtoMessage() {}
 
 func (x *Tenant) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[34]
+	mi := &file_base_v1_base_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2542,7 +2597,7 @@ func (x *Tenant) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Tenant.ProtoReflect.Descriptor instead.
 func (*Tenant) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{34}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *Tenant) GetId() string {
@@ -2577,7 +2632,7 @@ type DataChanges struct {
 
 func (x *DataChanges) Reset() {
 	*x = DataChanges{}
-	mi := &file_base_v1_base_proto_msgTypes[35]
+	mi := &file_base_v1_base_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2589,7 +2644,7 @@ func (x *DataChanges) String() string {
 func (*DataChanges) ProtoMessage() {}
 
 func (x *DataChanges) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[35]
+	mi := &file_base_v1_base_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2602,7 +2657,7 @@ func (x *DataChanges) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DataChanges.ProtoReflect.Descriptor instead.
 func (*DataChanges) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{35}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *DataChanges) GetSnapToken() string {
@@ -2634,7 +2689,7 @@ type DataChange struct {
 
 func (x *DataChange) Reset() {
 	*x = DataChange{}
-	mi := &file_base_v1_base_proto_msgTypes[36]
+	mi := &file_base_v1_base_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2646,7 +2701,7 @@ func (x *DataChange) String() string {
 func (*DataChange) ProtoMessage() {}
 
 func (x *DataChange) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[36]
+	mi := &file_base_v1_base_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2659,7 +2714,7 @@ func (x *DataChange) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DataChange.ProtoReflect.Descriptor instead.
 func (*DataChange) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{36}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *DataChange) GetOperation() DataChange_Operation {
@@ -2720,7 +2775,7 @@ type StringValue struct {
 
 func (x *StringValue) Reset() {
 	*x = StringValue{}
-	mi := &file_base_v1_base_proto_msgTypes[37]
+	mi := &file_base_v1_base_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2732,7 +2787,7 @@ func (x *StringValue) String() string {
 func (*StringValue) ProtoMessage() {}
 
 func (x *StringValue) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[37]
+	mi := &file_base_v1_base_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2745,7 +2800,7 @@ func (x *StringValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StringValue.ProtoReflect.Descriptor instead.
 func (*StringValue) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{37}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *StringValue) GetData() string {
@@ -2765,7 +2820,7 @@ type IntegerValue struct {
 
 func (x *IntegerValue) Reset() {
 	*x = IntegerValue{}
-	mi := &file_base_v1_base_proto_msgTypes[38]
+	mi := &file_base_v1_base_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2777,7 +2832,7 @@ func (x *IntegerValue) String() string {
 func (*IntegerValue) ProtoMessage() {}
 
 func (x *IntegerValue) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[38]
+	mi := &file_base_v1_base_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2790,7 +2845,7 @@ func (x *IntegerValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IntegerValue.ProtoReflect.Descriptor instead.
 func (*IntegerValue) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{38}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *IntegerValue) GetData() int32 {
@@ -2810,7 +2865,7 @@ type DoubleValue struct {
 
 func (x *DoubleValue) Reset() {
 	*x = DoubleValue{}
-	mi := &file_base_v1_base_proto_msgTypes[39]
+	mi := &file_base_v1_base_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2822,7 +2877,7 @@ func (x *DoubleValue) String() string {
 func (*DoubleValue) ProtoMessage() {}
 
 func (x *DoubleValue) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[39]
+	mi := &file_base_v1_base_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2835,7 +2890,7 @@ func (x *DoubleValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DoubleValue.ProtoReflect.Descriptor instead.
 func (*DoubleValue) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{39}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *DoubleValue) GetData() float64 {
@@ -2855,7 +2910,7 @@ type BooleanValue struct {
 
 func (x *BooleanValue) Reset() {
 	*x = BooleanValue{}
-	mi := &file_base_v1_base_proto_msgTypes[40]
+	mi := &file_base_v1_base_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2867,7 +2922,7 @@ func (x *BooleanValue) String() string {
 func (*BooleanValue) ProtoMessage() {}
 
 func (x *BooleanValue) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[40]
+	mi := &file_base_v1_base_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2880,7 +2935,7 @@ func (x *BooleanValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BooleanValue.ProtoReflect.Descriptor instead.
 func (*BooleanValue) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{40}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *BooleanValue) GetData() bool {
@@ -2900,7 +2955,7 @@ type StringArrayValue struct {
 
 func (x *StringArrayValue) Reset() {
 	*x = StringArrayValue{}
-	mi := &file_base_v1_base_proto_msgTypes[41]
+	mi := &file_base_v1_base_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2912,7 +2967,7 @@ func (x *StringArrayValue) String() string {
 func (*StringArrayValue) ProtoMessage() {}
 
 func (x *StringArrayValue) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[41]
+	mi := &file_base_v1_base_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2925,7 +2980,7 @@ func (x *StringArrayValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StringArrayValue.ProtoReflect.Descriptor instead.
 func (*StringArrayValue) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{41}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *StringArrayValue) GetData() []string {
@@ -2945,7 +3000,7 @@ type IntegerArrayValue struct {
 
 func (x *IntegerArrayValue) Reset() {
 	*x = IntegerArrayValue{}
-	mi := &file_base_v1_base_proto_msgTypes[42]
+	mi := &file_base_v1_base_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2957,7 +3012,7 @@ func (x *IntegerArrayValue) String() string {
 func (*IntegerArrayValue) ProtoMessage() {}
 
 func (x *IntegerArrayValue) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[42]
+	mi := &file_base_v1_base_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2970,7 +3025,7 @@ func (x *IntegerArrayValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IntegerArrayValue.ProtoReflect.Descriptor instead.
 func (*IntegerArrayValue) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{42}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *IntegerArrayValue) GetData() []int32 {
@@ -2990,7 +3045,7 @@ type DoubleArrayValue struct {
 
 func (x *DoubleArrayValue) Reset() {
 	*x = DoubleArrayValue{}
-	mi := &file_base_v1_base_proto_msgTypes[43]
+	mi := &file_base_v1_base_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3002,7 +3057,7 @@ func (x *DoubleArrayValue) String() string {
 func (*DoubleArrayValue) ProtoMessage() {}
 
 func (x *DoubleArrayValue) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[43]
+	mi := &file_base_v1_base_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3015,7 +3070,7 @@ func (x *DoubleArrayValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DoubleArrayValue.ProtoReflect.Descriptor instead.
 func (*DoubleArrayValue) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{43}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *DoubleArrayValue) GetData() []float64 {
@@ -3035,7 +3090,7 @@ type BooleanArrayValue struct {
 
 func (x *BooleanArrayValue) Reset() {
 	*x = BooleanArrayValue{}
-	mi := &file_base_v1_base_proto_msgTypes[44]
+	mi := &file_base_v1_base_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3047,7 +3102,7 @@ func (x *BooleanArrayValue) String() string {
 func (*BooleanArrayValue) ProtoMessage() {}
 
 func (x *BooleanArrayValue) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[44]
+	mi := &file_base_v1_base_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3060,7 +3115,7 @@ func (x *BooleanArrayValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BooleanArrayValue.ProtoReflect.Descriptor instead.
 func (*BooleanArrayValue) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{44}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *BooleanArrayValue) GetData() []bool {
@@ -3088,7 +3143,7 @@ type DataBundle struct {
 
 func (x *DataBundle) Reset() {
 	*x = DataBundle{}
-	mi := &file_base_v1_base_proto_msgTypes[45]
+	mi := &file_base_v1_base_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3100,7 +3155,7 @@ func (x *DataBundle) String() string {
 func (*DataBundle) ProtoMessage() {}
 
 func (x *DataBundle) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[45]
+	mi := &file_base_v1_base_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3113,7 +3168,7 @@ func (x *DataBundle) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DataBundle.ProtoReflect.Descriptor instead.
 func (*DataBundle) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{45}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *DataBundle) GetName() string {
@@ -3159,7 +3214,7 @@ type Operation struct {
 
 func (x *Operation) Reset() {
 	*x = Operation{}
-	mi := &file_base_v1_base_proto_msgTypes[46]
+	mi := &file_base_v1_base_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3171,7 +3226,7 @@ func (x *Operation) String() string {
 func (*Operation) ProtoMessage() {}
 
 func (x *Operation) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[46]
+	mi := &file_base_v1_base_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3184,7 +3239,7 @@ func (x *Operation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Operation.ProtoReflect.Descriptor instead.
 func (*Operation) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{46}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *Operation) GetRelationshipsWrite() []string {
@@ -3227,7 +3282,7 @@ type Partials struct {
 
 func (x *Partials) Reset() {
 	*x = Partials{}
-	mi := &file_base_v1_base_proto_msgTypes[47]
+	mi := &file_base_v1_base_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3239,7 +3294,7 @@ func (x *Partials) String() string {
 func (*Partials) ProtoMessage() {}
 
 func (x *Partials) ProtoReflect() protoreflect.Message {
-	mi := &file_base_v1_base_proto_msgTypes[47]
+	mi := &file_base_v1_base_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3252,7 +3307,7 @@ func (x *Partials) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Partials.ProtoReflect.Descriptor instead.
 func (*Partials) Descriptor() ([]byte, []int) {
-	return file_base_v1_base_proto_rawDescGZIP(), []int{47}
+	return file_base_v1_base_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *Partials) GetWrite() []string {
@@ -3280,7 +3335,10 @@ var File_base_v1_base_proto protoreflect.FileDescriptor
 
 const file_base_v1_base_proto_rawDesc = "" +
 	"\n" +
-	"\x12base/v1/base.proto\x12\abase.v1\x1a&google/api/expr/v1alpha1/checked.proto\x1a\x19google/protobuf/any.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17validate/validate.proto\"\x92\x01\n" +
+	"\x12base/v1/base.proto\x12\abase.v1\x1a&google/api/expr/v1alpha1/checked.proto\x1a\x19google/protobuf/any.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17validate/validate.proto\"k\n" +
+	"\rNamedArgument\x12.\n" +
+	"\x04name\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x12*\n" +
+	"\x04type\x18\x02 \x01(\x0e2\x16.base.v1.AttributeTypeR\x04type\"\x92\x01\n" +
 	"\aContext\x12&\n" +
 	"\x06tuples\x18\x01 \x03(\v2\x0e.base.v1.TupleR\x06tuples\x122\n" +
 	"\n" +
@@ -3350,16 +3408,13 @@ const file_base_v1_base_proto_rawDesc = "" +
 	"\x15REFERENCE_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12REFERENCE_RELATION\x10\x01\x12\x18\n" +
 	"\x14REFERENCE_PERMISSION\x10\x02\x12\x17\n" +
-	"\x13REFERENCE_ATTRIBUTE\x10\x03\"\xa3\x02\n" +
+	"\x13REFERENCE_ATTRIBUTE\x10\x03\"\xbd\x01\n" +
 	"\x0eRuleDefinition\x12.\n" +
-	"\x04name\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x12D\n" +
-	"\targuments\x18\x02 \x03(\v2&.base.v1.RuleDefinition.ArgumentsEntryR\targuments\x12E\n" +
+	"\x04name\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x124\n" +
+	"\targuments\x18\x02 \x03(\v2\x16.base.v1.NamedArgumentR\targuments\x12E\n" +
 	"\n" +
 	"expression\x18\x03 \x01(\v2%.google.api.expr.v1alpha1.CheckedExprR\n" +
-	"expression\x1aT\n" +
-	"\x0eArgumentsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12,\n" +
-	"\x05value\x18\x02 \x01(\x0e2\x16.base.v1.AttributeTypeR\x05value:\x028\x01\"q\n" +
+	"expression\"q\n" +
 	"\x13AttributeDefinition\x12.\n" +
 	"\x04name\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x12*\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x16.base.v1.AttributeTypeR\x04type\"\x91\x01\n" +
@@ -3552,62 +3607,62 @@ var file_base_v1_base_proto_goTypes = []any{
 	(EntityDefinition_Reference)(0), // 4: base.v1.EntityDefinition.Reference
 	(ExpandTreeNode_Operation)(0),   // 5: base.v1.ExpandTreeNode.Operation
 	(DataChange_Operation)(0),       // 6: base.v1.DataChange.Operation
-	(*Context)(nil),                 // 7: base.v1.Context
-	(*Child)(nil),                   // 8: base.v1.Child
-	(*Leaf)(nil),                    // 9: base.v1.Leaf
-	(*Rewrite)(nil),                 // 10: base.v1.Rewrite
-	(*SchemaDefinition)(nil),        // 11: base.v1.SchemaDefinition
-	(*EntityDefinition)(nil),        // 12: base.v1.EntityDefinition
-	(*RuleDefinition)(nil),          // 13: base.v1.RuleDefinition
-	(*AttributeDefinition)(nil),     // 14: base.v1.AttributeDefinition
-	(*RelationDefinition)(nil),      // 15: base.v1.RelationDefinition
-	(*PermissionDefinition)(nil),    // 16: base.v1.PermissionDefinition
-	(*RelationReference)(nil),       // 17: base.v1.RelationReference
-	(*Entrance)(nil),                // 18: base.v1.Entrance
-	(*Argument)(nil),                // 19: base.v1.Argument
-	(*Call)(nil),                    // 20: base.v1.Call
-	(*ComputedAttribute)(nil),       // 21: base.v1.ComputedAttribute
-	(*ComputedUserSet)(nil),         // 22: base.v1.ComputedUserSet
-	(*TupleToUserSet)(nil),          // 23: base.v1.TupleToUserSet
-	(*TupleSet)(nil),                // 24: base.v1.TupleSet
-	(*Tuple)(nil),                   // 25: base.v1.Tuple
-	(*Attribute)(nil),               // 26: base.v1.Attribute
-	(*Tuples)(nil),                  // 27: base.v1.Tuples
-	(*Attributes)(nil),              // 28: base.v1.Attributes
-	(*Entity)(nil),                  // 29: base.v1.Entity
-	(*EntityAndRelation)(nil),       // 30: base.v1.EntityAndRelation
-	(*Subject)(nil),                 // 31: base.v1.Subject
-	(*AttributeFilter)(nil),         // 32: base.v1.AttributeFilter
-	(*TupleFilter)(nil),             // 33: base.v1.TupleFilter
-	(*EntityFilter)(nil),            // 34: base.v1.EntityFilter
-	(*SubjectFilter)(nil),           // 35: base.v1.SubjectFilter
-	(*ExpandTreeNode)(nil),          // 36: base.v1.ExpandTreeNode
-	(*Expand)(nil),                  // 37: base.v1.Expand
-	(*ExpandLeaf)(nil),              // 38: base.v1.ExpandLeaf
-	(*Values)(nil),                  // 39: base.v1.Values
-	(*Subjects)(nil),                // 40: base.v1.Subjects
-	(*Tenant)(nil),                  // 41: base.v1.Tenant
-	(*DataChanges)(nil),             // 42: base.v1.DataChanges
-	(*DataChange)(nil),              // 43: base.v1.DataChange
-	(*StringValue)(nil),             // 44: base.v1.StringValue
-	(*IntegerValue)(nil),            // 45: base.v1.IntegerValue
-	(*DoubleValue)(nil),             // 46: base.v1.DoubleValue
-	(*BooleanValue)(nil),            // 47: base.v1.BooleanValue
-	(*StringArrayValue)(nil),        // 48: base.v1.StringArrayValue
-	(*IntegerArrayValue)(nil),       // 49: base.v1.IntegerArrayValue
-	(*DoubleArrayValue)(nil),        // 50: base.v1.DoubleArrayValue
-	(*BooleanArrayValue)(nil),       // 51: base.v1.BooleanArrayValue
-	(*DataBundle)(nil),              // 52: base.v1.DataBundle
-	(*Operation)(nil),               // 53: base.v1.Operation
-	(*Partials)(nil),                // 54: base.v1.Partials
-	nil,                             // 55: base.v1.SchemaDefinition.EntityDefinitionsEntry
-	nil,                             // 56: base.v1.SchemaDefinition.RuleDefinitionsEntry
-	nil,                             // 57: base.v1.SchemaDefinition.ReferencesEntry
-	nil,                             // 58: base.v1.EntityDefinition.RelationsEntry
-	nil,                             // 59: base.v1.EntityDefinition.PermissionsEntry
-	nil,                             // 60: base.v1.EntityDefinition.AttributesEntry
-	nil,                             // 61: base.v1.EntityDefinition.ReferencesEntry
-	nil,                             // 62: base.v1.RuleDefinition.ArgumentsEntry
+	(*NamedArgument)(nil),           // 7: base.v1.NamedArgument
+	(*Context)(nil),                 // 8: base.v1.Context
+	(*Child)(nil),                   // 9: base.v1.Child
+	(*Leaf)(nil),                    // 10: base.v1.Leaf
+	(*Rewrite)(nil),                 // 11: base.v1.Rewrite
+	(*SchemaDefinition)(nil),        // 12: base.v1.SchemaDefinition
+	(*EntityDefinition)(nil),        // 13: base.v1.EntityDefinition
+	(*RuleDefinition)(nil),          // 14: base.v1.RuleDefinition
+	(*AttributeDefinition)(nil),     // 15: base.v1.AttributeDefinition
+	(*RelationDefinition)(nil),      // 16: base.v1.RelationDefinition
+	(*PermissionDefinition)(nil),    // 17: base.v1.PermissionDefinition
+	(*RelationReference)(nil),       // 18: base.v1.RelationReference
+	(*Entrance)(nil),                // 19: base.v1.Entrance
+	(*Argument)(nil),                // 20: base.v1.Argument
+	(*Call)(nil),                    // 21: base.v1.Call
+	(*ComputedAttribute)(nil),       // 22: base.v1.ComputedAttribute
+	(*ComputedUserSet)(nil),         // 23: base.v1.ComputedUserSet
+	(*TupleToUserSet)(nil),          // 24: base.v1.TupleToUserSet
+	(*TupleSet)(nil),                // 25: base.v1.TupleSet
+	(*Tuple)(nil),                   // 26: base.v1.Tuple
+	(*Attribute)(nil),               // 27: base.v1.Attribute
+	(*Tuples)(nil),                  // 28: base.v1.Tuples
+	(*Attributes)(nil),              // 29: base.v1.Attributes
+	(*Entity)(nil),                  // 30: base.v1.Entity
+	(*EntityAndRelation)(nil),       // 31: base.v1.EntityAndRelation
+	(*Subject)(nil),                 // 32: base.v1.Subject
+	(*AttributeFilter)(nil),         // 33: base.v1.AttributeFilter
+	(*TupleFilter)(nil),             // 34: base.v1.TupleFilter
+	(*EntityFilter)(nil),            // 35: base.v1.EntityFilter
+	(*SubjectFilter)(nil),           // 36: base.v1.SubjectFilter
+	(*ExpandTreeNode)(nil),          // 37: base.v1.ExpandTreeNode
+	(*Expand)(nil),                  // 38: base.v1.Expand
+	(*ExpandLeaf)(nil),              // 39: base.v1.ExpandLeaf
+	(*Values)(nil),                  // 40: base.v1.Values
+	(*Subjects)(nil),                // 41: base.v1.Subjects
+	(*Tenant)(nil),                  // 42: base.v1.Tenant
+	(*DataChanges)(nil),             // 43: base.v1.DataChanges
+	(*DataChange)(nil),              // 44: base.v1.DataChange
+	(*StringValue)(nil),             // 45: base.v1.StringValue
+	(*IntegerValue)(nil),            // 46: base.v1.IntegerValue
+	(*DoubleValue)(nil),             // 47: base.v1.DoubleValue
+	(*BooleanValue)(nil),            // 48: base.v1.BooleanValue
+	(*StringArrayValue)(nil),        // 49: base.v1.StringArrayValue
+	(*IntegerArrayValue)(nil),       // 50: base.v1.IntegerArrayValue
+	(*DoubleArrayValue)(nil),        // 51: base.v1.DoubleArrayValue
+	(*BooleanArrayValue)(nil),       // 52: base.v1.BooleanArrayValue
+	(*DataBundle)(nil),              // 53: base.v1.DataBundle
+	(*Operation)(nil),               // 54: base.v1.Operation
+	(*Partials)(nil),                // 55: base.v1.Partials
+	nil,                             // 56: base.v1.SchemaDefinition.EntityDefinitionsEntry
+	nil,                             // 57: base.v1.SchemaDefinition.RuleDefinitionsEntry
+	nil,                             // 58: base.v1.SchemaDefinition.ReferencesEntry
+	nil,                             // 59: base.v1.EntityDefinition.RelationsEntry
+	nil,                             // 60: base.v1.EntityDefinition.PermissionsEntry
+	nil,                             // 61: base.v1.EntityDefinition.AttributesEntry
+	nil,                             // 62: base.v1.EntityDefinition.ReferencesEntry
 	nil,                             // 63: base.v1.Values.ValuesEntry
 	(*structpb.Struct)(nil),         // 64: google.protobuf.Struct
 	(*v1alpha1.CheckedExpr)(nil),    // 65: google.api.expr.v1alpha1.CheckedExpr
@@ -3615,68 +3670,68 @@ var file_base_v1_base_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil),   // 67: google.protobuf.Timestamp
 }
 var file_base_v1_base_proto_depIdxs = []int32{
-	25, // 0: base.v1.Context.tuples:type_name -> base.v1.Tuple
-	26, // 1: base.v1.Context.attributes:type_name -> base.v1.Attribute
-	64, // 2: base.v1.Context.data:type_name -> google.protobuf.Struct
-	9,  // 3: base.v1.Child.leaf:type_name -> base.v1.Leaf
-	10, // 4: base.v1.Child.rewrite:type_name -> base.v1.Rewrite
-	22, // 5: base.v1.Leaf.computed_user_set:type_name -> base.v1.ComputedUserSet
-	23, // 6: base.v1.Leaf.tuple_to_user_set:type_name -> base.v1.TupleToUserSet
-	21, // 7: base.v1.Leaf.computed_attribute:type_name -> base.v1.ComputedAttribute
-	20, // 8: base.v1.Leaf.call:type_name -> base.v1.Call
-	2,  // 9: base.v1.Rewrite.rewrite_operation:type_name -> base.v1.Rewrite.Operation
-	8,  // 10: base.v1.Rewrite.children:type_name -> base.v1.Child
-	55, // 11: base.v1.SchemaDefinition.entity_definitions:type_name -> base.v1.SchemaDefinition.EntityDefinitionsEntry
-	56, // 12: base.v1.SchemaDefinition.rule_definitions:type_name -> base.v1.SchemaDefinition.RuleDefinitionsEntry
-	57, // 13: base.v1.SchemaDefinition.references:type_name -> base.v1.SchemaDefinition.ReferencesEntry
-	58, // 14: base.v1.EntityDefinition.relations:type_name -> base.v1.EntityDefinition.RelationsEntry
-	59, // 15: base.v1.EntityDefinition.permissions:type_name -> base.v1.EntityDefinition.PermissionsEntry
-	60, // 16: base.v1.EntityDefinition.attributes:type_name -> base.v1.EntityDefinition.AttributesEntry
-	61, // 17: base.v1.EntityDefinition.references:type_name -> base.v1.EntityDefinition.ReferencesEntry
-	62, // 18: base.v1.RuleDefinition.arguments:type_name -> base.v1.RuleDefinition.ArgumentsEntry
-	65, // 19: base.v1.RuleDefinition.expression:type_name -> google.api.expr.v1alpha1.CheckedExpr
-	1,  // 20: base.v1.AttributeDefinition.type:type_name -> base.v1.AttributeType
-	17, // 21: base.v1.RelationDefinition.relation_references:type_name -> base.v1.RelationReference
-	8,  // 22: base.v1.PermissionDefinition.child:type_name -> base.v1.Child
-	21, // 23: base.v1.Argument.computed_attribute:type_name -> base.v1.ComputedAttribute
-	19, // 24: base.v1.Call.arguments:type_name -> base.v1.Argument
-	24, // 25: base.v1.TupleToUserSet.tupleSet:type_name -> base.v1.TupleSet
-	22, // 26: base.v1.TupleToUserSet.computed:type_name -> base.v1.ComputedUserSet
-	29, // 27: base.v1.Tuple.entity:type_name -> base.v1.Entity
-	31, // 28: base.v1.Tuple.subject:type_name -> base.v1.Subject
-	29, // 29: base.v1.Attribute.entity:type_name -> base.v1.Entity
-	66, // 30: base.v1.Attribute.value:type_name -> google.protobuf.Any
-	25, // 31: base.v1.Tuples.tuples:type_name -> base.v1.Tuple
-	26, // 32: base.v1.Attributes.attributes:type_name -> base.v1.Attribute
-	29, // 33: base.v1.EntityAndRelation.entity:type_name -> base.v1.Entity
-	34, // 34: base.v1.AttributeFilter.entity:type_name -> base.v1.EntityFilter
-	34, // 35: base.v1.TupleFilter.entity:type_name -> base.v1.EntityFilter
-	35, // 36: base.v1.TupleFilter.subject:type_name -> base.v1.SubjectFilter
-	5,  // 37: base.v1.ExpandTreeNode.operation:type_name -> base.v1.ExpandTreeNode.Operation
-	37, // 38: base.v1.ExpandTreeNode.children:type_name -> base.v1.Expand
-	29, // 39: base.v1.Expand.entity:type_name -> base.v1.Entity
-	19, // 40: base.v1.Expand.arguments:type_name -> base.v1.Argument
-	36, // 41: base.v1.Expand.expand:type_name -> base.v1.ExpandTreeNode
-	38, // 42: base.v1.Expand.leaf:type_name -> base.v1.ExpandLeaf
-	40, // 43: base.v1.ExpandLeaf.subjects:type_name -> base.v1.Subjects
-	39, // 44: base.v1.ExpandLeaf.values:type_name -> base.v1.Values
-	66, // 45: base.v1.ExpandLeaf.value:type_name -> google.protobuf.Any
-	63, // 46: base.v1.Values.values:type_name -> base.v1.Values.ValuesEntry
-	31, // 47: base.v1.Subjects.subjects:type_name -> base.v1.Subject
-	67, // 48: base.v1.Tenant.created_at:type_name -> google.protobuf.Timestamp
-	43, // 49: base.v1.DataChanges.data_changes:type_name -> base.v1.DataChange
-	6,  // 50: base.v1.DataChange.operation:type_name -> base.v1.DataChange.Operation
-	25, // 51: base.v1.DataChange.tuple:type_name -> base.v1.Tuple
-	26, // 52: base.v1.DataChange.attribute:type_name -> base.v1.Attribute
-	53, // 53: base.v1.DataBundle.operations:type_name -> base.v1.Operation
-	12, // 54: base.v1.SchemaDefinition.EntityDefinitionsEntry.value:type_name -> base.v1.EntityDefinition
-	13, // 55: base.v1.SchemaDefinition.RuleDefinitionsEntry.value:type_name -> base.v1.RuleDefinition
-	3,  // 56: base.v1.SchemaDefinition.ReferencesEntry.value:type_name -> base.v1.SchemaDefinition.Reference
-	15, // 57: base.v1.EntityDefinition.RelationsEntry.value:type_name -> base.v1.RelationDefinition
-	16, // 58: base.v1.EntityDefinition.PermissionsEntry.value:type_name -> base.v1.PermissionDefinition
-	14, // 59: base.v1.EntityDefinition.AttributesEntry.value:type_name -> base.v1.AttributeDefinition
-	4,  // 60: base.v1.EntityDefinition.ReferencesEntry.value:type_name -> base.v1.EntityDefinition.Reference
-	1,  // 61: base.v1.RuleDefinition.ArgumentsEntry.value:type_name -> base.v1.AttributeType
+	1,  // 0: base.v1.NamedArgument.type:type_name -> base.v1.AttributeType
+	26, // 1: base.v1.Context.tuples:type_name -> base.v1.Tuple
+	27, // 2: base.v1.Context.attributes:type_name -> base.v1.Attribute
+	64, // 3: base.v1.Context.data:type_name -> google.protobuf.Struct
+	10, // 4: base.v1.Child.leaf:type_name -> base.v1.Leaf
+	11, // 5: base.v1.Child.rewrite:type_name -> base.v1.Rewrite
+	23, // 6: base.v1.Leaf.computed_user_set:type_name -> base.v1.ComputedUserSet
+	24, // 7: base.v1.Leaf.tuple_to_user_set:type_name -> base.v1.TupleToUserSet
+	22, // 8: base.v1.Leaf.computed_attribute:type_name -> base.v1.ComputedAttribute
+	21, // 9: base.v1.Leaf.call:type_name -> base.v1.Call
+	2,  // 10: base.v1.Rewrite.rewrite_operation:type_name -> base.v1.Rewrite.Operation
+	9,  // 11: base.v1.Rewrite.children:type_name -> base.v1.Child
+	56, // 12: base.v1.SchemaDefinition.entity_definitions:type_name -> base.v1.SchemaDefinition.EntityDefinitionsEntry
+	57, // 13: base.v1.SchemaDefinition.rule_definitions:type_name -> base.v1.SchemaDefinition.RuleDefinitionsEntry
+	58, // 14: base.v1.SchemaDefinition.references:type_name -> base.v1.SchemaDefinition.ReferencesEntry
+	59, // 15: base.v1.EntityDefinition.relations:type_name -> base.v1.EntityDefinition.RelationsEntry
+	60, // 16: base.v1.EntityDefinition.permissions:type_name -> base.v1.EntityDefinition.PermissionsEntry
+	61, // 17: base.v1.EntityDefinition.attributes:type_name -> base.v1.EntityDefinition.AttributesEntry
+	62, // 18: base.v1.EntityDefinition.references:type_name -> base.v1.EntityDefinition.ReferencesEntry
+	7,  // 19: base.v1.RuleDefinition.arguments:type_name -> base.v1.NamedArgument
+	65, // 20: base.v1.RuleDefinition.expression:type_name -> google.api.expr.v1alpha1.CheckedExpr
+	1,  // 21: base.v1.AttributeDefinition.type:type_name -> base.v1.AttributeType
+	18, // 22: base.v1.RelationDefinition.relation_references:type_name -> base.v1.RelationReference
+	9,  // 23: base.v1.PermissionDefinition.child:type_name -> base.v1.Child
+	22, // 24: base.v1.Argument.computed_attribute:type_name -> base.v1.ComputedAttribute
+	20, // 25: base.v1.Call.arguments:type_name -> base.v1.Argument
+	25, // 26: base.v1.TupleToUserSet.tupleSet:type_name -> base.v1.TupleSet
+	23, // 27: base.v1.TupleToUserSet.computed:type_name -> base.v1.ComputedUserSet
+	30, // 28: base.v1.Tuple.entity:type_name -> base.v1.Entity
+	32, // 29: base.v1.Tuple.subject:type_name -> base.v1.Subject
+	30, // 30: base.v1.Attribute.entity:type_name -> base.v1.Entity
+	66, // 31: base.v1.Attribute.value:type_name -> google.protobuf.Any
+	26, // 32: base.v1.Tuples.tuples:type_name -> base.v1.Tuple
+	27, // 33: base.v1.Attributes.attributes:type_name -> base.v1.Attribute
+	30, // 34: base.v1.EntityAndRelation.entity:type_name -> base.v1.Entity
+	35, // 35: base.v1.AttributeFilter.entity:type_name -> base.v1.EntityFilter
+	35, // 36: base.v1.TupleFilter.entity:type_name -> base.v1.EntityFilter
+	36, // 37: base.v1.TupleFilter.subject:type_name -> base.v1.SubjectFilter
+	5,  // 38: base.v1.ExpandTreeNode.operation:type_name -> base.v1.ExpandTreeNode.Operation
+	38, // 39: base.v1.ExpandTreeNode.children:type_name -> base.v1.Expand
+	30, // 40: base.v1.Expand.entity:type_name -> base.v1.Entity
+	20, // 41: base.v1.Expand.arguments:type_name -> base.v1.Argument
+	37, // 42: base.v1.Expand.expand:type_name -> base.v1.ExpandTreeNode
+	39, // 43: base.v1.Expand.leaf:type_name -> base.v1.ExpandLeaf
+	41, // 44: base.v1.ExpandLeaf.subjects:type_name -> base.v1.Subjects
+	40, // 45: base.v1.ExpandLeaf.values:type_name -> base.v1.Values
+	66, // 46: base.v1.ExpandLeaf.value:type_name -> google.protobuf.Any
+	63, // 47: base.v1.Values.values:type_name -> base.v1.Values.ValuesEntry
+	32, // 48: base.v1.Subjects.subjects:type_name -> base.v1.Subject
+	67, // 49: base.v1.Tenant.created_at:type_name -> google.protobuf.Timestamp
+	44, // 50: base.v1.DataChanges.data_changes:type_name -> base.v1.DataChange
+	6,  // 51: base.v1.DataChange.operation:type_name -> base.v1.DataChange.Operation
+	26, // 52: base.v1.DataChange.tuple:type_name -> base.v1.Tuple
+	27, // 53: base.v1.DataChange.attribute:type_name -> base.v1.Attribute
+	54, // 54: base.v1.DataBundle.operations:type_name -> base.v1.Operation
+	13, // 55: base.v1.SchemaDefinition.EntityDefinitionsEntry.value:type_name -> base.v1.EntityDefinition
+	14, // 56: base.v1.SchemaDefinition.RuleDefinitionsEntry.value:type_name -> base.v1.RuleDefinition
+	3,  // 57: base.v1.SchemaDefinition.ReferencesEntry.value:type_name -> base.v1.SchemaDefinition.Reference
+	16, // 58: base.v1.EntityDefinition.RelationsEntry.value:type_name -> base.v1.RelationDefinition
+	17, // 59: base.v1.EntityDefinition.PermissionsEntry.value:type_name -> base.v1.PermissionDefinition
+	15, // 60: base.v1.EntityDefinition.AttributesEntry.value:type_name -> base.v1.AttributeDefinition
+	4,  // 61: base.v1.EntityDefinition.ReferencesEntry.value:type_name -> base.v1.EntityDefinition.Reference
 	66, // 62: base.v1.Values.ValuesEntry.value:type_name -> google.protobuf.Any
 	63, // [63:63] is the sub-list for method output_type
 	63, // [63:63] is the sub-list for method input_type
@@ -3690,29 +3745,29 @@ func file_base_v1_base_proto_init() {
 	if File_base_v1_base_proto != nil {
 		return
 	}
-	file_base_v1_base_proto_msgTypes[1].OneofWrappers = []any{
+	file_base_v1_base_proto_msgTypes[2].OneofWrappers = []any{
 		(*Child_Leaf)(nil),
 		(*Child_Rewrite)(nil),
 	}
-	file_base_v1_base_proto_msgTypes[2].OneofWrappers = []any{
+	file_base_v1_base_proto_msgTypes[3].OneofWrappers = []any{
 		(*Leaf_ComputedUserSet)(nil),
 		(*Leaf_TupleToUserSet)(nil),
 		(*Leaf_ComputedAttribute)(nil),
 		(*Leaf_Call)(nil),
 	}
-	file_base_v1_base_proto_msgTypes[12].OneofWrappers = []any{
+	file_base_v1_base_proto_msgTypes[13].OneofWrappers = []any{
 		(*Argument_ComputedAttribute)(nil),
 	}
-	file_base_v1_base_proto_msgTypes[30].OneofWrappers = []any{
+	file_base_v1_base_proto_msgTypes[31].OneofWrappers = []any{
 		(*Expand_Expand)(nil),
 		(*Expand_Leaf)(nil),
 	}
-	file_base_v1_base_proto_msgTypes[31].OneofWrappers = []any{
+	file_base_v1_base_proto_msgTypes[32].OneofWrappers = []any{
 		(*ExpandLeaf_Subjects)(nil),
 		(*ExpandLeaf_Values)(nil),
 		(*ExpandLeaf_Value)(nil),
 	}
-	file_base_v1_base_proto_msgTypes[36].OneofWrappers = []any{
+	file_base_v1_base_proto_msgTypes[37].OneofWrappers = []any{
 		(*DataChange_Tuple)(nil),
 		(*DataChange_Attribute)(nil),
 	}

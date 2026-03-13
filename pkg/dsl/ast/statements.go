@@ -183,7 +183,11 @@ func (as *AttributeTypeStatement) StatementType() StatementType {
 
 func (as *AttributeTypeStatement) statementNode() {}
 
-// RelationTypeStatement represents a statement that defines the type of relationship.
+type RuleArgument struct {
+	Name token.Token
+	Type AttributeTypeStatement
+}
+
 type RelationTypeStatement struct {
 	Sign     token.Token // token.SIGN
 	Type     token.Token // token.IDENT
@@ -277,9 +281,9 @@ func (es *ExpressionStatement) StatementType() StatementType {
 
 // RuleStatement represents a rule statement, which consists of a rule name, a list of parameters and a body.
 type RuleStatement struct {
-	Rule       token.Token // token.RULE
-	Name       token.Token // token.IDENT
-	Arguments  map[token.Token]AttributeTypeStatement
+	Rule       token.Token    // token.RULE
+	Name       token.Token    // token.IDENT
+	Arguments  []RuleArgument // Ordered list of arguments
 	Expression string
 }
 
@@ -295,12 +299,12 @@ func (rs *RuleStatement) String() string {
 	sb.WriteString("(")
 
 	var literals []string
-	for param, typ := range rs.Arguments {
+	for _, arg := range rs.Arguments {
 		var pb strings.Builder
-		pb.WriteString(param.Literal)
+		pb.WriteString(arg.Name.Literal)
 		pb.WriteString(" ")
-		pb.WriteString(typ.Type.Literal)
-		if typ.IsArray {
+		pb.WriteString(arg.Type.Type.Literal)
+		if arg.Type.IsArray {
 			pb.WriteString("[]")
 		}
 		literals = append(literals, pb.String())

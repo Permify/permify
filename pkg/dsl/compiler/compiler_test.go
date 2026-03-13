@@ -1632,8 +1632,8 @@ var _ = Describe("compiler", func() {
 			rI := []*base.RuleDefinition{
 				{
 					Name: "check_balance",
-					Arguments: map[string]base.AttributeType{
-						"balance": base.AttributeType_ATTRIBUTE_TYPE_INTEGER,
+					Arguments: []*base.NamedArgument{
+						{Name: "balance", Type: base.AttributeType_ATTRIBUTE_TYPE_INTEGER},
 					},
 					Expression: expr,
 				},
@@ -2050,8 +2050,8 @@ var _ = Describe("compiler", func() {
 			rI := []*base.RuleDefinition{
 				{
 					Name: "check_location",
-					Arguments: map[string]base.AttributeType{
-						"location": base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY,
+					Arguments: []*base.NamedArgument{
+						{Name: "location", Type: base.AttributeType_ATTRIBUTE_TYPE_STRING_ARRAY},
 					},
 					Expression: expr,
 				},

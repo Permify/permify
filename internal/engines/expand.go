@@ -581,21 +581,30 @@ func (engine *ExpandEngine) expandDirectCall(
 		// Prepare a slice for attributes
 		attributes := make([]string, 0)
 
+		// Map from attribute name to parameter name (for positional matching)
+		attrToParam := make(map[string]string)
+
 		// For each argument in the call...
-		for _, arg := range request.GetArguments() {
+		for i, arg := range request.GetArguments() {
 			switch actualArg := arg.Type.(type) { // Switch on the type of the argument.
 			case *base.Argument_ComputedAttribute: // If the argument is a ComputedAttribute...
 				attrName := actualArg.ComputedAttribute.GetName() // get the name of the attribute.
 
+				// Get the parameter name from the rule definition at position i
+				paramName := ru.GetArguments()[i].GetName()
+
 				// Get the empty value for the attribute type.
-				emptyValue, err := getEmptyProtoValueForType(ru.GetArguments()[attrName])
+				emptyValue, err := getEmptyProtoValueForType(ru.GetArguments()[i].GetType())
 				if err != nil {
 					expandChan <- expandFailResponse(errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String()))
 					return
 				}
 
-				// Set the empty value in the arguments map.
-				arguments[attrName] = emptyValue
+				// Set the empty value in the arguments map using the parameter name.
+				arguments[paramName] = emptyValue
+
+				// Store the mapping from attribute name to parameter name.
+				attrToParam[attrName] = paramName
 
 				// Append the attribute name to the attributes slice.
 				attributes = append(attributes, attrName)
@@ -641,8 +650,9 @@ func (engine *ExpandEngine) expandDirectCall(
 				if !ok {
 					break
 				}
-				// Set the attribute's value in the arguments map.
-				arguments[next.GetAttribute()] = next.GetValue()
+				// Map the attribute value to the parameter name
+				paramName := attrToParam[next.GetAttribute()]
+				arguments[paramName] = next.GetValue()
 			}
 		}
 
