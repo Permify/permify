@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/Permify/permify/internal/coverage"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/development/file"
 	"github.com/Permify/permify/pkg/dsl/compiler"
@@ -12,27 +13,14 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
-// SchemaCoverageInfo represents the overall coverage information for a schema
-type SchemaCoverageInfo struct {
-	EntityCoverageInfo         []EntityCoverageInfo
-	TotalRelationshipsCoverage int
-	TotalAttributesCoverage    int
-	TotalAssertionsCoverage    int
-}
+// SchemaCoverageInfo aliases internal coverage info
+type SchemaCoverageInfo = coverage.SchemaCoverageInfo
 
-// EntityCoverageInfo represents coverage information for a single entity
-type EntityCoverageInfo struct {
-	EntityName string
+// EntityCoverageInfo aliases internal entity coverage info
+type EntityCoverageInfo = coverage.EntityCoverageInfo
 
-	UncoveredRelationships       []string
-	CoverageRelationshipsPercent int
-
-	UncoveredAttributes       []string
-	CoverageAttributesPercent int
-
-	UncoveredAssertions       map[string][]string
-	CoverageAssertionsPercent map[string]int
-}
+// LogicNodeCoverage aliases internal logic node coverage info
+type LogicNodeCoverage = coverage.LogicNodeCoverage
 
 // SchemaCoverage represents the expected coverage for a schema entity
 //

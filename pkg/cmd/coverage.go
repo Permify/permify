@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/Permify/permify/pkg/cmd/flags"
+	"github.com/Permify/permify/pkg/development"
 	cov "github.com/Permify/permify/pkg/development/coverage"
 	"github.com/Permify/permify/pkg/development/file"
 	"github.com/Permify/permify/pkg/schema"
@@ -84,7 +85,15 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 		// Run coverage analysis
 		color.Notice.Println("initiating coverage analysis... 🚀")
 
-		schemaCoverageInfo := cov.Run(*s)
+		dev := development.NewContainer()
+		schemaCoverageInfo, errors := dev.RunCoverage(cmd.Context(), s)
+		if len(errors) > 0 {
+			for _, e := range errors {
+				color.Danger.Printf("%s: %s (%v)\n", e.Type, e.Message, e.Key)
+			}
+			color.Danger.Println("FAILED (runtime errors during coverage)")
+			return fmt.Errorf("coverage run failed with %d errors", len(errors))
+		}
 		// Display coverage results
 		DisplayCoverageInfo(schemaCoverageInfo)
 		// Check assertions coverage threshold
@@ -131,6 +140,11 @@ func DisplayCoverageInfo(schemaCoverageInfo cov.SchemaCoverageInfo) {
 			}
 		}
 
+		fmt.Printf("  uncovered logic nodes:\n")
+		for _, node := range entityCoverageInfo.UncoveredLogicNodes {
+			fmt.Printf("    - [%s] %s at %d:%d\n", node.Type, node.Path, node.SourceInfo.Line, node.SourceInfo.Column)
+		}
+
 		fmt.Printf("  coverage relationships percentage:")
 
 		if entityCoverageInfo.CoverageRelationshipsPercent <= 50 {
@@ -156,6 +170,13 @@ func DisplayCoverageInfo(schemaCoverageInfo cov.SchemaCoverageInfo) {
 			} else {
 				color.Success.Printf(" %d%%\n", value)
 			}
+		}
+
+		fmt.Printf("  coverage logic percentage:")
+		if entityCoverageInfo.CoverageLogicPercent <= 50 {
+			color.Danger.Printf(" %d%%\n", entityCoverageInfo.CoverageLogicPercent)
+		} else {
+			color.Success.Printf(" %d%%\n", entityCoverageInfo.CoverageLogicPercent)
 		}
 	}
 }
