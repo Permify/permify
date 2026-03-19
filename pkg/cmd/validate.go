@@ -233,6 +233,80 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		for sn, scenario := range s.Scenarios {
 			color.Notice.Printf("%v.scenario: %s - %s\n", sn+1, scenario.Name, scenario.Description)
 
+			// Write scenario-specific relationships if any are defined
+			if len(scenario.Relationships) > 0 {
+				color.Notice.Println("  scenario relationships:")
+				for _, t := range scenario.Relationships {
+					var tup *base.Tuple
+					tup, err = tuple.Tuple(t)
+					if err != nil {
+						list.Add(err.Error())
+						color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
+						continue
+					}
+
+					definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+					if err != nil {
+						list.Add(err.Error())
+						color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
+						continue
+					}
+
+					err = serverValidation.ValidateTuple(definition, tup)
+					if err != nil {
+						list.Add(err.Error())
+						color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
+						continue
+					}
+
+					_, err = dev.Container.DW.Write(ctx, "t1", database.NewTupleCollection(tup), database.NewAttributeCollection())
+					if err != nil {
+						list.Add(fmt.Sprintf("%s failed %s", t, err.Error()))
+						color.Danger.Println(fmt.Sprintf("    fail: %s failed %s", t, validationError(err.Error())))
+						continue
+					}
+
+					color.Success.Println(fmt.Sprintf("    success: %s ", t))
+				}
+			}
+
+			// Write scenario-specific attributes if any are defined
+			if len(scenario.Attributes) > 0 {
+				color.Notice.Println("  scenario attributes:")
+				for _, a := range scenario.Attributes {
+					var attr *base.Attribute
+					attr, err = attribute.Attribute(a)
+					if err != nil {
+						list.Add(err.Error())
+						color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
+						continue
+					}
+
+					definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+					if err != nil {
+						list.Add(err.Error())
+						color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
+						continue
+					}
+
+					err = serverValidation.ValidateAttribute(definition, attr)
+					if err != nil {
+						list.Add(err.Error())
+						color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
+						continue
+					}
+
+					_, err = dev.Container.DW.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attr))
+					if err != nil {
+						list.Add(fmt.Sprintf("%s failed %s", a, err.Error()))
+						color.Danger.Println(fmt.Sprintf("    fail: %s failed %s", a, validationError(err.Error())))
+						continue
+					}
+
+					color.Success.Println(fmt.Sprintf("    success: %s ", a))
+				}
+			}
+
 			// Start log output for checks
 			color.Notice.Println("  checks:")
 

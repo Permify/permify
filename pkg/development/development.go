@@ -282,6 +282,92 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 
 	// Each item in the Scenarios slice is processed individually
 	for i, scenario := range shape.Scenarios {
+		// Write scenario-specific relationships if any are defined
+		for _, t := range scenario.Relationships {
+			tup, err := tuple.Tuple(t)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "scenarios",
+					Key:     i,
+					Message: fmt.Sprintf("relationship: %s: %s", t, err.Error()),
+				})
+				continue
+			}
+
+			definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "scenarios",
+					Key:     i,
+					Message: fmt.Sprintf("relationship: %s: %s", t, err.Error()),
+				})
+				continue
+			}
+
+			err = validation.ValidateTuple(definition, tup)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "scenarios",
+					Key:     i,
+					Message: fmt.Sprintf("relationship: %s: %s", t, err.Error()),
+				})
+				continue
+			}
+
+			_, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(tup), database.NewAttributeCollection())
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "scenarios",
+					Key:     i,
+					Message: fmt.Sprintf("relationship: %s: %s", t, err.Error()),
+				})
+				continue
+			}
+		}
+
+		// Write scenario-specific attributes if any are defined
+		for _, a := range scenario.Attributes {
+			attr, err := attribute.Attribute(a)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "scenarios",
+					Key:     i,
+					Message: fmt.Sprintf("attribute: %s: %s", a, err.Error()),
+				})
+				continue
+			}
+
+			definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "scenarios",
+					Key:     i,
+					Message: fmt.Sprintf("attribute: %s: %s", a, err.Error()),
+				})
+				continue
+			}
+
+			err = validation.ValidateAttribute(definition, attr)
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "scenarios",
+					Key:     i,
+					Message: fmt.Sprintf("attribute: %s: %s", a, err.Error()),
+				})
+				continue
+			}
+
+			_, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attr))
+			if err != nil {
+				errors = append(errors, Error{
+					Type:    "scenarios",
+					Key:     i,
+					Message: fmt.Sprintf("attribute: %s: %s", a, err.Error()),
+				})
+				continue
+			}
+		}
+
 		// Each Check in the current scenario is processed
 		for _, check := range scenario.Checks {
 			entity, err := tuple.E(check.Entity)
