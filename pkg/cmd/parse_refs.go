@@ -35,5 +35,8 @@ func splitTypeID(s string) (typ, id string, err error) {
 	if i <= 0 || i == len(s)-1 {
 		return "", "", fmt.Errorf("expected type:id (e.g. user:1)")
 	}
+	if strings.Contains(s[i+1:], ":") {
+		return "", "", fmt.Errorf("expected exactly one colon in type:id (e.g. user:1), got: %s", s)
+	}
 	return s[:i], s[i+1:], nil
 }

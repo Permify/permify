@@ -61,6 +61,9 @@ func LoadCredentials(path string) (*CredentialsFile, error) {
 	c.Endpoint = strings.TrimSpace(c.Endpoint)
 	c.APIToken = strings.TrimSpace(c.APIToken)
 	c.TLSCAPath = strings.TrimSpace(c.TLSCAPath)
+	if c.TLSCAPath != "" && !filepath.IsAbs(c.TLSCAPath) {
+		c.TLSCAPath = filepath.Join(filepath.Dir(path), c.TLSCAPath)
+	}
 
 	if c.Endpoint == "" {
 		return nil, fmt.Errorf("credentials file %q: endpoint is required", path)

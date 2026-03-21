@@ -21,6 +21,13 @@ func TestParseEntityRef_Invalid(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestParseEntityRef_MultipleColons(t *testing.T) {
+	t.Parallel()
+	_, err := ParseEntityRef("document:1:extra")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "exactly one colon")
+}
+
 func TestParseSubjectRef(t *testing.T) {
 	t.Parallel()
 	s, err := ParseSubjectRef("user:alice")

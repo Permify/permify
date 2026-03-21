@@ -112,29 +112,36 @@ func parseDataYAML(raw []byte) ([]*basev1.Tuple, *basev1.DataWriteRequestMetadat
 		return nil, nil, fmt.Errorf("data YAML: at least one tuple is required")
 	}
 	meta := &basev1.DataWriteRequestMetadata{
-		SchemaVersion: doc.Metadata.SchemaVersion,
+		SchemaVersion: strings.TrimSpace(doc.Metadata.SchemaVersion),
 	}
 	var out []*basev1.Tuple
 	for i, row := range doc.Tuples {
-		if row.Entity.Type == "" || row.Entity.ID == "" {
-			return nil, nil, fmt.Errorf("tuple %d: entity type and id are required", i)
+		entType := strings.TrimSpace(row.Entity.Type)
+		entID := strings.TrimSpace(row.Entity.ID)
+		rel := strings.TrimSpace(row.Relation)
+		subType := strings.TrimSpace(row.Subject.Type)
+		subID := strings.TrimSpace(row.Subject.ID)
+		subRel := strings.TrimSpace(row.Subject.Relation)
+		n := i + 1
+		if entType == "" || entID == "" {
+			return nil, nil, fmt.Errorf("tuple %d: entity type and id are required", n)
 		}
-		if row.Subject.Type == "" || row.Subject.ID == "" {
-			return nil, nil, fmt.Errorf("tuple %d: subject type and id are required", i)
+		if subType == "" || subID == "" {
+			return nil, nil, fmt.Errorf("tuple %d: subject type and id are required", n)
 		}
-		if row.Relation == "" {
-			return nil, nil, fmt.Errorf("tuple %d: relation is required", i)
+		if rel == "" {
+			return nil, nil, fmt.Errorf("tuple %d: relation is required", n)
 		}
 		out = append(out, &basev1.Tuple{
 			Entity: &basev1.Entity{
-				Type: row.Entity.Type,
-				Id:   row.Entity.ID,
+				Type: entType,
+				Id:   entID,
 			},
-			Relation: row.Relation,
+			Relation: rel,
 			Subject: &basev1.Subject{
-				Type:     row.Subject.Type,
-				Id:       row.Subject.ID,
-				Relation: row.Subject.Relation,
+				Type:     subType,
+				Id:       subID,
+				Relation: subRel,
 			},
 		})
 	}
@@ -165,6 +172,9 @@ func newDataReadCommand() *cobra.Command {
 			}
 			if pageSize == 0 {
 				pageSize = 100
+			}
+			if pageSize > 100 {
+				return fmt.Errorf("--page-size must be between 1 and 100")
 			}
 
 			conn, err := DialGRPC(credentialsPath)

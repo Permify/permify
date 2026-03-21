@@ -30,6 +30,18 @@ func TestLoadCredentials_Valid(t *testing.T) {
 	assert.Equal(t, "localhost:3478", c.Endpoint)
 }
 
+func TestLoadCredentials_RelativeTLSCAPath(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	credPath := filepath.Join(dir, "credentials")
+	err := os.WriteFile(credPath, []byte("endpoint: localhost:3478\ntls_ca_path: myca.pem\n"), 0o600)
+	require.NoError(t, err)
+
+	c, err := LoadCredentials(credPath)
+	require.NoError(t, err)
+	assert.Equal(t, filepath.Join(dir, "myca.pem"), c.TLSCAPath)
+}
+
 func TestLoadCredentials_MissingEndpoint(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
