@@ -51,6 +51,12 @@ func main() {
 	repair := cmd.NewRepairCommand()
 	root.AddCommand(repair)
 
+	// Remote management (gRPC client) commands
+	root.AddCommand(cmd.NewCheckCommand())
+	root.AddCommand(cmd.NewSchemaCommand())
+	root.AddCommand(cmd.NewDataCommand())
+	root.AddCommand(cmd.NewTenantCommand())
+
 	if err := root.Execute(); err != nil {
 		os.Exit(1)
 	}
