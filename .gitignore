@@ -29,3 +29,4 @@ node_modules
 
 pkg/development/wasm/main.wasm
 pkg/development/wasm/play.wasm
+permify
