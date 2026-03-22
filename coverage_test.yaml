@@ -1,0 +1,25 @@
+schema: >
+  entity user {}
+
+  entity organization {
+      relation admin @user
+      relation member @user
+  }
+
+  entity repository {
+      relation owner @user
+      relation parent @organization
+
+      permission edit = owner or parent.admin
+  }
+
+relationships:
+  - "repository:repo1#owner@user:matias"
+
+scenarios:
+  - name: "Owner can edit"
+    checks:
+      - entity: "repository:repo1"
+        subject: "user:matias"
+        assertions:
+          edit: true
