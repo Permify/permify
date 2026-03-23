@@ -34,6 +34,7 @@ If you have any questions or need help with a specific issue, feel free to reach
 - Make necessary changes and commit those changes. Make sure to test your changes. 
 - Push changes to your branch.
 - Submit your changes for review.
+- If you haven't already, sign the contributor license agreement ([CLA](CLA.md)).
 
 ## Commit convention
 
@@ -81,5 +82,4 @@ If you found any bug, have feature request or just want to improve our code base
 - Please relate one bug with one issue, do not use issues as bug lists. 
 
 You can create an issue and contribute to anything you want, but please ensure to follow the steps above. We will definitely ease your work and help on anything when needed. 
-
 
