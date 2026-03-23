@@ -62,6 +62,133 @@ func (l *ErrList) Print() {
 	color.Danger.Println("FAILED")
 }
 
+// writeRelationships validates and writes relationship tuples to the datastore.
+// Returns the written tuples (for cleanup) and whether any errors occurred.
+func writeRelationships(
+	ctx context.Context,
+	dev *development.Development,
+	relationships []string,
+	version string,
+	list *ErrList,
+	indent string,
+) []*base.Tuple {
+	var written []*base.Tuple
+	for _, t := range relationships {
+		tup, err := tuple.Tuple(t)
+		if err != nil {
+			list.Add(err.Error())
+			color.Danger.Printf("%sfail: %s\n", indent, validationError(err.Error()))
+			continue
+		}
+
+		definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+		if err != nil {
+			list.Add(err.Error())
+			color.Danger.Printf("%sfail: %s\n", indent, validationError(err.Error()))
+			continue
+		}
+
+		if err = serverValidation.ValidateTuple(definition, tup); err != nil {
+			list.Add(err.Error())
+			color.Danger.Printf("%sfail: %s\n", indent, validationError(err.Error()))
+			continue
+		}
+
+		if _, err = dev.Container.DW.Write(ctx, "t1", database.NewTupleCollection(tup), database.NewAttributeCollection()); err != nil {
+			list.Add(fmt.Sprintf("%s failed %s", t, err.Error()))
+			color.Danger.Println(fmt.Sprintf("%sfail: %s failed %s", indent, t, validationError(err.Error())))
+			continue
+		}
+
+		color.Success.Println(fmt.Sprintf("%ssuccess: %s ", indent, t))
+		written = append(written, tup)
+	}
+	return written
+}
+
+// writeAttributes validates and writes attributes to the datastore.
+// Returns the written attributes (for cleanup) and whether any errors occurred.
+func writeAttributes(
+	ctx context.Context,
+	dev *development.Development,
+	attributes []string,
+	version string,
+	list *ErrList,
+	indent string,
+) []*base.Attribute {
+	var written []*base.Attribute
+	for _, a := range attributes {
+		attr, err := attribute.Attribute(a)
+		if err != nil {
+			list.Add(err.Error())
+			color.Danger.Printf("%sfail: %s\n", indent, validationError(err.Error()))
+			continue
+		}
+
+		definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+		if err != nil {
+			list.Add(err.Error())
+			color.Danger.Printf("%sfail: %s\n", indent, validationError(err.Error()))
+			continue
+		}
+
+		if err = serverValidation.ValidateAttribute(definition, attr); err != nil {
+			list.Add(err.Error())
+			color.Danger.Printf("%sfail: %s\n", indent, validationError(err.Error()))
+			continue
+		}
+
+		if _, err = dev.Container.DW.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attr)); err != nil {
+			list.Add(fmt.Sprintf("%s failed %s", a, err.Error()))
+			color.Danger.Println(fmt.Sprintf("%sfail: %s failed %s", indent, a, validationError(err.Error())))
+			continue
+		}
+
+		color.Success.Println(fmt.Sprintf("%ssuccess: %s ", indent, a))
+		written = append(written, attr)
+	}
+	return written
+}
+
+// deleteRelationships removes previously written relationship tuples from the datastore.
+func deleteRelationships(ctx context.Context, dev *development.Development, tuples []*base.Tuple) error {
+	for _, tup := range tuples {
+		_, err := dev.Container.DW.Delete(ctx, "t1", &base.TupleFilter{
+			Entity: &base.EntityFilter{
+				Type: tup.GetEntity().GetType(),
+				Ids:  []string{tup.GetEntity().GetId()},
+			},
+			Relation: tup.GetRelation(),
+			Subject: &base.SubjectFilter{
+				Type:     tup.GetSubject().GetType(),
+				Ids:      []string{tup.GetSubject().GetId()},
+				Relation: tup.GetSubject().GetRelation(),
+			},
+		}, &base.AttributeFilter{})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// deleteAttributes removes previously written attributes from the datastore.
+func deleteAttributes(ctx context.Context, dev *development.Development, attrs []*base.Attribute) error {
+	for _, attr := range attrs {
+		_, err := dev.Container.DW.Delete(ctx, "t1", &base.TupleFilter{}, &base.AttributeFilter{
+			Entity: &base.EntityFilter{
+				Type: attr.GetEntity().GetType(),
+				Ids:  []string{attr.GetEntity().GetId()},
+			},
+			Attributes: []string{attr.GetAttribute()},
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // validate returns a function that validates authorization model with assertions
 func validate() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
@@ -144,87 +271,13 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			color.Success.Println("  success")
 		}
 
-		// if debug is true, print relationships are creating with color blue
+		// Write global relationships
 		color.Notice.Println("relationships are creating... 🚀")
+		writeRelationships(ctx, dev, s.Relationships, version, list, "  ")
 
-		// Iterate over all relationships in the subject
-		for _, t := range s.Relationships {
-			// Convert each relationship to a Tuple
-			var tup *base.Tuple
-			tup, err = tuple.Tuple(t)
-			// If an error occurs during the conversion, add the error message to the list and continue to the next iteration
-			if err != nil {
-				list.Add(err.Error())
-				continue
-			}
-
-			// Retrieve the entity definition associated with the tuple's entity type
-			definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
-			// If an error occurs while reading the entity definition, return the error
-			if err != nil {
-				return err
-			}
-
-			// Validate the tuple using the entity definition
-			err = serverValidation.ValidateTuple(definition, tup)
-			// If an error occurs during validation, return the error
-			if err != nil {
-				return err
-			}
-
-			// Write the validated tuple to the database
-			_, err = dev.Container.DW.Write(ctx, "t1", database.NewTupleCollection(tup), database.NewAttributeCollection())
-			// If an error occurs while writing to the database, add an error message to the list, log the error and continue to the next iteration
-			if err != nil {
-				list.Add(fmt.Sprintf("%s failed %s", t, err.Error()))
-				color.Danger.Println(fmt.Sprintf("fail: %s failed %s", t, validationError(err.Error())))
-				continue
-			}
-
-			// If the tuple was successfully written to the database, log a success message
-			color.Success.Println(fmt.Sprintf("  success: %s ", t))
-		}
-
-		// if debug is true, print attributes are creating with color blue
+		// Write global attributes
 		color.Notice.Println("attributes are creating... 🚀")
-
-		// Iterate over all attributes in the subject
-		for _, a := range s.Attributes {
-			// Convert each attribute to an Attribute
-			var attr *base.Attribute
-			attr, err = attribute.Attribute(a)
-			// If an error occurs during the conversion, add the error message to the list and continue to the next iteration
-			if err != nil {
-				list.Add(err.Error())
-				continue
-			}
-
-			// Retrieve the entity definition associated with the attribute's entity type
-			definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
-			// If an error occurs while reading the entity definition, return the error
-			if err != nil {
-				return err
-			}
-
-			// Validate the attribute using the entity definition
-			err = serverValidation.ValidateAttribute(definition, attr)
-			// If an error occurs during validation, return the error
-			if err != nil {
-				return err
-			}
-
-			// Write the validated attribute to the database
-			_, err = dev.Container.DW.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attr))
-			// If an error occurs while writing to the database, add an error message to the list, log the error and continue to the next iteration
-			if err != nil {
-				list.Add(fmt.Sprintf("%s failed %s", a, err.Error()))
-				color.Danger.Println(fmt.Sprintf("fail: %s failed %s", a, validationError(err.Error())))
-				continue
-			}
-
-			// If the attribute was successfully written to the database, log a success message
-			color.Success.Println(fmt.Sprintf("  success: %s ", a))
-		}
+		writeAttributes(ctx, dev, s.Attributes, version, list, "  ")
 
 		// if debug is true, print checking assertions with color blue
 		color.Notice.Println("checking scenarios... 🚀")
@@ -234,77 +287,17 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			color.Notice.Printf("%v.scenario: %s - %s\n", sn+1, scenario.Name, scenario.Description)
 
 			// Write scenario-specific relationships if any are defined
+			var writtenTuples []*base.Tuple
 			if len(scenario.Relationships) > 0 {
 				color.Notice.Println("  scenario relationships:")
-				for _, t := range scenario.Relationships {
-					var tup *base.Tuple
-					tup, err = tuple.Tuple(t)
-					if err != nil {
-						list.Add(err.Error())
-						color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
-						continue
-					}
-
-					definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
-					if err != nil {
-						list.Add(err.Error())
-						color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
-						continue
-					}
-
-					err = serverValidation.ValidateTuple(definition, tup)
-					if err != nil {
-						list.Add(err.Error())
-						color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
-						continue
-					}
-
-					_, err = dev.Container.DW.Write(ctx, "t1", database.NewTupleCollection(tup), database.NewAttributeCollection())
-					if err != nil {
-						list.Add(fmt.Sprintf("%s failed %s", t, err.Error()))
-						color.Danger.Println(fmt.Sprintf("    fail: %s failed %s", t, validationError(err.Error())))
-						continue
-					}
-
-					color.Success.Println(fmt.Sprintf("    success: %s ", t))
-				}
+				writtenTuples = writeRelationships(ctx, dev, scenario.Relationships, version, list, "    ")
 			}
 
 			// Write scenario-specific attributes if any are defined
+			var writtenAttrs []*base.Attribute
 			if len(scenario.Attributes) > 0 {
 				color.Notice.Println("  scenario attributes:")
-				for _, a := range scenario.Attributes {
-					var attr *base.Attribute
-					attr, err = attribute.Attribute(a)
-					if err != nil {
-						list.Add(err.Error())
-						color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
-						continue
-					}
-
-					definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
-					if err != nil {
-						list.Add(err.Error())
-						color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
-						continue
-					}
-
-					err = serverValidation.ValidateAttribute(definition, attr)
-					if err != nil {
-						list.Add(err.Error())
-						color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
-						continue
-					}
-
-					_, err = dev.Container.DW.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attr))
-					if err != nil {
-						list.Add(fmt.Sprintf("%s failed %s", a, err.Error()))
-						color.Danger.Println(fmt.Sprintf("    fail: %s failed %s", a, validationError(err.Error())))
-						continue
-					}
-
-					color.Success.Println(fmt.Sprintf("    success: %s ", a))
-				}
+				writtenAttrs = writeAttributes(ctx, dev, scenario.Attributes, version, list, "    ")
 			}
 
 			// Start log output for checks
@@ -542,6 +535,16 @@ func validate() func(cmd *cobra.Command, args []string) error {
 						list.Add(fmt.Sprintf("%s -> expected: %+v actual: %+v", query, expected, res.GetSubjectIds()))
 					}
 				}
+			}
+
+			// Clean up scenario-specific data so it doesn't pollute subsequent scenarios
+			if err := deleteRelationships(ctx, dev, writtenTuples); err != nil {
+				list.Add(fmt.Sprintf("scenario %d cleanup relationships: %s", sn+1, err.Error()))
+				color.Danger.Printf("    fail: cleanup relationships: %s\n", validationError(err.Error()))
+			}
+			if err := deleteAttributes(ctx, dev, writtenAttrs); err != nil {
+				list.Add(fmt.Sprintf("scenario %d cleanup attributes: %s", sn+1, err.Error()))
+				color.Danger.Printf("    fail: cleanup attributes: %s\n", validationError(err.Error()))
 			}
 		}
 

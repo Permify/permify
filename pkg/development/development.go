@@ -111,6 +111,115 @@ type Error struct {
 	Message string `json:"message"`
 }
 
+// writeRelationships validates and writes relationship tuples to the datastore.
+// It returns the parsed tuples (for later cleanup) and any errors encountered.
+func (c *Development) writeRelationships(ctx context.Context, version string, relationships []string, errType string, errKey any) (written []*v1.Tuple, errors []Error) {
+	for _, t := range relationships {
+		tup, err := tuple.Tuple(t)
+		if err != nil {
+			errors = append(errors, Error{Type: errType, Key: errKey, Message: formatErrMsg(errType, "relationship", t, err)})
+			continue
+		}
+
+		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+		if err != nil {
+			errors = append(errors, Error{Type: errType, Key: errKey, Message: formatErrMsg(errType, "relationship", t, err)})
+			continue
+		}
+
+		if err = validation.ValidateTuple(definition, tup); err != nil {
+			errors = append(errors, Error{Type: errType, Key: errKey, Message: formatErrMsg(errType, "relationship", t, err)})
+			continue
+		}
+
+		if _, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(tup), database.NewAttributeCollection()); err != nil {
+			errors = append(errors, Error{Type: errType, Key: errKey, Message: formatErrMsg(errType, "relationship", t, err)})
+			continue
+		}
+
+		written = append(written, tup)
+	}
+	return written, errors
+}
+
+// writeAttributes validates and writes attributes to the datastore.
+// It returns the parsed attributes (for later cleanup) and any errors encountered.
+func (c *Development) writeAttributes(ctx context.Context, version string, attributes []string, errType string, errKey any) (written []*v1.Attribute, errors []Error) {
+	for _, a := range attributes {
+		attr, err := attribute.Attribute(a)
+		if err != nil {
+			errors = append(errors, Error{Type: errType, Key: errKey, Message: formatErrMsg(errType, "attribute", a, err)})
+			continue
+		}
+
+		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+		if err != nil {
+			errors = append(errors, Error{Type: errType, Key: errKey, Message: formatErrMsg(errType, "attribute", a, err)})
+			continue
+		}
+
+		if err = validation.ValidateAttribute(definition, attr); err != nil {
+			errors = append(errors, Error{Type: errType, Key: errKey, Message: formatErrMsg(errType, "attribute", a, err)})
+			continue
+		}
+
+		if _, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attr)); err != nil {
+			errors = append(errors, Error{Type: errType, Key: errKey, Message: formatErrMsg(errType, "attribute", a, err)})
+			continue
+		}
+
+		written = append(written, attr)
+	}
+	return written, errors
+}
+
+// deleteRelationships removes previously written relationship tuples from the datastore.
+func (c *Development) deleteRelationships(ctx context.Context, tuples []*v1.Tuple) error {
+	for _, tup := range tuples {
+		_, err := c.Container.DW.Delete(ctx, "t1", &v1.TupleFilter{
+			Entity: &v1.EntityFilter{
+				Type: tup.GetEntity().GetType(),
+				Ids:  []string{tup.GetEntity().GetId()},
+			},
+			Relation: tup.GetRelation(),
+			Subject: &v1.SubjectFilter{
+				Type:     tup.GetSubject().GetType(),
+				Ids:      []string{tup.GetSubject().GetId()},
+				Relation: tup.GetSubject().GetRelation(),
+			},
+		}, &v1.AttributeFilter{})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// deleteAttributes removes previously written attributes from the datastore.
+func (c *Development) deleteAttributes(ctx context.Context, attrs []*v1.Attribute) error {
+	for _, attr := range attrs {
+		_, err := c.Container.DW.Delete(ctx, "t1", &v1.TupleFilter{}, &v1.AttributeFilter{
+			Entity: &v1.EntityFilter{
+				Type: attr.GetEntity().GetType(),
+				Ids:  []string{attr.GetEntity().GetId()},
+			},
+			Attributes: []string{attr.GetAttribute()},
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// formatErrMsg formats an error message, prefixing with kind info for scenario errors.
+func formatErrMsg(errType, kind, item string, err error) string {
+	if errType == "scenarios" {
+		return fmt.Sprintf("%s: %s: %s", kind, item, err.Error())
+	}
+	return err.Error()
+}
+
 func (c *Development) Run(ctx context.Context, shape map[string]interface{}) (errors []Error) {
 	// Marshal the shape map into YAML format
 	out, err := yaml.Marshal(shape)
@@ -186,187 +295,23 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 		return errors
 	}
 
-	// Each item in the Relationships slice is processed individually
-	for _, t := range shape.Relationships {
-		tup, err := tuple.Tuple(t)
-		if err != nil {
-			errors = append(errors, Error{
-				Type:    "relationships",
-				Key:     t,
-				Message: err.Error(),
-			})
-			continue
-		}
+	// Write global relationships
+	_, errs := c.writeRelationships(ctx, version, shape.Relationships, "relationships", "")
+	errors = append(errors, errs...)
 
-		// Read the schema definition for this relationship
-		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
-		if err != nil {
-			errors = append(errors, Error{
-				Type:    "relationships",
-				Key:     t,
-				Message: err.Error(),
-			})
-			continue
-		}
-
-		// Validate the relationship tuple against the schema definition
-		err = validation.ValidateTuple(definition, tup)
-		if err != nil {
-			errors = append(errors, Error{
-				Type:    "relationships",
-				Key:     t,
-				Message: err.Error(),
-			})
-			continue
-		}
-
-		// Write the relationship to the database
-		_, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(tup), database.NewAttributeCollection())
-		// Continue to the next relationship if an error occurred
-		if err != nil {
-			errors = append(errors, Error{
-				Type:    "relationships",
-				Key:     t,
-				Message: err.Error(),
-			})
-			continue
-		}
-	}
-
-	// Each item in the Attributes slice is processed individually
-	for _, a := range shape.Attributes {
-		attr, err := attribute.Attribute(a)
-		if err != nil {
-			errors = append(errors, Error{
-				Type:    "attributes",
-				Key:     a,
-				Message: err.Error(),
-			})
-			continue
-		}
-
-		// Read the schema definition for this attribute
-		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
-		if err != nil {
-			errors = append(errors, Error{
-				Type:    "attributes",
-				Key:     a,
-				Message: err.Error(),
-			})
-			continue
-		}
-
-		// Validate the attribute against the schema definition
-		err = validation.ValidateAttribute(definition, attr)
-		if err != nil {
-			errors = append(errors, Error{
-				Type:    "attributes",
-				Key:     a,
-				Message: err.Error(),
-			})
-			continue
-		}
-
-		// Write the attribute to the database
-		_, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attr))
-		// Continue to the next attribute if an error occurred
-		if err != nil {
-			errors = append(errors, Error{
-				Type:    "attributes",
-				Key:     a,
-				Message: err.Error(),
-			})
-			continue
-		}
-	}
+	// Write global attributes
+	_, errs = c.writeAttributes(ctx, version, shape.Attributes, "attributes", "")
+	errors = append(errors, errs...)
 
 	// Each item in the Scenarios slice is processed individually
 	for i, scenario := range shape.Scenarios {
-		// Write scenario-specific relationships if any are defined
-		for _, t := range scenario.Relationships {
-			tup, err := tuple.Tuple(t)
-			if err != nil {
-				errors = append(errors, Error{
-					Type:    "scenarios",
-					Key:     i,
-					Message: fmt.Sprintf("relationship: %s: %s", t, err.Error()),
-				})
-				continue
-			}
+		// Write scenario-specific relationships
+		writtenTuples, errs := c.writeRelationships(ctx, version, scenario.Relationships, "scenarios", i)
+		errors = append(errors, errs...)
 
-			definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
-			if err != nil {
-				errors = append(errors, Error{
-					Type:    "scenarios",
-					Key:     i,
-					Message: fmt.Sprintf("relationship: %s: %s", t, err.Error()),
-				})
-				continue
-			}
-
-			err = validation.ValidateTuple(definition, tup)
-			if err != nil {
-				errors = append(errors, Error{
-					Type:    "scenarios",
-					Key:     i,
-					Message: fmt.Sprintf("relationship: %s: %s", t, err.Error()),
-				})
-				continue
-			}
-
-			_, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(tup), database.NewAttributeCollection())
-			if err != nil {
-				errors = append(errors, Error{
-					Type:    "scenarios",
-					Key:     i,
-					Message: fmt.Sprintf("relationship: %s: %s", t, err.Error()),
-				})
-				continue
-			}
-		}
-
-		// Write scenario-specific attributes if any are defined
-		for _, a := range scenario.Attributes {
-			attr, err := attribute.Attribute(a)
-			if err != nil {
-				errors = append(errors, Error{
-					Type:    "scenarios",
-					Key:     i,
-					Message: fmt.Sprintf("attribute: %s: %s", a, err.Error()),
-				})
-				continue
-			}
-
-			definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
-			if err != nil {
-				errors = append(errors, Error{
-					Type:    "scenarios",
-					Key:     i,
-					Message: fmt.Sprintf("attribute: %s: %s", a, err.Error()),
-				})
-				continue
-			}
-
-			err = validation.ValidateAttribute(definition, attr)
-			if err != nil {
-				errors = append(errors, Error{
-					Type:    "scenarios",
-					Key:     i,
-					Message: fmt.Sprintf("attribute: %s: %s", a, err.Error()),
-				})
-				continue
-			}
-
-			_, err = c.Container.DW.Write(ctx, "t1", database.NewTupleCollection(), database.NewAttributeCollection(attr))
-			if err != nil {
-				errors = append(errors, Error{
-					Type:    "scenarios",
-					Key:     i,
-					Message: fmt.Sprintf("attribute: %s: %s", a, err.Error()),
-				})
-				continue
-			}
-		}
+		// Write scenario-specific attributes
+		writtenAttrs, errs := c.writeAttributes(ctx, version, scenario.Attributes, "scenarios", i)
+		errors = append(errors, errs...)
 
 		// Each Check in the current scenario is processed
 		for _, check := range scenario.Checks {
@@ -600,6 +545,22 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 					})
 				}
 			}
+		}
+
+		// Clean up scenario-specific data so it doesn't pollute subsequent scenarios
+		if err := c.deleteRelationships(ctx, writtenTuples); err != nil {
+			errors = append(errors, Error{
+				Type:    "scenarios",
+				Key:     i,
+				Message: fmt.Sprintf("cleanup relationships: %s", err.Error()),
+			})
+		}
+		if err := c.deleteAttributes(ctx, writtenAttrs); err != nil {
+			errors = append(errors, Error{
+				Type:    "scenarios",
+				Key:     i,
+				Message: fmt.Sprintf("cleanup attributes: %s", err.Error()),
+			})
 		}
 	}
 
