@@ -252,9 +252,11 @@ The same `delete` action can also be defined using the **permission** keyword, a
 Using the `action` or `permission` keywords yields the same authorization logic. We have two keywords for defining a permission because most, but not all, permissions are based on actions. Learn more in our [Nested Hierarchies](/modeling-guides/rebac/impersonation) section.
 </Note>
 
-The `and` operation creates an intersection between relations but is not tied to specific entities. For example, in the following model, users can see a repository if they are a member or admin of any organization.
+The `and` operator intersects the resolved user sets of its operands.
 
-Let's say `user:1` is a member of `organization:1` and an admin of `organization:2`. If `repository:1` belongs to `organization:1`, then `user:1` has access to delete `repository:1`.
+For an expression such as `org.member and org.admin`, Permify evaluates `org.member` and `org.admin` independently across all organizations reachable through `org`, and then intersects the resulting user sets.
+
+Use this pattern when you want intersection across the users reachable through all related organizations:
 
 ```perm
 entity user {}
@@ -270,9 +272,9 @@ entity repository {
 }
 ```
 
-This is not always what you want. If you want to tie the relation to a specific organization, so that a user must be an admin and a member of the same organization to have the delete permission, create the permission on the organization and have the repository re-use the permission check.
+If a repository is related to multiple organizations, a user can satisfy `org.member and org.admin` by being a `member` of one related organization and an `admin` of another.
 
-Here's an example of that:
+If you need both relations to be satisfied on the same organization, define the intersection on `organization` and reference that permission from `repository`:
 
 ```perm
 entity user {}
@@ -287,11 +289,11 @@ entity organization {
 entity repository {
   relation org @organization
 
-  permission delete = org.delete 
+  permission delete = org.delete
 }
 ```
 
-This ensures that if the user is not a member and admin of the same organization, the repository delete permission check will fail.
+In this version, `member and admin` is evaluated within each organization first, so `repository.delete` is granted only if the user satisfies both relations on at least one related organization.
 
 #### Exclusion
 
