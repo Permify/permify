@@ -35,7 +35,6 @@ func PostgresDB(postgresVersion string) database.Database {
 	})
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 
-	// Execute the command in the container
 	_, _, execErr := postgres.Exec(ctx, []string{"psql", "-U", "postgres", "-c", "ALTER SYSTEM SET track_commit_timestamp = on;"})
 	gomega.Expect(execErr).ShouldNot(gomega.HaveOccurred())
 
