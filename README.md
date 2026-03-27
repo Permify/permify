@@ -160,6 +160,8 @@ Here are the ways to contribute to Permify:
 - **Improve documentation:** Alongside our codebase, documentation one of the most significant part in our open-source journey. We're trying to give the best DX possible to explain ourselves and Permify. And you can help on that with importing resources or adding new ones.
 - **Contribute to playground:** Permify playground allows you to visualize and test your authorization logic. You can contribute to our playground by improving its user interface, fixing glitches, or adding new features.
 
+_When you open a PR against the Permify repository, you'll be asked to sign our Contributor License Agreement._
+
 ### Bounties
 
 [![Open Bounties](https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fpermify%2Fbounties%3Fstatus%3Dopen&style=for-the-badge)](https://console.algora.io/org/permify/bounties?status=open)
