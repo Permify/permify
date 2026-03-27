@@ -25,5 +25,5 @@ jobs:
           path-to-signatures: 'signatures/version1/cla.json'
           path-to-document: 'https://raw.githubusercontent.com/Permify/permify/refs/heads/master/CLA.md' # e.g. a CLA or a DCO document
           # branch should not be protected
-          branch: 'master'
+          branch: 'cla'
           allowlist: user1,bot*
