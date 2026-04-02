@@ -21,7 +21,7 @@ After building, start the playground from the playground directory:
 <!-- Development server -->
 ```sh  
 yarn install # once
-yarn start  # Launch development server
+yarn start  # Launch Vite development server
 ```  
 Alternatively, run it from the root directory:
 <!-- Alternative start method -->
@@ -36,7 +36,7 @@ In the playground directory, you can run:
 
 ### `yarn start`
 
-Runs the app in the development mode.\
+Runs the app in Vite development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 The page will reload if you make edits.\
@@ -46,15 +46,12 @@ There are 4-5 errors in due to the Monaco editor. They are annoying but do not a
 
 ### `yarn test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Runs the Vitest suite once in jsdom.\
 
 ### `yarn build`
 
-Builds the app for production to the `build` folder.\
+Builds the app for production to the `build` folder with Vite.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
 The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.

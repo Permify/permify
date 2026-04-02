@@ -3,14 +3,16 @@ module.exports = {
         'import/resolver': {
             alias: {
                 map: [
-                    // And all your import aliases
                     ['@utility', './src/utility'],
                     ['@layout', './src/layout'],
-                    ['@router', './src/router'],
-                    ['@views', './src/views'],
+                    ['@components', './src/components'],
+                    ['@context', './src/context'],
+                    ['@features', './src/features'],
+                    ['@routes', './src/routes'],
+                    ['@pages', './src/pages'],
                     ['@state', './src/state'],
                     ['@services', './src/services'],
-                    ['@pkg', './src/pkg'],
+                    ['@lib', './src/lib'],
                 ],
                 extensions: ['.ts', '.js', '.jsx', '.tsx', '.json'],
             },

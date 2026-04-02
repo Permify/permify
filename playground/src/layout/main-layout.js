@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Button, Grid, Layout, Row, Select, Typography} from 'antd';
 import {toAbsoluteUrl} from "@utility/helpers/asset";
+import {getBlobToken} from "@utility/helpers/env";
 import {ExportOutlined, GithubOutlined, ShareAltOutlined, UploadOutlined} from "@ant-design/icons";
 import {put} from '@vercel/blob';
 import yaml from "js-yaml";
@@ -65,7 +66,7 @@ const MainLayout = ({children, ...rest}) => {
             const file = new File([yamlString], fileName, {type: 'text/x-yaml'});
             put(fileName, file, {
                 access: 'public', 
-                token: process.env.REACT_APP_BLOB_READ_WRITE_TOKEN
+                token: getBlobToken()
             }).then((result) => {
                 let fileName = result.url.split('/').pop();
                 setId(fileName.replace('.yaml', ''))

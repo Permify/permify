@@ -77,7 +77,7 @@ clean: ## Remove temporary and generated files
 
 .PHONY: wasm-build
 wasm-build: ## Build wasm & place it in playground # WebAssembly build target
-	cd ./pkg/development/wasm && GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o main.wasm && wasm-opt main.wasm --enable-bulk-memory -Oz -o play.wasm
+	cd ./pkg/development/wasm && GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o main.wasm && wasm-opt main.wasm --enable-bulk-memory --enable-nontrapping-float-to-int -Oz -o play.wasm
 	cp ./pkg/development/wasm/play.wasm ./playground/public/play.wasm # Copy to playground
 
 .PHONY: release
