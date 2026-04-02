@@ -1,8 +1,10 @@
-import React, {useEffect, useState} from 'react';
-import Graph from "react-graph-vis";
+import React, {useEffect, useRef, useState} from 'react';
+import {DataSet, Network} from 'vis-network/standalone';
 import GraphOptions from "./config";
 
 function Visualizer(props) {
+    const containerRef = useRef(null);
+    const networkRef = useRef(null);
 
     // data
     const [graph, setGraph] = useState({nodes: [], edges: []});
@@ -164,17 +166,33 @@ function Visualizer(props) {
         }
     }, [props.graph]);
 
-    const events = {};
+    useEffect(() => {
+        if (!containerRef.current || graph.nodes.length === 0) {
+            networkRef.current?.destroy();
+            networkRef.current = null;
+            return;
+        }
+
+        const network = new Network(
+            containerRef.current,
+            {
+                nodes: new DataSet(graph.nodes),
+                edges: new DataSet(graph.edges),
+            },
+            GraphOptions()
+        );
+
+        networkRef.current = network;
+
+        return () => {
+            network.destroy();
+            networkRef.current = null;
+        };
+    }, [graph]);
 
     return (
         <div style={{height: "100vh"}}>
-            {(graph.nodes.length > 0) &&
-                <Graph
-                    graph={graph}
-                    options={GraphOptions()}
-                    events={events}
-                />
-            }
+            <div ref={containerRef} style={{height: "100%"}} />
         </div>
     );
 }
