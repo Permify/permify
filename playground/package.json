@@ -1,6 +1,6 @@
 {
   "engines": {
-    "node": ">=20.10.0",
+    "node": "^20.19.0 || >=22.12.0",
     "yarn": ">=1.22.0"
   },
   "name": "permify-playground",
@@ -35,6 +35,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run"
+  },
+  "resolutions": {
+    "dompurify": "3.3.3"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.1.4",

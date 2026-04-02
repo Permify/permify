@@ -4,6 +4,8 @@ import './wasm_types.d.ts';
 import {toAbsoluteUrl} from "@utility/helpers/asset";
 import {Alert} from "antd";
 
+let wasmStartPromise: Promise<void> | null = null;
+
 async function loadWasm(): Promise<void> {
     const goWasm = new window.Go();
     const response = await fetch(toAbsoluteUrl('/play.wasm'));
@@ -24,12 +26,25 @@ async function loadWasm(): Promise<void> {
     goWasm.run(result.instance);
 }
 
+function ensureWasmStarted(): Promise<void> {
+    if (wasmStartPromise) {
+        return wasmStartPromise;
+    }
+
+    wasmStartPromise = loadWasm().catch((error) => {
+        wasmStartPromise = null;
+        throw error;
+    });
+
+    return wasmStartPromise;
+}
+
 export const LoadWasm: React.FC<React.PropsWithChildren<{}>> = (props) => {
     const [isLoading, setIsLoading] = React.useState(true);
     const [loadError, setLoadError] = React.useState("");
 
     useEffect(() => {
-        loadWasm()
+        ensureWasmStarted()
             .then(() => {
                 setIsLoading(false);
             })
