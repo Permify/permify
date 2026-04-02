@@ -37,10 +37,10 @@
       "url": "https://discord.gg/permify"
     }
   ],
-  "modeToggle": {
+  "appearance": {
     "default": "light",
-    "isHidden": true
-  },
+    "strict": true
+  },  
   "banner": {
     "content": "**Permify** is now part of **FusionAuth** \ud83c\udf89 [Learn more at fusionauth.io](https://fusionauth.io/blog/fusionauth-permify-pr)",
     "dismissible": false
