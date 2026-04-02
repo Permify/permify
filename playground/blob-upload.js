@@ -1,4 +1,3 @@
-import {handleUpload} from '@vercel/blob/client';
 import {SHARE_PATH_PREFIX} from './src/utility/helpers/blob-upload.js';
 
 export const MAX_SHARE_FILE_SIZE_BYTES = 1024 * 1024;
@@ -44,6 +43,8 @@ export async function processBlobUpload({request, body, token}) {
   if (!isAllowedOrigin(request)) {
     throw new Error('Unauthorized upload origin.');
   }
+
+  const {handleUpload} = await import('@vercel/blob/client');
 
   return handleUpload({
     token,
