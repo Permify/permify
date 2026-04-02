@@ -7,7 +7,7 @@ import yaml from "js-yaml";
 import {useShapeStore} from "@state/shape";
 import Share from "@components/modals/share";
 import toast, {Toaster} from 'react-hot-toast';
-import {BLOB_UPLOAD_ROUTE, SHARE_PATH_PREFIX} from "@utility/helpers/blob-upload";
+import {BLOB_UPLOAD_ROUTE} from "@utility/helpers/blob-upload";
 
 const {Option, OptGroup} = Select;
 const {Content} = Layout;
@@ -64,7 +64,7 @@ const MainLayout = ({children, ...rest}) => {
             const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
             const fileName = `${uniqueId}.yaml`;
             const file = new File([yamlString], fileName, {type: 'text/x-yaml'});
-            upload(`${SHARE_PATH_PREFIX}${fileName}`, file, {
+            upload(fileName, file, {
                 access: 'public',
                 handleUploadUrl: BLOB_UPLOAD_ROUTE,
             }).then((result) => {

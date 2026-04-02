@@ -1,5 +1,3 @@
-import {SHARE_PATH_PREFIX} from './src/utility/helpers/blob-upload.js';
-
 export const MAX_SHARE_FILE_SIZE_BYTES = 1024 * 1024;
 export const SHARE_ALLOWED_CONTENT_TYPES = [
   'text/yaml',
@@ -11,7 +9,7 @@ export const SHARE_ALLOWED_CONTENT_TYPES = [
 ];
 
 function isValidSharePathname(pathname) {
-  return new RegExp(`^${SHARE_PATH_PREFIX}[A-Za-z0-9-]+\\.ya?ml$`).test(pathname);
+  return /^[A-Za-z0-9-]+\.ya?ml$/.test(pathname);
 }
 
 function getHeader(request, name) {
