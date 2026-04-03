@@ -38,7 +38,7 @@
     }
   ],
   "modeToggle": {
-    "default": "light",
+    "default": "dark",
     "isHidden": true
   },
   "banner": {
