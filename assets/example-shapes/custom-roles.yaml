@@ -24,12 +24,9 @@ relationships:
     - dashboard:project-progress#view@role:admin#assignee
     - dashboard:project-progress#view@role:member#assignee
     - dashboard:project-progress#edit@role:admin#assignee
-    - task:website-design-review#view@role:admin#assignee
-    - task:website-design-review#view@role:member#assignee
-    - task:website-design-review#edit@role:admin#assignee
     - role:member#assignee@user:1
 
-attributes:    
+attributes:
 
 scenarios:
   - name: "User Dashboard View Permissions for project-progress"
@@ -41,6 +38,10 @@ scenarios:
           view: true
   - name: "Role-Based Permissions for 'website-design-review' Task"
     description: "Evaluates the access rights for 'website-design-review' task based on roles. The admin role should have both view and edit permissions, whereas the member role should only have view permission."
+    relationships:
+      - task:website-design-review#view@role:admin#assignee
+      - task:website-design-review#view@role:member#assignee
+      - task:website-design-review#edit@role:admin#assignee
     checks:
       - entity: "task:website-design-review"
         subject: "role:admin#assignee"
