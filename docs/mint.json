@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Docs",
+  "name": "FGA Documentation",
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg",
@@ -16,7 +16,7 @@
       "to": "#ea580c"
     },
     "background": {
-      "light": "#F1F5F9",
+      "light": "#ffffff",
       "dark": "#0f172a"
     }
   },
@@ -33,8 +33,8 @@
   "css": "/custom.css",
   "topbarLinks": [
     {
-      "name": "Support",
-      "url": "https://discord.gg/permify"
+      "name": "FusionAuth Documentation",
+      "url": "https://fusionauth.io/docs/"
     }
   ],
   "modeToggle": {
@@ -51,10 +51,7 @@
       "measurementId": "G-BSRXWHBYR1"
     }
   },
-  "topbarCtaButton": {
-    "name": "Playground",
-    "url": "https://play.permify.co/?s=organizations-hierarchies"
-  },
+
   "redirects": [
     {
       "source": "/docs/:slug*",
@@ -229,29 +226,16 @@
       "destination": "/use-cases/rbac"
     }
   ],
+  "primaryTab": {
+    "name": "FGA Documentation"
+  },
   "tabs": [
     {
       "name": "API References",
       "url": "api-reference"
     }
   ],
-  "anchors": [
-    {
-      "name": "Community",
-      "icon": "discord",
-      "url": "https://discord.gg/permify"
-    },
-    {
-      "name": "Open Source",
-      "icon": "github",
-      "url": "https://github.com/Permify/permify"
-    },
-    {
-      "name": "Playground",
-      "icon": "play",
-      "url": "https://play.permify.co/?s=organizations-hierarchies"
-    }
-  ],
+
   "navigation": [
     {
       "group": "Introduction",

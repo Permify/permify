@@ -1,20 +1,27 @@
-/* ==========================================================================
-   FusionAuth Theme Approximation for Mintlify
-   Colors: Orange #F58320, Slate-800 #1e293b, Background #F1F5F9
-   Font: Inter variable — full weight range 100–900
-   ========================================================================== */
-
-/* Load Inter with all weights so nothing gets browser-synthesised */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 
-/* Apply Inter everywhere — overrides Mintlify's default stack */
 *, *::before, *::after {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
 }
 
-/* Code blocks stay monospace */
 pre, code, kbd, samp, tt {
   font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', 'Monaco', 'Consolas', monospace !important;
+}
+
+html:not(.dark) span#background-color {
+  background: transparent !important;
+}
+
+html:not(.dark) {
+  background-color: #ffffff !important;
+  background-image:
+    radial-gradient(768px at right top, rgba(199, 210, 254, 0.65) 0%, rgba(255, 255, 255, 1.0) 80%),
+    linear-gradient(rgba(99, 102, 241, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.4) 1px, transparent 1px) !important;
+  background-size: 100% 6000px, 34px 34px, 34px 34px !important;
+  background-position: 0 0, 0 0, 0 0 !important;
+  background-repeat: no-repeat, repeat, repeat !important;
+  background-attachment: local, local, local !important;
 }
 
 /* ---------- Root color overrides ---------- */
@@ -44,11 +51,6 @@ pre, code, kbd, samp, tt {
   color: #fff !important;
 }
 
-/* ---------- Top navigation bar (dark, like FusionAuth docs) ---------- */
-/* IMPORTANT: Only target #navbar — NOT <header> or <nav> generics.         */
-/* Mintlify uses a semantic <header> element for the page-content title area  */
-/* (the H1 hero section), so setting background on bare "header" breaks it.  */
-
 #navbar {
   background-color: #0f172a !important;
   border-bottom: 1px solid #334155 !important;
@@ -68,6 +70,19 @@ pre, code, kbd, samp, tt {
   color: var(--fa-orange-light) !important;
 }
 
+/* FusionAuth Documentation topbar link — match tab brightness */
+#navbar li.navbar-link a {
+  color: #ffffff !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  opacity: 1 !important;
+}
+
+#navbar li.navbar-link a:hover {
+  color: var(--fa-orange-light) !important;
+}
+
 /* Mode toggle & other icon buttons in navbar */
 #navbar button {
   color: #94a3b8 !important;
@@ -77,10 +92,9 @@ pre, code, kbd, samp, tt {
   color: #e2e8f0 !important;
 }
 
-/* Search bar — slightly lighter than navbar so it reads as input */
+/* Search bar — hidden */
 #navbar [id="search-bar-entry"] {
-  background-color: #1e293b !important;
-  color: #94a3b8 !important;
+  display: none !important;
 }
 
 /* Logo link — inline-flex so the "/ Docs" label sits to the right */
