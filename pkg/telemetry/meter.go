@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -22,7 +23,10 @@ import (
 )
 
 // NewMeter - Creates new meter
-func NewMeter(exporter metric.Exporter, interval time.Duration) func(context.Context) error {
+func NewMeter(exporter metric.Exporter, interval time.Duration, serviceName string) func(context.Context) error {
+	if strings.TrimSpace(serviceName) == "" {
+		serviceName = "permify"
+	}
 	hostName, err := os.Hostname()
 	if err != nil {
 		return func(context.Context) error { return nil }
@@ -35,7 +39,7 @@ func NewMeter(exporter metric.Exporter, interval time.Duration) func(context.Con
 		)),
 		metric.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceNameKey.String("permify"),
+			semconv.ServiceNameKey.String(serviceName),
 			attribute.String("id", internal.Identifier),
 			attribute.String("project.id", internal.Identifier),
 			attribute.String("version", internal.Version),
