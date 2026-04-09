@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"runtime"
+	"strings"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -17,6 +18,9 @@ import (
 
 // NewTracer - Creates new tracer
 func NewTracer(exporter trace.SpanExporter, serviceName string) func(context.Context) error {
+	if strings.TrimSpace(serviceName) == "" {
+		serviceName = "permify"
+	}
 	hostName, err := os.Hostname()
 	if err != nil {
 		return func(context.Context) error { return nil }

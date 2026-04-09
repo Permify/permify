@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/Permify/sloggcp"
 	"github.com/agoda-com/opentelemetry-go/otelslog"
@@ -88,6 +89,9 @@ func NewLog(exporter sdk.LogRecordExporter, serviceName string) *sdk.LoggerProvi
 }
 
 func newResource(serviceName string) *resource.Resource {
+	if strings.TrimSpace(serviceName) == "" {
+		serviceName = "permify"
+	}
 	hostName, _ := os.Hostname()
 	return resource.NewWithAttributes(
 		semconv.SchemaURL,

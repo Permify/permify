@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -23,6 +24,9 @@ import (
 
 // NewMeter - Creates new meter
 func NewMeter(exporter metric.Exporter, interval time.Duration, serviceName string) func(context.Context) error {
+	if strings.TrimSpace(serviceName) == "" {
+		serviceName = "permify"
+	}
 	hostName, err := os.Hostname()
 	if err != nil {
 		return func(context.Context) error { return nil }
