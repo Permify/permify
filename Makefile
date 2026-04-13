@@ -42,6 +42,10 @@ test: ### run tests and gather coverage
 integration-test: ### run integration-test
 	go clean -testcache && go test -v ./integration-test/...
 
+.PHONY: vet
+vet: ## Run go vet
+	go vet ./...
+
 .PHONY: build
 build: ## Build/compile the Permify service
 	go build -o ./permify ./cmd/permify
