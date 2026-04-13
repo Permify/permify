@@ -32,7 +32,7 @@
     "tar": "^6.2.1",
     "js-yaml": "^4.1.1",
     "cookie": "^0.7.2",
-    "lodash": "^4.17.23",
+    "lodash": "^4.18.1",
     "front-matter": {
       "js-yaml": "^3.14.2"
     }
