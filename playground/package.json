@@ -49,7 +49,7 @@
     "eslint-plugin-import": "^2.29.1",
     "jsdom": "^26.1.0",
     "less": "^4.4.2",
-    "typescript": "^5.0.3",
+    "typescript": "^6.0.2",
     "vite": "^7.3.2",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"
