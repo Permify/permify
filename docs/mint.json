@@ -34,7 +34,7 @@
   "topbarLinks": [
     {
       "name": "FusionAuth Documentation",
-      "url": "https://fusionauth.io/docs/"
+      "url": "/docs/"
     }
   ],
   "modeToggle": {
