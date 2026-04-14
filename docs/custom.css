@@ -18,7 +18,7 @@ html:not(.dark) {
     radial-gradient(768px at right top, rgba(199, 210, 254, 0.65) 0%, rgba(255, 255, 255, 1.0) 80%),
     linear-gradient(rgba(99, 102, 241, 0.4) 1px, transparent 1px),
     linear-gradient(90deg, rgba(99, 102, 241, 0.4) 1px, transparent 1px) !important;
-  background-size: 100% 6000px, 34px 34px, 34px 34px !important;
+  background-size: 100% 30000px, 34px 34px, 34px 34px !important;
   background-position: 0 0, 0 0, 0 0 !important;
   background-repeat: no-repeat, repeat, repeat !important;
   background-attachment: local, local, local !important;
