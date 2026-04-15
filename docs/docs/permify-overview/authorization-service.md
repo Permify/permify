@@ -48,7 +48,7 @@ Zanzibar system achieved more than 95% of the access checks responded in 10 mill
 Permify applies proven techniques that Google used. We’re trying to make Zanzibar available to everyone to use and benefit in their applications and services
 
 :::success Metrics
-Currently, Permify can achieve response times of up to **10ms** for access control checks, with handling up to **1 trillion access requests** per second. Thanks to our state-of-the-art [parallel graph engine](https://docs.permify.co/docs/api-overview/permission/check-api/#how-access-decisions-evaluated) and various [cache mechanisms](https://docs.permify.co/docs/reference/cache/) that we operate.
+Currently, Permify can achieve response times of up to **10ms** for access control checks, with handling up to **1 trillion access requests** per second. Thanks to our state-of-the-art [parallel graph engine](/api-reference/permission/check-api#how-access-decisions-evaluated) and various [cache mechanisms](/operations/cache/) that we operate.
 :::
 
 [Google Zanzibar]: https://permify.co/post/google-zanzibar-in-a-nutshell
@@ -77,4 +77,3 @@ Permify can help you with things like fraud detection, real-time transaction mon
 ## Need any help on Authorization ?
 
 Our team is happy to help you get started with Permify. If you'd like to learn more about using Permify or how it might fit into your authorization workflow, [schedule a consultation call with one of our account executives](https://www.permify.co/book-demo).
-

@@ -1,42 +1,57 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Permify Docs",
+  "name": "FGA Documentation",
   "logo": {
     "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg"
+    "light": "/logo/light.svg",
+    "href": "/"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.png",
   "colors": {
-    "primary": "#8246FF",
-    "light": "#8246FF",
-    "dark": "#6318FF",
+    "primary": "#F58320",
+    "light": "#fb923c",
+    "dark": "#ea580c",
     "anchors": {
-      "from": "#8246FF",
-      "to": "#8246FF"
+      "from": "#F58320",
+      "to": "#ea580c"
+    },
+    "background": {
+      "light": "#ffffff",
+      "dark": "#0f172a"
     }
   },
+  "font": {
+    "headings": {
+      "family": "Inter",
+      "weight": 600
+    },
+    "body": {
+      "family": "Inter",
+      "weight": 400
+    }
+  },
+  "css": "/custom.css",
   "topbarLinks": [
     {
-      "name": "Support",
-      "url": "https://discord.gg/permify"
+      "name": "FusionAuth Documentation",
+      "url": "/docs/"
     }
   ],
   "modeToggle": {
-    "default": "dark"
+    "default": "light",
+    "isHidden": false
   },
   "banner": {
-    "content": "**Permify** has been acquired by **FusionAuth** 🎉 [Read the official announcement](https://fusionauth.io/blog/fusionauth-permify-pr) for more details.",
+    "content": "**Permify** is now part of **FusionAuth** \ud83c\udf89 [Learn more at fusionauth.io](https://fusionauth.io/blog/fusionauth-permify-pr)",
     "dismissible": false
   },
+  "rounded": "default",
   "analytics": {
     "ga4": {
       "measurementId": "G-BSRXWHBYR1"
     }
   },
-  "topbarCtaButton": {
-    "name": "Playground",
-    "url": "https://play.permify.co/?s=organizations-hierarchies"
-  },
+
   "redirects": [
     {
       "source": "/docs/:slug*",
@@ -211,29 +226,16 @@
       "destination": "/use-cases/rbac"
     }
   ],
+  "primaryTab": {
+    "name": "FGA Documentation"
+  },
   "tabs": [
     {
       "name": "API References",
       "url": "api-reference"
     }
   ],
-  "anchors": [
-    {
-      "name": "Community",
-      "icon": "discord",
-      "url": "https://discord.gg/permify"
-    },
-    {
-      "name": "Open Source",
-      "icon": "github",
-      "url": "https://github.com/Permify/permify"
-    },
-    {
-      "name": "Playground",
-      "icon": "play",
-      "url": "https://play.permify.co/?s=organizations-hierarchies"
-    }
-  ],
+
   "navigation": [
     {
       "group": "Introduction",

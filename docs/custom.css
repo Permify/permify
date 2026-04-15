@@ -1,0 +1,352 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+*, *::before, *::after {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+}
+
+pre, code, kbd, samp, tt {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', 'Monaco', 'Consolas', monospace !important;
+}
+
+html:not(.dark) span#background-color {
+  background: transparent !important;
+}
+
+html:not(.dark) {
+  background-color: #ffffff !important;
+  background-image:
+    radial-gradient(768px at right top, rgba(199, 210, 254, 0.65) 0%, rgba(255, 255, 255, 1.0) 80%),
+    linear-gradient(rgba(99, 102, 241, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.4) 1px, transparent 1px) !important;
+  background-size: 100% 30000px, 34px 34px, 34px 34px !important;
+  background-position: 0 0, 0 0, 0 0 !important;
+  background-repeat: no-repeat, repeat, repeat !important;
+  background-attachment: local, local, local !important;
+}
+
+/* ---------- Root color overrides ---------- */
+:root {
+  --fa-orange: #F58320;
+  --fa-orange-light: #fb923c;
+  --fa-orange-dark: #ea580c;
+  --fa-slate-800: #1e293b;
+  --fa-slate-700: #334155;
+  --fa-slate-100: #F1F5F9;
+  --fa-slate-200: #E2E8F0;
+}
+
+/* ---------- Banner ---------- */
+#banner {
+  background-color: var(--fa-slate-800) !important;
+  color: #fff !important;
+  border-bottom: 2px solid var(--fa-orange) !important;
+}
+
+#banner a {
+  color: var(--fa-orange-light) !important;
+  text-decoration: underline !important;
+}
+
+#banner a:hover {
+  color: #fff !important;
+}
+
+#navbar {
+  background-color: #0f172a !important;
+  border-bottom: 1px solid #334155 !important;
+}
+
+/* Keep the backdrop-blur overlay transparent so the parent dark bg shows */
+#navbar #navbar-transition {
+  background-color: transparent !important;
+}
+
+/* All links in navbar → light on dark background */
+#navbar a {
+  color: #e2e8f0 !important;
+}
+
+#navbar a:hover {
+  color: var(--fa-orange-light) !important;
+}
+
+/* FusionAuth Documentation topbar link — match tab brightness */
+#navbar li.navbar-link a {
+  color: #ffffff !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  opacity: 1 !important;
+}
+
+#navbar li.navbar-link a:hover {
+  color: var(--fa-orange-light) !important;
+}
+
+/* Mode toggle & other icon buttons in navbar */
+#navbar button {
+  color: #94a3b8 !important;
+}
+
+#navbar button:hover {
+  color: #e2e8f0 !important;
+}
+
+/* Search bar — hidden */
+#navbar [id="search-bar-entry"] {
+  display: none !important;
+}
+
+/* Logo link — inline-flex so the "/ Docs" label sits to the right */
+#navbar a[data-slot="context-menu-trigger"] {
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Logo icon — h-12 (48px) matches FusionAuth navbar */
+#navbar a[data-slot="context-menu-trigger"] img {
+  height: 3rem !important;
+  width: auto !important;
+  order: 1;
+}
+
+/* Slash — pushed after the logo via flex order */
+#navbar a[data-slot="context-menu-trigger"]::before {
+  content: "/";
+  color: #64748b;
+  font-size: 1.5rem;
+  font-weight: 300;
+  margin-left: 0.75rem;
+  margin-right: 0.375rem;
+  line-height: 1;
+  order: 2;
+}
+
+/* "Docs" — after the slash */
+#navbar a[data-slot="context-menu-trigger"]::after {
+  content: "FGA Docs";
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  order: 3;
+}
+
+/* ---------- Sidebar ---------- */
+/* Active / selected sidebar item: orange left accent */
+[data-testid="sidebar"] a[aria-current="page"],
+aside a[aria-current="page"] {
+  border-left: 3px solid var(--fa-orange) !important;
+  color: var(--fa-orange-dark) !important;
+  font-weight: 600 !important;
+  background-color: rgba(245, 131, 32, 0.06) !important;
+}
+
+/* Sidebar group headings: slate-800 uppercase small */
+[data-testid="sidebar"] h3,
+aside h3 {
+  color: var(--fa-slate-800) !important;
+  text-transform: uppercase !important;
+  font-size: 0.7rem !important;
+  letter-spacing: 0.06em !important;
+  font-weight: 700 !important;
+}
+
+:is(.dark) [data-testid="sidebar"] h3,
+:is(.dark) aside h3 {
+  color: var(--fa-slate-200) !important;
+}
+
+/* Sidebar links: slate-700 default, orange on hover */
+[data-testid="sidebar"] a,
+aside a {
+  color: var(--fa-slate-700) !important;
+  transition: color 0.15s ease !important;
+}
+
+[data-testid="sidebar"] a:hover,
+aside a:hover {
+  color: var(--fa-orange) !important;
+}
+
+:is(.dark) [data-testid="sidebar"] a,
+:is(.dark) aside a {
+  color: #cbd5e1 !important;
+}
+
+:is(.dark) [data-testid="sidebar"] a:hover,
+:is(.dark) aside a:hover {
+  color: var(--fa-orange-light) !important;
+}
+
+/* ---------- Buttons / CTA ---------- */
+/* Primary buttons: FusionAuth orange */
+a[class*="Button"],
+button[class*="primary"],
+.cta-button,
+[data-testid="cta-button"] {
+  background-color: var(--fa-orange) !important;
+  border-color: var(--fa-orange) !important;
+  color: #fff !important;
+  border-radius: 6px !important;
+  transition: background-color 0.15s ease !important;
+}
+
+a[class*="Button"]:hover,
+button[class*="primary"]:hover,
+.cta-button:hover,
+[data-testid="cta-button"]:hover {
+  background-color: var(--fa-orange-dark) !important;
+  border-color: var(--fa-orange-dark) !important;
+}
+
+/* ---------- Links in content ---------- */
+article a,
+.prose a,
+main a:not([class]) {
+  color: var(--fa-orange-dark) !important;
+  text-decoration-color: rgba(245, 131, 32, 0.3) !important;
+}
+
+article a:hover,
+.prose a:hover,
+main a:not([class]):hover {
+  color: var(--fa-orange) !important;
+  text-decoration-color: var(--fa-orange) !important;
+}
+
+:is(.dark) article a,
+:is(.dark) .prose a,
+:is(.dark) main a:not([class]) {
+  color: var(--fa-orange-light) !important;
+}
+
+/* ---------- Anchor cards / icon cards ---------- */
+[class*="anchor-card"],
+[class*="AnchorCard"] {
+  border: 1px solid var(--fa-slate-200) !important;
+  border-radius: 8px !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+[class*="anchor-card"]:hover,
+[class*="AnchorCard"]:hover {
+  border-color: var(--fa-orange) !important;
+  box-shadow: 0 2px 8px rgba(245, 131, 32, 0.12) !important;
+}
+
+/* ---------- Headings ---------- */
+article h1,
+article h2,
+article h3,
+.prose h1,
+.prose h2,
+.prose h3 {
+  color: var(--fa-slate-800) !important;
+}
+
+:is(.dark) article h1,
+:is(.dark) article h2,
+:is(.dark) article h3,
+:is(.dark) .prose h1,
+:is(.dark) .prose h2,
+:is(.dark) .prose h3 {
+  color: #f1f5f9 !important;
+}
+
+/* ---------- Code blocks ---------- */
+pre, code {
+  border-radius: 6px !important;
+}
+
+pre {
+  background-color: #1f273b !important;
+}
+
+:is(.dark) pre {
+  background-color: #00081a !important;
+}
+
+/* Inline code */
+:not(pre) > code {
+  background-color: #f1f5f9 !important;
+  color: var(--fa-slate-800) !important;
+  padding: 0.15em 0.4em !important;
+  border-radius: 4px !important;
+  font-size: 0.875em !important;
+}
+
+:is(.dark) :not(pre) > code {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+/* ---------- Tables ---------- */
+table th {
+  background-color: var(--fa-slate-800) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+
+:is(.dark) table th {
+  background-color: #0f172a !important;
+}
+
+table tr:nth-child(even) {
+  background-color: rgba(241, 245, 249, 0.5) !important;
+}
+
+:is(.dark) table tr:nth-child(even) {
+  background-color: rgba(30, 41, 59, 0.3) !important;
+}
+
+/* ---------- Tabs ---------- */
+[role="tab"][aria-selected="true"] {
+  color: var(--fa-orange) !important;
+  border-bottom-color: var(--fa-orange) !important;
+}
+
+/* ---------- Scrollbar (webkit) ---------- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---------- Selection highlight ---------- */
+::selection {
+  background-color: rgba(245, 131, 32, 0.2);
+  color: inherit;
+}
+
+/* ---------- Feedback / rating widgets ---------- */
+[class*="feedback"] button:hover,
+[class*="Feedback"] button:hover {
+  color: var(--fa-orange) !important;
+}
+
+/* ---------- Badge-style version tags ---------- */
+[class*="badge"],
+[class*="Badge"] {
+  border-radius: 4px !important;
+}
+
+/* ---------- Search highlight ---------- */
+mark, [class*="highlight"] {
+  background-color: rgba(245, 131, 32, 0.15) !important;
+}
+
+/* ---------- Card components ---------- */
+[class*="Card"],
+[class*="card"] {
+  border-radius: 8px !important;
+}
