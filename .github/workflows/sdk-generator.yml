@@ -32,3 +32,27 @@ jobs:
                 repo: Permify/permify-python
                 ref: main
                 token: "${{ secrets.SDK_GH_TOKEN }}"
+
+            - name: Invoke generator workflow Permify/permify-javascript repo
+              uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
+              with:
+                workflow: generator.yml
+                repo: Permify/permify-javascript
+                ref: main
+                token: "${{ secrets.SDK_GH_TOKEN }}"
+
+            - name: Invoke generator workflow Permify/permify-typescript repo
+              uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
+              with:
+                workflow: generator.yml
+                repo: Permify/permify-typescript
+                ref: master
+                token: "${{ secrets.SDK_GH_TOKEN }}"
+
+            - name: Invoke proto update workflow Permify/permify-node repo
+              uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
+              with:
+                workflow: protos.yml
+                repo: Permify/permify-node
+                ref: main
+                token: "${{ secrets.SDK_GH_TOKEN }}"
