@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"runtime"
+	"strings"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -16,7 +17,10 @@ import (
 )
 
 // NewTracer - Creates new tracer
-func NewTracer(exporter trace.SpanExporter) func(context.Context) error {
+func NewTracer(exporter trace.SpanExporter, serviceName string) func(context.Context) error {
+	if strings.TrimSpace(serviceName) == "" {
+		serviceName = "permify"
+	}
 	hostName, err := os.Hostname()
 	if err != nil {
 		return func(context.Context) error { return nil }
@@ -26,7 +30,7 @@ func NewTracer(exporter trace.SpanExporter) func(context.Context) error {
 		trace.WithSpanProcessor(trace.NewBatchSpanProcessor(exporter)),
 		trace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceNameKey.String("permify"),
+			semconv.ServiceNameKey.String(serviceName),
 			attribute.String("id", internal.Identifier),
 			attribute.String("project.id", internal.Identifier),
 			attribute.String("version", internal.Version),

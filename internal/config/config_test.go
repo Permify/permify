@@ -207,6 +207,39 @@ logger:
 	assert.Equal(t, "debug", cfg.Log.Level)        // Log level
 }
 
+func TestDefaultConfig_ServiceName(t *testing.T) {
+	cfg := DefaultConfig()
+	assert.Equal(t, "permify", cfg.Tracer.ServiceName)
+	assert.Equal(t, "permify", cfg.Meter.ServiceName)
+	assert.Equal(t, "permify", cfg.Log.ServiceName)
+}
+
+func TestNewConfigWithFile_ServiceName(t *testing.T) {
+	configContent := []byte(`
+tracer:
+  service_name: "new-service-name"
+meter:
+  service_name: "new-service-name"
+logger:
+  service_name: "new-service-name"
+`)
+
+	tmpDir, err := os.MkdirTemp("", "service-name-config-test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	tmpFile := filepath.Join(tmpDir, "config.yaml")
+	err = os.WriteFile(tmpFile, configContent, 0o666)
+	require.NoError(t, err)
+
+	cfg, err := NewConfigWithFile(tmpFile)
+	assert.NoError(t, err)
+	assert.NotNil(t, cfg)
+	assert.Equal(t, "new-service-name", cfg.Tracer.ServiceName)
+	assert.Equal(t, "new-service-name", cfg.Meter.ServiceName)
+	assert.Equal(t, "new-service-name", cfg.Log.ServiceName)
+}
+
 // TestNewConfigWithFile_InvalidConfig tests invalid config handling
 func TestNewConfigWithFile_InvalidConfig(t *testing.T) { // Test invalid config
 	configContent := []byte(` 

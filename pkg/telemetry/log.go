@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/Permify/sloggcp"
 	"github.com/agoda-com/opentelemetry-go/otelslog"
@@ -23,10 +24,10 @@ import (
 )
 
 // HandlerFactory - Create log handler according to given params
-func HandlerFactory(name, endpoint string, insecure bool, urlpath string, headers map[string]string, protocol string, level slog.Leveler) (slog.Handler, error) {
+func HandlerFactory(name, endpoint string, insecure bool, urlpath string, headers map[string]string, protocol string, level slog.Leveler, serviceName string) (slog.Handler, error) {
 	switch name {
 	case "otlp", "otlp-http", "otlp-grpc":
-		return NewOTLPHandler(endpoint, insecure, urlpath, headers, protocol, level.Level())
+		return NewOTLPHandler(endpoint, insecure, urlpath, headers, protocol, level.Level(), serviceName)
 	case "gcp":
 		return NewGCPHandler(headers, level)
 	default:
@@ -34,7 +35,7 @@ func HandlerFactory(name, endpoint string, insecure bool, urlpath string, header
 	}
 }
 
-func NewOTLPHandler(endpoint string, insecure bool, urlPath string, headers map[string]string, protocol string, level slog.Leveler) (slog.Handler, error) {
+func NewOTLPHandler(endpoint string, insecure bool, urlPath string, headers map[string]string, protocol string, level slog.Leveler, serviceName string) (slog.Handler, error) {
 	// Set up the OTLP exporter based on the protocol
 	exporter, err := logexporters.ExporterFactory("otlp", endpoint, insecure, urlPath, headers, protocol)
 	if err != nil {
@@ -42,7 +43,7 @@ func NewOTLPHandler(endpoint string, insecure bool, urlPath string, headers map[
 	}
 
 	// Initialize the OpenTelemetry handler with the exporter
-	lp := NewLog(exporter)
+	lp := NewLog(exporter, serviceName)
 	otelHandler := otelslog.NewOtelHandler(lp, &otelslog.HandlerOptions{
 		Level: level,
 	})
@@ -76,22 +77,25 @@ func NewGCPHandler(headers map[string]string, level slog.Leveler) (slog.Handler,
 }
 
 // NewLog - Creates new log
-func NewLog(exporter sdk.LogRecordExporter) *sdk.LoggerProvider {
+func NewLog(exporter sdk.LogRecordExporter, serviceName string) *sdk.LoggerProvider {
 	// Create a logger provider with the exporter and resource
 	lp := sdk.NewLoggerProvider(
 		sdk.WithBatcher(exporter),
-		sdk.WithResource(newResource()),
+		sdk.WithResource(newResource(serviceName)),
 	)
 
 	// Return the logger provider
 	return lp
 }
 
-func newResource() *resource.Resource {
+func newResource(serviceName string) *resource.Resource {
+	if strings.TrimSpace(serviceName) == "" {
+		serviceName = "permify"
+	}
 	hostName, _ := os.Hostname()
 	return resource.NewWithAttributes(
 		semconv.SchemaURL,
-		semconv.ServiceNameKey.String("permify"),
+		semconv.ServiceNameKey.String(serviceName),
 		semconv.HostNameKey.String(hostName),
 		attribute.String("id", internal.Identifier),
 		attribute.String("project.id", internal.Identifier),
