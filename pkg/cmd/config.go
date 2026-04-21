@@ -54,6 +54,7 @@ func NewConfigCommand() *cobra.Command {
 	f.String("log-urlpath", conf.Log.Urlpath, "allow to set url path for otlp exporter")
 	f.StringSlice("log-headers", conf.Log.Headers, "allows setting custom headers for the log exporter in key-value pairs")
 	f.String("log-protocol", conf.Log.Protocol, "allows setting the communication protocol for the log exporter, with options http or grpc")
+	f.String("log-service-name", conf.Log.ServiceName, "service name for the log exporter")
 	f.Bool("authn-enabled", conf.Authn.Enabled, "enable server authentication")
 	f.String("authn-method", conf.Authn.Method, "server authentication method")
 	f.StringSlice("authn-preshared-keys", conf.Authn.Preshared.Keys, "preshared key/keys for server authentication")
@@ -71,6 +72,7 @@ func NewConfigCommand() *cobra.Command {
 	f.String("tracer-urlpath", conf.Tracer.Urlpath, "allow to set url path for otlp exporter")
 	f.StringSlice("tracer-headers", conf.Tracer.Headers, "allows setting custom headers for the tracer exporter in key-value pairs")
 	f.String("tracer-protocol", conf.Tracer.Protocol, "allows setting the communication protocol for the tracer exporter, with options http or grpc")
+	f.String("tracer-service-name", conf.Tracer.ServiceName, "service name for the tracer exporter")
 	f.Bool("meter-enabled", conf.Meter.Enabled, "switch option for metric")
 	f.String("meter-exporter", conf.Meter.Exporter, "can be; otlp. (integrated metric tools)")
 	f.String("meter-endpoint", conf.Meter.Endpoint, "export uri for metric data")
@@ -79,6 +81,7 @@ func NewConfigCommand() *cobra.Command {
 	f.StringSlice("meter-headers", conf.Meter.Headers, "allows setting custom headers for the metric exporter in key-value pairs")
 	f.Int("meter-interval", conf.Meter.Interval, "allows to set metrics to be pushed in certain time interval") // Metric push interval
 	f.String("meter-protocol", conf.Meter.Protocol, "allows setting the communication protocol for the meter exporter, with options http or grpc")
+	f.String("meter-service-name", conf.Meter.ServiceName, "service name for the meter exporter")
 	f.Bool("service-circuit-breaker", conf.Service.CircuitBreaker, "switch option for service circuit breaker")
 	f.Bool("service-watch-enabled", conf.Service.Watch.Enabled, "switch option for watch service")
 	f.Int64("service-schema-cache-number-of-counters", conf.Service.Schema.Cache.NumberOfCounters, "schema service cache number of counters")
