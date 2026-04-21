@@ -1,0 +1,431 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "FGA Documentation",
+  "colors": {
+    "primary": "#F58320",
+    "light": "#fb923c",
+    "dark": "#ea580c"
+  },
+  "favicon": "/favicon.png",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "FGA Documentation",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": [
+              "permify-overview/intro",
+              "permify-overview/authorization-service",
+              "permify-overview/faqs",
+              "permify-overview/playground"
+            ]
+          },
+          {
+            "group": "Getting Started",
+            "pages": [
+              "getting-started/quickstart",
+              "getting-started/modeling",
+              "getting-started/sync-data",
+              "getting-started/enforcement",
+              "getting-started/testing",
+              {
+                "group": "Real World Examples",
+                "icon": "globe",
+                "pages": [
+                  "getting-started/examples/intro",
+                  "getting-started/examples/facebook-groups",
+                  "getting-started/examples/healthcare",
+                  "getting-started/examples/google-docs",
+                  "getting-started/examples/instagram",
+                  "getting-started/examples/mercury",
+                  "getting-started/examples/notion"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Modeling Guides",
+            "icon": "code",
+            "pages": [
+              {
+                "group": "Model Role Based Access Control (RBAC)",
+                "pages": [
+                  "modeling-guides/rbac/global-roles",
+                  "modeling-guides/rbac/resource-specific-roles",
+                  "modeling-guides/rbac/custom-roles"
+                ]
+              },
+              {
+                "group": "Model Attribute Based Access Control (ABAC)",
+                "pages": [
+                  "modeling-guides/abac/public-private",
+                  "modeling-guides/abac/text-object-based-conditions",
+                  "modeling-guides/abac/numerical-conditions"
+                ]
+              },
+              {
+                "group": "Model Relationship Based Access Control (ReBAC)",
+                "pages": [
+                  "modeling-guides/rebac/user-groups",
+                  "modeling-guides/rebac/hierarchies",
+                  "modeling-guides/rebac/impersonation",
+                  "modeling-guides/rebac/recursive-rebac"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Setting Up",
+            "icon": "cloud-arrow-up",
+            "pages": [
+              "setting-up/configuration",
+              {
+                "group": "Deployment",
+                "icon": "cloud-arrow-up",
+                "pages": [
+                  "setting-up/installation/intro",
+                  "setting-up/installation/database",
+                  "setting-up/installation/aws",
+                  "setting-up/installation/brew",
+                  "setting-up/installation/container",
+                  "setting-up/installation/fly",
+                  "setting-up/installation/railway",
+                  "setting-up/installation/google",
+                  "setting-up/installation/helm",
+                  "setting-up/installation/kubernetes",
+                  "setting-up/installation/pooling"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Operations",
+            "pages": [
+              "operations/bundle",
+              "operations/cache",
+              "operations/contextual-tuples",
+              "operations/tracing",
+              "operations/snap-tokens",
+              "operations/watch"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "icon": "code",
+            "pages": [
+              "integrations/data-sync",
+              {
+                "group": "Tracing & Metrics",
+                "pages": [
+                  "integrations/metrics/otlp",
+                  "integrations/metrics/jaeger",
+                  "integrations/metrics/signoz",
+                  "integrations/metrics/zipkin"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Use Cases",
+            "pages": [
+              "use-cases/rbac",
+              "use-cases/rebac",
+              "use-cases/abac",
+              "use-cases/custom-roles",
+              "use-cases/multi-tenancy",
+              "use-cases/llm-authorization"
+            ]
+          },
+          {
+            "group": "Migration",
+            "pages": [
+              "migration/v1.0-v1.1",
+              "migration/repair"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API References",
+        "groups": [
+          {
+            "group": "API Documentation",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Schema Service",
+            "pages": [
+              "api-reference/schema/write-schema",
+              "api-reference/schema/list-schema",
+              "api-reference/schema/partial-write",
+              "api-reference/schema/read-schema"
+            ]
+          },
+          {
+            "group": "Data Service",
+            "pages": [
+              "api-reference/data/write-data",
+              "api-reference/data/read-relationships",
+              "api-reference/data/read-attributes",
+              "api-reference/data/run-bundle",
+              "api-reference/data/delete-data"
+            ]
+          },
+          {
+            "group": "Permission Service",
+            "pages": [
+              "api-reference/permission/check-api",
+              "api-reference/permission/bulk-check",
+              "api-reference/permission/expand-api",
+              "api-reference/permission/lookup-subject",
+              "api-reference/permission/lookup-entity",
+              "api-reference/permission/lookup-entity-stream",
+              "api-reference/permission/subject-permission"
+            ]
+          },
+          {
+            "group": "Tenancy Service",
+            "pages": [
+              "api-reference/tenancy/list-tenants",
+              "api-reference/tenancy/create-tenant",
+              "api-reference/tenancy/delete-tenant"
+            ]
+          },
+          {
+            "group": "Bundle Service",
+            "pages": [
+              "api-reference/bundle/write-bundle",
+              "api-reference/bundle/read-bundle",
+              "api-reference/bundle/delete-bundle"
+            ]
+          },
+          {
+            "group": "Watch Service",
+            "pages": [
+              "api-reference/watch/watch-changes"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "/"
+  },
+  "appearance": {
+    "default": "light",
+    "strict": false
+  },
+  "background": {
+    "color": {
+      "light": "#ffffff",
+      "dark": "#0f172a"
+    }
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "FusionAuth Documentation",
+        "href": "/docs/"
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "twitter": "https://twitter.com/getPermify",
+      "github": "https://github.com/Permify/permify",
+      "linkedin": "https://www.linkedin.com/company/permifyco"
+    }
+  },
+  "integrations": {
+    "ga4": {
+      "measurementId": "G-BSRXWHBYR1"
+    }
+  },
+  "fonts": {
+    "heading": {
+      "family": "Inter",
+      "weight": 600
+    },
+    "body": {
+      "family": "Inter",
+      "weight": 400
+    }
+  },
+  "redirects": [
+    {
+      "source": "/docs/:slug*",
+      "destination": "/:slug*"
+    },
+    {
+      "source": "/0.2.x/:slug*",
+      "destination": "/:slug*"
+    },
+    {
+      "source": "/0.3.x/:slug*",
+      "destination": "/:slug*"
+    },
+    {
+      "source": "/0.4.x/:slug*",
+      "destination": "/:slug*"
+    },
+    {
+      "source": "/0.5.x/:slug*",
+      "destination": "/:slug*"
+    },
+    {
+      "source": "/0.6.x/:slug*",
+      "destination": "/:slug*"
+    },
+    {
+      "source": "/0.7.x/:slug*",
+      "destination": "/:slug*"
+    },
+    {
+      "source": "/api-overview/:slug*",
+      "destination": "/api-reference/:slug*"
+    },
+    {
+      "source": "/reference/:slug*",
+      "destination": "/operations/:slug*"
+    },
+    {
+      "source": "/permify-overview/getting-started/modeling",
+      "destination": "/getting-started/modeling"
+    },
+    {
+      "source": "/installation/installation/google",
+      "destination": "/setting-up/installation/google"
+    },
+    {
+      "source": "/installation/installation/brew",
+      "destination": "/setting-up/installation/brew"
+    },
+    {
+      "source": "/installation/installation/container",
+      "destination": "/setting-up/installation/container"
+    },
+    {
+      "source": "/operations/configuration",
+      "destination": "/setting-up/configuration"
+    },
+    {
+      "source": "/api-reference/reference/configuration",
+      "destination": "/setting-up/configuration"
+    },
+    {
+      "source": "/api-reference/reference/snap-tokens",
+      "destination": "/operations/snap-tokens"
+    },
+    {
+      "source": "/api-overview/reference/snap-tokens",
+      "destination": "/operations/snap-tokens"
+    },
+    {
+      "source": "/use-cases/getting-started/modeling",
+      "destination": "/getting-started/modeling"
+    },
+    {
+      "source": "/api-reference/api-overview/:slug*",
+      "destination": "/api-reference/:slug*"
+    },
+    {
+      "source": "/permify-overview/getting-started/:slug*",
+      "destination": "/getting-started/:slug*"
+    },
+    {
+      "source": "/installation/getting-started/:slug*",
+      "destination": "/getting-started/:slug*"
+    },
+    {
+      "source": "/api-reference/reference/:slug*",
+      "destination": "/operations/:slug*"
+    },
+    {
+      "source": "/permify-overview/intro/installation/overview",
+      "destination": "/setting-up/installation/intro"
+    },
+    {
+      "source": "/reference/api-overview/permission/check-api",
+      "destination": "/api-reference/permission/check-api"
+    },
+    {
+      "source": "/reference/installation/brew",
+      "destination": "/setting-up/installation/brew"
+    },
+    {
+      "source": "/installation/api-overview",
+      "destination": "/api-reference"
+    },
+    {
+      "source": "/use-cases/use-cases/simple-rbac",
+      "destination": "/use-cases/use-cases/rbac"
+    },
+    {
+      "source": "/use-cases/use-cases/:slug*",
+      "destination": "/use-cases/:slug*"
+    },
+    {
+      "source": "/getting-started/use-cases/:slug*",
+      "destination": "/use-cases/:slug*"
+    },
+    {
+      "source": "/setting-up/installation/getting-started/:slug*",
+      "destination": "/getting-started/:slug*"
+    },
+    {
+      "source": "/getting-started/modeling/examples",
+      "destination": "/getting-started/examples"
+    },
+    {
+      "source": "/permify-overview/installation/overview",
+      "destination": "/setting-up/configuration"
+    },
+    {
+      "source": "/migrating/api-overview/:slug*",
+      "destination": "/api-reference/:slug*"
+    },
+    {
+      "source": "/setting-up/installation/overview",
+      "destination": "/getting-started/quickstart"
+    },
+    {
+      "source": "/reference/api-overview/:slug*",
+      "destination": "/api-reference/permission/:slug*"
+    },
+    {
+      "source": "/getting-started/api-overview.md",
+      "destination": "/api-reference"
+    },
+    {
+      "source": "/getting-started/api-overview/:slug*",
+      "destination": "/api-reference/:slug*"
+    },
+    {
+      "source": "/setting-up/installation/api-overview",
+      "destination": "/setting-up/installation"
+    },
+    {
+      "source": "/example-use-cases/getting-started/modeling",
+      "destination": "/getting-started/modeling"
+    },
+    {
+      "source": "/getting-started/reference/configuration",
+      "destination": "/setting-up/configuration"
+    },
+    {
+      "source": "/guides/example-apps",
+      "destination": "/getting-started/examples"
+    },
+    {
+      "source": "/installation/use-cases/simple-rbac",
+      "destination": "/use-cases/rbac"
+    }
+  ]
+}
