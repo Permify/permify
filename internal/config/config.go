@@ -89,38 +89,41 @@ type (
 
 	// Log contains configuration for logging.
 	Log struct {
-		Level    string   `mapstructure:"level"`    // Logging level
-		Output   string   `mapstructure:"output"`   // Logging output format, e.g., text, json
-		Enabled  bool     `mapstructure:"enabled"`  // Whether logging collection is enabled
-		Exporter string   `mapstructure:"exporter"` // Exporter for log data
-		Endpoint string   `mapstructure:"endpoint"` // Endpoint for the log exporter
-		Insecure bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
-		Urlpath  string   `mapstructure:"urlpath"`  // Path for the log exporter, if not defined /v1/logs will be used
-		Headers  []string `mapstructure:"headers"`
-		Protocol string   `mapstructure:"protocol"` // Protocol for the log exporter, http or grpc
+		Level       string   `mapstructure:"level"`    // Logging level
+		Output      string   `mapstructure:"output"`   // Logging output format, e.g., text, json
+		Enabled     bool     `mapstructure:"enabled"`  // Whether logging collection is enabled
+		Exporter    string   `mapstructure:"exporter"` // Exporter for log data
+		Endpoint    string   `mapstructure:"endpoint"` // Endpoint for the log exporter
+		Insecure    bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
+		Urlpath     string   `mapstructure:"urlpath"`  // Path for the log exporter, if not defined /v1/logs will be used
+		Headers     []string `mapstructure:"headers"`
+		Protocol    string   `mapstructure:"protocol"`     // Protocol for the log exporter, http or grpc
+		ServiceName string   `mapstructure:"service_name"` // Override the service name reported by the exporter (default: "permify")
 	}
 
 	// Tracer contains configuration for distributed tracing.
 	Tracer struct {
-		Enabled  bool     `mapstructure:"enabled"`  // Whether tracing collection is enabled
-		Exporter string   `mapstructure:"exporter"` // Exporter for tracing data
-		Endpoint string   `mapstructure:"endpoint"` // Endpoint for the tracing exporter
-		Insecure bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
-		Urlpath  string   `mapstructure:"urlpath"`  // Path for the tracing exporter, if not defined /v1/trace will be used
-		Headers  []string `mapstructure:"headers"`
-		Protocol string   `mapstructure:"protocol"` // Protocol for the tracing exporter, http or grpc
+		Enabled     bool     `mapstructure:"enabled"`  // Whether tracing collection is enabled
+		Exporter    string   `mapstructure:"exporter"` // Exporter for tracing data
+		Endpoint    string   `mapstructure:"endpoint"` // Endpoint for the tracing exporter
+		Insecure    bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
+		Urlpath     string   `mapstructure:"urlpath"`  // Path for the tracing exporter, if not defined /v1/trace will be used
+		Headers     []string `mapstructure:"headers"`
+		Protocol    string   `mapstructure:"protocol"`     // Protocol for the tracing exporter, http or grpc
+		ServiceName string   `mapstructure:"service_name"` // Override the service name reported by the exporter (default: "permify")
 	}
 
 	// Meter contains configuration for metrics collection and reporting.
 	Meter struct {
-		Enabled  bool     `mapstructure:"enabled"`  // Whether metrics collection is enabled
-		Exporter string   `mapstructure:"exporter"` // Exporter for metrics data
-		Endpoint string   `mapstructure:"endpoint"` // Endpoint for the metrics exporter
-		Insecure bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
-		Urlpath  string   `mapstructure:"urlpath"`  // Path for the metrics exporter, if not defined /v1/metrics will be used
-		Headers  []string `mapstructure:"headers"`
-		Interval int      `mapstructure:"interval"`
-		Protocol string   `mapstructure:"protocol"` // Protocol for the metrics exporter, http or grpc
+		Enabled     bool     `mapstructure:"enabled"`  // Whether metrics collection is enabled
+		Exporter    string   `mapstructure:"exporter"` // Exporter for metrics data
+		Endpoint    string   `mapstructure:"endpoint"` // Endpoint for the metrics exporter
+		Insecure    bool     `mapstructure:"insecure"` // Connect to the collector using the HTTP scheme, instead of HTTPS.
+		Urlpath     string   `mapstructure:"urlpath"`  // Path for the metrics exporter, if not defined /v1/metrics will be used
+		Headers     []string `mapstructure:"headers"`
+		Interval    int      `mapstructure:"interval"`
+		Protocol    string   `mapstructure:"protocol"`     // Protocol for the metrics exporter, http or grpc
+		ServiceName string   `mapstructure:"service_name"` // Override the service name reported by the exporter (default: "permify")
 	}
 
 	// Service contains configuration for various service-level features.
@@ -308,24 +311,27 @@ func DefaultConfig() *Config {
 			Enabled: false,
 		},
 		Log: Log{
-			Level:    "info",
-			Enabled:  false,
-			Exporter: "otlp",
-			Headers:  []string{},
-			Protocol: "http",
+			Level:       "info",
+			Enabled:     false,
+			Exporter:    "otlp",
+			Headers:     []string{},
+			Protocol:    "http",
+			ServiceName: "permify",
 		},
 		Tracer: Tracer{
-			Enabled:  false,
-			Headers:  []string{},
-			Protocol: "http",
+			Enabled:     false,
+			Headers:     []string{},
+			Protocol:    "http",
+			ServiceName: "permify",
 		},
 		Meter: Meter{
-			Enabled:  false,
-			Exporter: "otlp",
-			Endpoint: "telemetry.permify.co",
-			Headers:  []string{},
-			Interval: 300,
-			Protocol: "http",
+			Enabled:     false,
+			Exporter:    "otlp",
+			Endpoint:    "telemetry.permify.co",
+			Headers:     []string{},
+			Interval:    300,
+			Protocol:    "http",
+			ServiceName: "permify",
 		},
 		Service: Service{
 			CircuitBreaker: false,

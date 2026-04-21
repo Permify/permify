@@ -199,21 +199,24 @@ Real time logs of authorization. Permify uses [zerolog] as a logger.
 ```
 ├── logger
     ├── level
+    ├── service_name
 ```
 
 #### Glossary
 
-| Required | Argument | Default | Description                                      |
-|----------|----------|---------|--------------------------------------------------|
-| [x]      | level    | info    | logger levels: `error`, `warn`, `info` , `debug` |
-| [x]      | output   | text    | logger output: `json`, `text`                    |
+| Required | Argument     | Default | Description                                              |
+|----------|--------------|---------|----------------------------------------------------------|
+| [x]      | level        | info    | logger levels: `error`, `warn`, `info` , `debug`         |
+| [x]      | output       | text    | logger output: `json`, `text`                            |
+| [ ]      | service_name | permify | Override the service name reported by the log exporter.   |
 
 #### ENV
 
-| Argument   | ENV                | Type   |
-|------------|--------------------|--------|
-| log-level  | PERMIFY_LOG_LEVEL  | string |
-| log-output | PERMIFY_LOG_OUTPUT | string |
+| Argument          | ENV                       | Type   |
+|-------------------|---------------------------|--------|
+| log-level         | PERMIFY_LOG_LEVEL         | string |
+| log-output        | PERMIFY_LOG_OUTPUT        | string |
+| log-service-name  | PERMIFY_LOG_SERVICE_NAME  | string |
 
 </Accordion>
 
@@ -330,6 +333,7 @@ authorization when using Permify.
 |   ├── enabled
 |   ├── insecure
 |   ├── urlpath
+|   ├── service_name
 ```
 
 #### Glossary
@@ -340,17 +344,19 @@ authorization when using Permify.
 | [x]      | endpoint | -       | export uri for tracing data.                                                                                                  |
 | [ ]      | enabled  | false   | switch option for tracing.                                                                                                    |
 | [ ]      | urlpath  |         | allows one to override the default URL path for otlp, used for sending traces. If unset, default ("/v1/traces") will be used. |
-| [ ]      | insecure | false   | Whether to use HTTP instead of HTTPs for exporting the traces.                                                                |
+| [ ]      | insecure     | false   | Whether to use HTTP instead of HTTPs for exporting the traces.                                                                |
+| [ ]      | service_name | permify | Override the service name reported by the tracing exporter.                                                                   |
 
 #### ENV
 
-| Argument        | ENV                     | Type    |
-|-----------------|-------------------------|---------|
-| tracer-enabled  | PERMIFY_TRACER_ENABLED  | boolean |
-| tracer-exporter | PERMIFY_TRACER_EXPORTER | string  |
-| tracer-endpoint | PERMIFY_TRACER_ENDPOINT | string  |
-| tracer-urlpath  | PERMIFY_TRACER_URL_PATH | string  |
-| tracer-insecure | PERMIFY_TRACER_INSECURE | boolean |
+| Argument             | ENV                          | Type    |
+|----------------------|------------------------------|---------|
+| tracer-enabled       | PERMIFY_TRACER_ENABLED       | boolean |
+| tracer-exporter      | PERMIFY_TRACER_EXPORTER      | string  |
+| tracer-endpoint      | PERMIFY_TRACER_ENDPOINT      | string  |
+| tracer-urlpath       | PERMIFY_TRACER_URL_PATH      | string  |
+| tracer-insecure      | PERMIFY_TRACER_INSECURE      | boolean |
+| tracer-service-name  | PERMIFY_TRACER_SERVICE_NAME  | string  |
 
 </Accordion>
 
@@ -370,6 +376,7 @@ os, arch.
 |   ├── enabled
 |   ├── insecure
 |   ├── urlpath
+|   ├── service_name
 ```
 
 #### Glossary
@@ -377,18 +384,20 @@ os, arch.
 | Required | Argument | Default | Description                                                  |
 |----------|----------|---------|--------------------------------------------------------------|
 | [x]      | exporter | -       | [otlp](https://opentelemetry.io/docs/collector/) is default. |
-| [x]      | endpoint | -       | export uri for metric observation                            |
-| [ ]      | enabled  | true    | switch option for meter tracing.                             |
+| [x]      | endpoint     | -       | export uri for metric observation                                            |
+| [ ]      | enabled      | true    | switch option for meter tracing.                                             |
+| [ ]      | service_name | permify | Override the service name reported by the metrics exporter.                  |
 
 #### ENV
 
-| Argument       | ENV                    | Type    |
-|----------------|------------------------|---------|
-| meter-enabled  | PERMIFY_METER_ENABLED  | boolean |
-| meter-exporter | PERMIFY_METER_EXPORTER | string  |
-| meter-endpoint | PERMIFY_METER_ENDPOINT | string  |
-| meter-urlpath  | PERMIFY_METER_URL_PATH | string  |
-| meter-insecure | PERMIFY_METER_INSECURE | boolean |
+| Argument            | ENV                         | Type    |
+|---------------------|-----------------------------|---------|
+| meter-enabled       | PERMIFY_METER_ENABLED       | boolean |
+| meter-exporter      | PERMIFY_METER_EXPORTER      | string  |
+| meter-endpoint      | PERMIFY_METER_ENDPOINT      | string  |
+| meter-urlpath       | PERMIFY_METER_URL_PATH      | string  |
+| meter-insecure      | PERMIFY_METER_INSECURE      | boolean |
+| meter-service-name  | PERMIFY_METER_SERVICE_NAME  | string  |
 
 </Accordion>
 
