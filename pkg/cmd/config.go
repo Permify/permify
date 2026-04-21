@@ -182,6 +182,7 @@ func conf() func(cmd *cobra.Command, args []string) error { // Return config han
 			[]string{"logger.urlpath", cfg.Log.Urlpath, getKeyOrigin(cmd, "log-urlpath", "PERMIFY_LOG_URL_PATH")},
 			[]string{"logger.headers", fmt.Sprintf("%v", cfg.Log.Headers), getKeyOrigin(cmd, "log-headers", "PERMIFY_LOG_HEADERS")},
 			[]string{"logger.protocol", cfg.Log.Protocol, getKeyOrigin(cmd, "log-protocol", "PERMIFY_LOG_PROTOCOL")},
+			[]string{"logger.service_name", cfg.Log.ServiceName, getKeyOrigin(cmd, "log-service-name", "PERMIFY_LOG_SERVICE_NAME")},
 			// AUTHN
 			[]string{"authn.enabled", fmt.Sprintf("%v", cfg.Authn.Enabled), getKeyOrigin(cmd, "authn-enabled", "PERMIFY_AUTHN_ENABLED")},
 			[]string{"authn.method", cfg.Authn.Method, getKeyOrigin(cmd, "authn-method", "PERMIFY_AUTHN_METHOD")},
@@ -201,6 +202,7 @@ func conf() func(cmd *cobra.Command, args []string) error { // Return config han
 			[]string{"tracer.urlpath", cfg.Tracer.Urlpath, getKeyOrigin(cmd, "tracer-urlpath", "PERMIFY_TRACER_URL_PATH")},
 			[]string{"tracer.headers", fmt.Sprintf("%v", cfg.Tracer.Headers), getKeyOrigin(cmd, "tracer-headers", "PERMIFY_TRACER_HEADERS")},
 			[]string{"tracer.protocol", cfg.Tracer.Protocol, getKeyOrigin(cmd, "tracer-protocol", "PERMIFY_TRACER_PROTOCOL")},
+			[]string{"tracer.service_name", cfg.Tracer.ServiceName, getKeyOrigin(cmd, "tracer-service-name", "PERMIFY_TRACER_SERVICE_NAME")},
 			// METER
 			[]string{"meter.enabled", fmt.Sprintf("%v", cfg.Meter.Enabled), getKeyOrigin(cmd, "meter-enabled", "PERMIFY_METER_ENABLED")},
 			[]string{"meter.exporter", cfg.Meter.Exporter, getKeyOrigin(cmd, "meter-exporter", "PERMIFY_METER_EXPORTER")},
@@ -210,6 +212,7 @@ func conf() func(cmd *cobra.Command, args []string) error { // Return config han
 			[]string{"meter.headers", fmt.Sprintf("%v", cfg.Meter.Headers), getKeyOrigin(cmd, "meter-headers", "PERMIFY_METER_HEADERS")},
 			[]string{"meter.protocol", cfg.Meter.Protocol, getKeyOrigin(cmd, "meter-protocol", "PERMIFY_METER_PROTOCOL")},
 			[]string{"meter.interval", fmt.Sprintf("%v", cfg.Meter.Interval), getKeyOrigin(cmd, "meter-interval", "PERMIFY_METER_INTERVAL")},
+			[]string{"meter.service_name", cfg.Meter.ServiceName, getKeyOrigin(cmd, "meter-service-name", "PERMIFY_METER_SERVICE_NAME")},
 			// SERVICE
 			[]string{"service.circuit_breaker", fmt.Sprintf("%v", cfg.Service.CircuitBreaker), getKeyOrigin(cmd, "service-circuit-breaker", "PERMIFY_SERVICE_CIRCUIT_BREAKER")},
 			[]string{"service.schema.cache.number_of_counters", fmt.Sprintf("%v", cfg.Service.Schema.Cache.NumberOfCounters), getKeyOrigin(cmd, "service-schema-cache-number-of-counters", "PERMIFY_SERVICE_WATCH_ENABLED")},
