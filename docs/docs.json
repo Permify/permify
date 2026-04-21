@@ -300,10 +300,6 @@
       "destination": "/getting-started/modeling"
     },
     {
-      "source": "/installation/installation/azure",
-      "destination": "/setting-up/installation/azure"
-    },
-    {
       "source": "/installation/installation/google",
       "destination": "/setting-up/installation/google"
     },
