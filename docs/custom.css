@@ -92,11 +92,6 @@ html:not(.dark) {
   color: #e2e8f0 !important;
 }
 
-/* Search bar — hidden */
-#navbar [id="search-bar-entry"] {
-  display: none !important;
-}
-
 /* Logo link — inline-flex so the "/ Docs" label sits to the right */
 #navbar a[data-slot="context-menu-trigger"] {
   display: inline-flex !important;
