@@ -3,7 +3,12 @@ name: Generate Client SDKs from OpenAPI
 on:
   release:
     types: [published]
-    workflow_dispatch:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Optional release tag to forward to SDK workflows that need explicit versioning, for example v1.6.9"
+        required: false
+        type: string
 
 jobs:
     build:
@@ -56,3 +61,4 @@ jobs:
                 repo: Permify/permify-node
                 ref: main
                 token: "${{ secrets.SDK_GH_TOKEN }}"
+                inputs: '{ "version": "${{ github.event.release.tag_name || inputs.version }}" }'
