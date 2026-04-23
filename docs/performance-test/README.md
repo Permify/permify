@@ -11,10 +11,9 @@ For guideline purposes we perform load test on **Permify** with 1000 VU and 1000
 
 ## 1. Test Environment
 
-- Permify version **1.3.0**
+- Permify version **1.6.9**
 - Google Kubernetes Engine general-purpose machines for clusters
 - Postgres 15 on Google Cloud SQL 
-- pgcat for server side pooling
 - **[values.yaml](./values.yaml)**: This file holds the default configuration (e.g. Helm values, resource settings, etc.) used for the performance test environment.
 
 ## 2. Schema
@@ -48,17 +47,115 @@ entity interaction {
 ```
 
 ## 3. K6 Test Script
-Below is the k6test.js script used to measure load on Permify by performing both write and check requests:
+
+### Write Script
+Seeds data for the schema used in our load tests.
+```javascript
+import http from "k6/http";
+import { fail } from "k6";
+
+export const options = { vus: 1, iterations: 1 };
+
+const TENANT_ID = "<tenant-id>";
+const url = "<your-api-endpoint>";
+
+const TOTAL_IDS = 100000;
+const BATCH_SIZE = 1000;
+
+function writeInBatches(items, key) {
+    for (let start = 0; start < items.length; start += BATCH_SIZE) {
+        const chunk = items.slice(start, start + BATCH_SIZE);
+        const batchNumber = start / BATCH_SIZE + 1;
+        const res = http.post(
+            `${url}/v1/tenants/${TENANT_ID}/data/write`,
+            JSON.stringify({
+                metadata: { schema_version: "<schema-version>" },
+                [key]: chunk,
+            }),
+            {
+                headers: { "Content-Type": "application/json" },
+            }
+        );
+
+        if (res.status < 200 || res.status >= 300) {
+            console.error(`\nPOST /data/write ${key} batch ${batchNumber} FAILED status=${res.status}\nbody=\n${res.body}\n`);
+            fail(`POST /data/write ${key} batch ${batchNumber} non-2xx`);
+        }
+    }
+}
+
+export default function () {
+    const tuples = [];
+    const attributes = [];
+
+    for (let i = 0; i < TOTAL_IDS; i++) {
+        const id = String(i);
+        const nextId = String((i + 1) % TOTAL_IDS);
+        const blockedId = String((i + 2) % TOTAL_IDS);
+        const isPublic = i % 4 === 0;
+
+        tuples.push(
+            {
+                entity: { type: "user", id },
+                relation: "self",
+                subject: { type: "user", id, relation: "" },
+            },
+            {
+                entity: { type: "user", id },
+                relation: "follower",
+                subject: { type: "user", id: nextId, relation: "" },
+            },
+            {
+                entity: { type: "user", id },
+                relation: "blocked",
+                subject: { type: "user", id: blockedId, relation: "" },
+            },
+            {
+                entity: { type: "content", id },
+                relation: "owner",
+                subject: { type: "user", id, relation: "" },
+            },
+            {
+                entity: { type: "interaction", id },
+                relation: "creator",
+                subject: { type: "user", id, relation: "" },
+            },
+            {
+                entity: { type: "interaction", id },
+                relation: "parent",
+                subject: { type: "content", id, relation: "" },
+            }
+        );
+
+        attributes.push(
+            {
+                entity: { type: "user", id },
+                attribute: "is_public",
+                value: { boolean: isPublic },
+            },
+            {
+                entity: { type: "content", id },
+                attribute: "is_public",
+                value: { boolean: isPublic },
+            }
+        );
+    }
+
+    writeInBatches(tuples, "tuples");
+    writeInBatches(attributes, "attributes");
+
+    console.log(`Seeded ${TOTAL_IDS} users, ${TOTAL_IDS} contents, and ${TOTAL_IDS} interactions`);
+}
+```
+
+### Test Script
+
+Below is the k6test.js script used to measure load on Permify by performing check requests:
 ```javascript
 import http from 'k6/http';
 import {check, sleep} from 'k6';
 
 export let options = {
-    cloud: {
-        distribution: {
-            distributionLabel1: {loadZone: 'amazon:de:frankfurt', percent: 100},
-        },
-    },
     scenarios: {
         contacts_load: {
             executor: 'ramping-arrival-rate',
@@ -79,26 +176,28 @@ function getRandomId() {
     return Math.floor(Math.random() * 100000).toString();
 }
 
-let reuseIdProbability = 0.3;
-let currentId = getRandomId();
+let reuseIdProbability = 0.1;
+let currentEntityId = getRandomId();
+let currentSubjectId = getRandomId();
 
 export default function () {
     let entityId, subjectId;
+    const entityType = Math.random() < 0.5 ? 'content' : 'interaction';
 
     // Decide whether to reuse the current ID for the entity
     if (Math.random() < reuseIdProbability) {
-        entityId = currentId; // Reuse the existing ID
+        entityId = currentEntityId; // Reuse the existing entity ID
     } else {
-        entityId = getRandomId(); // Generate a new ID
-        currentId = entityId; // Update current ID to the new one
+        entityId = getRandomId(); // Generate a new entity ID
+        currentEntityId = entityId; // Update current entity ID
     }
 
     // Decide whether to reuse the current ID for the subject
     if (Math.random() < reuseIdProbability) {
-        subjectId = currentId; // Reuse the existing ID
+        subjectId = currentSubjectId; // Reuse the existing subject ID
     } else {
-        subjectId = getRandomId(); // Generate a new ID
-        currentId = subjectId; // Update current ID to the new one
+        subjectId = getRandomId(); // Generate a new subject ID
+        currentSubjectId = subjectId; // Update current subject ID
     }
 
     const url = '<your-api-endpoint>';
@@ -109,7 +208,7 @@ export default function () {
             depth: 20
         },
         entity: {
-            type: "content",
+            type: entityType,
             id: entityId,
         },
         permission: 'view',
@@ -160,21 +259,21 @@ export default function () {
 
 | **Metric**                     | **Value/Stats**                                                               |
 |--------------------------------|-------------------------------------------------------------------------------|
-| **checks**                     | 100.00% (75369 out of 75369)                                                  |
-| **data_received**              | 15 MB (145 kB/s)                                                              |
-| **data_sent**                  | 21 MB (203 kB/s)                                                              |
-| **dropped_iterations**         | 271664 (2688.447952/s)                                                        |
-| **http_req_blocked**           | avg=78.61µs min=208ns med=537ns max=45.53ms p(90)=775ns p(95)=885ns           |
-| **http_req_connecting**        | avg=16.27µs min=0s med=0s max=15.27ms p(90)=0s p(95)=0s                       |
-| **http_req_duration**          | avg=10.14ms min=1.61ms med=7.44ms max=295.29ms p(90)=14.3ms p(95)=26.34ms     |
-| **expected_response**          | avg=10.14ms min=1.61ms med=7.44ms max=295.29ms p(90)=14.3ms p(95)=26.34ms     |
-| **http_req_failed**            | 0.00% (0 out of 75369)                                                        |
-| **http_req_receiving**         | avg=94.63µs min=15.55µs med=70.42µs max=37.13ms p(90)=168.34µs p(95)=234.35µs |
-| **http_req_sending**           | avg=86.07µs min=25.5µs med=69.44µs max=10.25ms p(90)=121.44µs p(95)=171.32µs  |
+| **checks**                     | 100.00% (74614 out of 74614)                                                  |
+| **data_received**              | 17 MB (168 kB/s)                                                              |
+| **data_sent**                  | 27 MB (268 kB/s)                                                              |
+| **dropped_iterations**         | 272433 (2696.482348/s)                                                        |
+| **http_req_blocked**           | avg=5.59µs  min=0s    med=2µs     max=2.08ms   p(90)=4µs     p(95)=5µs        |
+| **http_req_connecting**        | avg=2.57µs  min=0s    med=0s      max=2.04ms   p(90)=0s      p(95=0s          |
+| **http_req_duration**          | avg=21.3ms  min=428µs med=15.38ms max=617.85ms p(90)=45.7ms  p(95)=58.99ms    |
+| **expected_response**          | avg=21.3ms  min=428µs med=15.38ms max=617.85ms p(90)=45.7ms  p(95)=58.99ms    |
+| **http_req_failed**            | 0.00% (0 out of 74614)                                                        |
+| **http_req_receiving**         | avg=20.27µs min=4µs   med=17µs    max=2.86ms   p(90)=37µs    p(95)=44µs       |
+| **http_req_sending**           | avg=11.16µs min=1µs   med=8µs     max=2.51ms   p(90)=18µs    p(95)=22µs       |
 | **http_req_tls_handshaking**   | avg=59.38µs min=0s med=0s max=44.21ms p(90)=0s p(95)=0s                       |
-| **http_req_waiting**           | avg=9.96ms min=1.41ms med=7.27ms max=295.21ms p(90)=14.1ms p(95)=26.17ms      |
-| **http_reqs**                  | 75369 (745.86855/s)                                                           |
-| **iteration_duration**         | avg=1.01s min=1s med=1s max=1.29s p(90)=1.01s p(95)=1.02s                     |
-| **iterations**                 | 75369 (745.86855/s)                                                           |
-| **vus**                        | 46 (min=13, max=1000)                                                         |
+| **http_req_waiting**           | avg=21.27ms min=399µs med=15.35ms max=617.83ms p(90)=45.67ms p(95)=58.96ms    |
+| **http_reqs**                  | 74614 (738.51308/s)                                                           |
+| **iteration_duration**         | avg=1.02s   min=1s    med=1.01s   max=1.61s    p(90)=1.04s   p(95)=1.05s      |
+| **iterations**                 | 74614 (738.51308/s)                                                           |
+| **vus**                        | 114 (min=14, max=1000)                                                        |
 | **vus_max**                    | 1000 (min=50, max=1000)                                                       |

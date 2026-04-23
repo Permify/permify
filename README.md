@@ -128,15 +128,15 @@ We conducted a load test on **Permify** using **1000 VUs (Virtual Users)** and *
 
 | **Metric**                     | **Value / Stats**                                                              |
 |-------------------------------|--------------------------------------------------------------------------------|
-| **Total Checks**              | ✅ 100.00% (75,369 out of 75,369)                                               |
-| **Data Received**             | 15 MB (145 kB/s)                                                               |
-| **Data Sent**                 | 21 MB (203 kB/s)                                                               |
-| **Dropped Iterations**        | 271,664 (2,688.45/s)                                                           |
-| **HTTP Request Duration**     | avg = 10.14ms · p(90) = 14.3ms · p(95) = 26.34ms · max = 295.29ms              |
-| **HTTP Request Waiting Time** | avg = 9.96ms · p(90) = 14.1ms · p(95) = 26.17ms · max = 295.21ms              |
-| **HTTP Request Failed**       | ❌ 0.00% (0 out of 75,369)                                                      |
-| **Total HTTP Requests**       | 75,369 (745.87/s)                                                              |
-| **Virtual Users (VUs)**       | 46 avg (min = 13, max = 1000)                                                  |
+| **Total Checks**              | ✅ 100.00% (74614 out of 74614)                                                |
+| **Data Received**             | 17 MB (168 kB/s)                                                               |
+| **Data Sent**                 | 27 MB (268 kB/s)                                                               |
+| **Dropped Iterations**        | 272433 (2696.482348/s)                                                         |
+| **HTTP Request Duration**     | avg=21.3ms  min=428µs med=15.38ms max=617.85ms p(90)=45.7ms  p(95)=58.99ms     |
+| **HTTP Request Waiting Time** | avg=21.27ms min=399µs med=15.35ms max=617.83ms p(90)=45.67ms p(95)=58.96ms     |
+| **HTTP Request Failed**       | ❌ 0.00% (0 out of 74614)                                                      |
+| **Total HTTP Requests**       | 74614 (738.51308/s)                                                            |
+| **Virtual Users (VUs)**       | 114 avg (min=14, max=1000)                                                     |
 
 📄 **[Full Performance Test Report →](/docs/performance-test/README.md)**
 
