@@ -240,6 +240,12 @@ func validate() func(cmd *cobra.Command, args []string) error {
 				list.Add(e)
 				color.Danger.Printf("  fail: %s\n", validationError(e))
 			}
+			// If the scenario's own fixtures failed to convert/validate, skip its
+			// checks and filters so we don't cascade into spurious assertion
+			// failures driven by the missing context.
+			if len(scErrs) > 0 {
+				continue
+			}
 
 			// Start log output for checks
 			color.Notice.Println("  checks:")
@@ -592,4 +598,3 @@ func Context(fileContext file.Context) (cont *base.Context, err error) {
 	// If everything goes well, return the context and a nil error.
 	return cont, nil
 }
-

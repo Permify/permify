@@ -292,6 +292,12 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 				Message: e,
 			})
 		}
+		// If the scenario's own fixtures failed to convert/validate, skip its
+		// checks and filters so we don't cascade into spurious assertion
+		// failures driven by the missing context.
+		if len(scErrs) > 0 {
+			continue
+		}
 
 		// Each Check in the current scenario is processed
 		for _, check := range scenario.Checks {

@@ -2,6 +2,7 @@ package development
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/Permify/permify/pkg/development/file"
@@ -63,6 +64,33 @@ rule check_balance(balance integer) {
 							Data: map[string]interface{}{"amount": 1500},
 						},
 						Assertions: map[string]bool{"withdraw": false},
+					},
+				},
+				// Explicit negative lookups: if the previous scenario's owner tuple
+				// leaked, account:1 would resolve for user:andrew and user:andrew
+				// would resolve as a viewer of account:1. Both must be empty.
+				EntityFilters: []file.EntityFilter{
+					{
+						EntityType: "account",
+						Subject:    "user:andrew",
+						Context: file.Context{
+							Data: map[string]interface{}{"amount": 1500},
+						},
+						Assertions: map[string][]string{
+							"withdraw": {},
+						},
+					},
+				},
+				SubjectFilters: []file.SubjectFilter{
+					{
+						SubjectReference: "user",
+						Entity:           "account:1",
+						Context: file.Context{
+							Data: map[string]interface{}{"amount": 1500},
+						},
+						Assertions: map[string][]string{
+							"withdraw": {},
+						},
 					},
 				},
 			},
@@ -173,13 +201,13 @@ entity account {
 	}
 	found := false
 	for _, e := range errs {
-		if e.Type == "scenarios" {
+		if e.Type == "scenarios" && e.Key == 0 && strings.Contains(e.Message, "invalid tuple") {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Fatalf("expected an error with Type=scenarios, got %+v", errs)
+		t.Fatalf("expected a scenarios error at key 0 from the tuple parser, got %+v", errs)
 	}
 }
 
@@ -223,12 +251,12 @@ rule is_active(active boolean) {
 	}
 	found := false
 	for _, e := range errs {
-		if e.Type == "scenarios" {
+		if e.Type == "scenarios" && e.Key == 0 && strings.Contains(e.Message, "invalid attribute") {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Fatalf("expected an error with Type=scenarios, got %+v", errs)
+		t.Fatalf("expected a scenarios error at key 0 from the attribute parser, got %+v", errs)
 	}
 }
