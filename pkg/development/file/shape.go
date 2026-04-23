@@ -25,6 +25,17 @@ type Scenario struct {
 	// Description is a string that provides a brief explanation of the scenario.
 	Description string `yaml:"description"`
 
+	// Relationships is a slice of strings that represent relationships scoped to this
+	// scenario. They are merged as contextual tuples into every Check, EntityFilter,
+	// and SubjectFilter inside the scenario and are not persisted beyond it.
+	Relationships []string `yaml:"relationships"`
+
+	// Attributes is a slice of strings that represent attributes scoped to this
+	// scenario. They are merged as contextual attributes into every Check,
+	// EntityFilter, and SubjectFilter inside the scenario and are not persisted
+	// beyond it.
+	Attributes []string `yaml:"attributes"`
+
 	// Checks is a slice of Check structs that represent the authorization checks to be performed.
 	Checks []Check `yaml:"checks"`
 

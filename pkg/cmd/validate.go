@@ -233,6 +233,14 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		for sn, scenario := range s.Scenarios {
 			color.Notice.Printf("%v.scenario: %s - %s\n", sn+1, scenario.Name, scenario.Description)
 
+			// Convert scenario-scoped relationships and attributes once so they can be
+			// merged into every check/filter context in this scenario.
+			scenarioTuples, scenarioAttrs, scErrs := scenarioContext(ctx, dev, version, scenario)
+			for _, e := range scErrs {
+				list.Add(e)
+				color.Danger.Printf("  fail: %s\n", validationError(e))
+			}
+
 			// Start log output for checks
 			color.Notice.Println("  checks:")
 
@@ -267,6 +275,8 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
 					continue
 				}
+				cont.Tuples = append(cont.Tuples, scenarioTuples...)
+				cont.Attributes = append(cont.Attributes, scenarioAttrs...)
 
 				// Iterate over all assertions in the check
 				for permission, expected := range check.Assertions {
@@ -352,6 +362,8 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
 					continue
 				}
+				cont.Tuples = append(cont.Tuples, scenarioTuples...)
+				cont.Attributes = append(cont.Attributes, scenarioAttrs...)
 
 				// Iterate over each assertion in the filter.
 				for permission, expected := range filter.Assertions {
@@ -424,6 +436,8 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
 					continue
 				}
+				cont.Tuples = append(cont.Tuples, scenarioTuples...)
+				cont.Attributes = append(cont.Attributes, scenarioAttrs...)
 
 				// Iterate over each assertion in the filter.
 				for permission, expected := range filter.Assertions {
@@ -577,4 +591,54 @@ func Context(fileContext file.Context) (cont *base.Context, err error) {
 
 	// If everything goes well, return the context and a nil error.
 	return cont, nil
+}
+
+// scenarioContext converts a scenario's relationships and attributes into base
+// tuples and attributes, validated against the schema at the given version.
+// Any per-item validation or parse errors are returned as strings so the caller
+// can surface them through the same reporting path as other scenario errors.
+func scenarioContext(ctx context.Context, dev *development.Development, version string, scenario file.Scenario) (tuples []*base.Tuple, attrs []*base.Attribute, errs []string) {
+	for _, t := range scenario.Relationships {
+		tup, err := tuple.Tuple(t)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		if err := serverValidation.ValidateTuple(definition, tup); err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		tuples = append(tuples, tup)
+	}
+
+	for _, a := range scenario.Attributes {
+		attr, err := attribute.Attribute(a)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		if err := serverValidation.ValidateAttribute(definition, attr); err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		attrs = append(attrs, attr)
+	}
+
+	return
 }
