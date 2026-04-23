@@ -284,7 +284,7 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 	for i, scenario := range shape.Scenarios {
 		// Convert scenario-scoped relationships and attributes once so they can be
 		// merged into every check/filter context in this scenario.
-		scenarioTuples, scenarioAttrs, scErrs := c.scenarioContext(ctx, version, scenario)
+		scenarioTuples, scenarioAttrs, scErrs := c.ScenarioContext(ctx, version, scenario)
 		for _, e := range scErrs {
 			errors = append(errors, Error{
 				Type:    "scenarios",
@@ -586,11 +586,14 @@ func Context(fileContext file.Context) (cont *v1.Context, err error) {
 	return cont, nil
 }
 
-// scenarioContext converts a scenario's relationships and attributes into base
+// ScenarioContext converts a scenario's relationships and attributes into base
 // tuples and attributes, validated against the schema at the given version.
 // Any per-item validation or parse errors are collected and returned as strings
 // so the caller can report them under the "scenarios" error type.
-func (c *Development) scenarioContext(ctx context.Context, version string, scenario file.Scenario) (tuples []*v1.Tuple, attrs []*v1.Attribute, errs []string) {
+//
+// Exported so that callers outside this package (e.g. the CLI validator) can
+// reuse the same conversion/validation logic.
+func (c *Development) ScenarioContext(ctx context.Context, version string, scenario file.Scenario) (tuples []*v1.Tuple, attrs []*v1.Attribute, errs []string) {
 	for _, t := range scenario.Relationships {
 		tup, err := tuple.Tuple(t)
 		if err != nil {
