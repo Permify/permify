@@ -1,12 +1,11 @@
 // File: cmd/permify/permify.go
-```
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/cespare/xxhash/v2"
+
 	"github.com/sercand/kuberesolver/v5"
 	"google.golang.org/grpc/balancer"
 
@@ -15,35 +14,45 @@ import (
 )
 
 func main() {
-	// Register Kubernetes resolver
-	if err := kuberesolver.RegisterInCluster(); err != nil {
-		log.Printf("Failed to register kuberesolver: %v", err)
-	}
-
-	// Register gRPC balancer
-	if err := balancer.Register(consistentbalancer.NewBuilder(xxhash.Sum64)); err != nil {
-		log.Printf("Failed to register balancer: %v", err)
-	}
+	kuberesolver.RegisterInCluster()
+	balancer.Register(consistentbalancer.NewBuilder(xxhash.Sum64))
 
 	// Setup CLI commands
 	root := cmd.NewRootCommand()
 
-	// Add commands to root
-	root.AddCommand(
-		cmd.NewServeCommand(),
-		cmd.NewValidateCommand(),
-		cmd.NewCoverageCommand(),
-		cmd.NewGenerateAstCommand(),
-		cmd.NewMigrateCommand(),
-		cmd.NewVersionCommand(),
-		cmd.NewConfigCommand(),
-		cmd.NewRepairCommand(),
-	)
+	// Add serve command
+	serve := cmd.NewServeCommand()
+	root.AddCommand(serve)
 
-	// Execute the root command
+	// Add validate command
+	validate := cmd.NewValidateCommand()
+	root.AddCommand(validate)
+
+	// Add coverage command
+	coverage := cmd.NewCoverageCommand()
+	root.AddCommand(coverage)
+
+	// Add AST generation command
+	ast := cmd.NewGenerateAstCommand()
+	root.AddCommand(ast)
+
+	// Add migrate command
+	migrate := cmd.NewMigrateCommand()
+	root.AddCommand(migrate)
+
+	// Add version command
+	version := cmd.NewVersionCommand()
+	root.AddCommand(version)
+
+	// Add config command
+	config := cmd.NewConfigCommand()
+	root.AddCommand(config)
+
+	// Add repair command
+	repair := cmd.NewRepairCommand()
+	root.AddCommand(repair)
+
 	if err := root.Execute(); err != nil {
-		_, _ = os.Stderr.WriteString("Error: " + err.Error() + "\n")
 		os.Exit(1)
 	}
 }
-```
