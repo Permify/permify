@@ -52,7 +52,6 @@ func main() {
 	repair := cmd.NewRepairCommand()
 	root.AddCommand(repair)
 
-	// CLA sign-off
 	// I have read the CLA Document and I hereby sign the CLA
 
 	if err := root.Execute(); err != nil {
