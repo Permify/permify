@@ -13,3 +13,13 @@ export const CheckSchema = z.object({
   action: z.string(),
   object: z.string(),
 });
+
+export const TenantCreateSchema = z.object({
+  id: z.string().regex(/[a-zA-Z0-9-,]+/).max(64),
+  name: z.string().max(64),
+});
+
+export const TenantListSchema = z.object({
+  pageSize: z.number().int().gte(1).optional().default(20),
+  continuousToken: z.string().optional().default(''),
+});

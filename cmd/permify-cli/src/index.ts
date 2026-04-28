@@ -1,9 +1,8 @@
 import { Command } from 'commander';
-import { ConfigSchema } from './schema.js';
-import { CheckStrategy, SchemaWriteStrategy } from './router.js';
+import { ConfigSchema, TenantCreateSchema, TenantListSchema } from './schema.js';
+import { CheckStrategy, SchemaWriteStrategy, TenantCreateStrategy, TenantDeleteStrategy, TenantListStrategy } from './router.js';
 import * as fs from 'fs';
 import * as path from 'path';
-import { os } from 'os';
 
 const program = new Command();
 
@@ -41,6 +40,45 @@ program
     const schema = fs.readFileSync(options.file, 'utf8');
     const strategy = new SchemaWriteStrategy();
     await strategy.execute(config, { schema });
+  });
+
+const tenant = program.command('tenant').description('Tenant management');
+
+tenant
+  .command('list')
+  .description('List all tenants')
+  .option('-s, --size <number>', 'Page size', '20')
+  .option('-t, --token <string>', 'Continuous token', '')
+  .action(async (options) => {
+    const config = ConfigSchema.parse(getConfig());
+    const parsed = TenantListSchema.parse({
+      pageSize: parseInt(options.size),
+      continuousToken: options.token
+    });
+    const strategy = new TenantListStrategy();
+    await strategy.execute(config, parsed);
+  });
+
+tenant
+  .command('create')
+  .description('Create a new tenant')
+  .requiredOption('-i, --id <string>', 'Tenant ID')
+  .requiredOption('-n, --name <string>', 'Tenant name')
+  .action(async (options) => {
+    const config = ConfigSchema.parse(getConfig());
+    const parsed = TenantCreateSchema.parse(options);
+    const strategy = new TenantCreateStrategy();
+    await strategy.execute(config, parsed);
+  });
+
+tenant
+  .command('delete')
+  .description('Delete a tenant')
+  .requiredOption('-i, --id <string>', 'Tenant ID')
+  .action(async (options) => {
+    const config = ConfigSchema.parse(getConfig());
+    const strategy = new TenantDeleteStrategy();
+    await strategy.execute(config, options);
   });
 
 program.parse();
