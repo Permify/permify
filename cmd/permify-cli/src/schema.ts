@@ -9,13 +9,13 @@ export const ConfigSchema = z.object({
 export type Config = z.infer<typeof ConfigSchema>;
 
 export const CheckSchema = z.object({
-  subject: z.string(),
+  subject: z.string().regex(/^[^:\s]+:[^:\s]+$/),
   action: z.string(),
-  object: z.string(),
+  object: z.string().regex(/^[^:\s]+:[^:\s]+$/),
 });
 
 export const TenantCreateSchema = z.object({
-  id: z.string().regex(/[a-zA-Z0-9-,]+/).max(64),
+  id: z.string().regex(/^[a-zA-Z0-9-,]+$/).max(64),
   name: z.string().max(64),
 });
 

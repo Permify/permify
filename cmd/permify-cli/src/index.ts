@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { ConfigSchema, TenantCreateSchema, TenantListSchema } from './schema.js';
+import { CheckSchema, ConfigSchema, TenantCreateSchema, TenantListSchema } from './schema.js';
 import { CheckStrategy, SchemaWriteStrategy, TenantCreateStrategy, TenantDeleteStrategy, TenantListStrategy } from './router.js';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -14,7 +14,12 @@ program
 const getConfig = () => {
   const configPath = path.join(process.env.HOME || process.env.USERPROFILE || '', '.permify', 'config.json');
   if (fs.existsSync(configPath)) {
-    return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    try {
+      return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    } catch (error) {
+      console.error(`Error parsing config file at ${configPath}: ${error}`);
+      process.exit(1);
+    }
   }
   return { apiUrl: 'http://localhost:3476', tenantId: 'default' };
 };
@@ -27,8 +32,9 @@ program
   .requiredOption('-obj, --object <type:id>', 'Object (e.g. document:1)')
   .action(async (options) => {
     const config = ConfigSchema.parse(getConfig());
+    const parsed = CheckSchema.parse(options);
     const strategy = new CheckStrategy();
-    await strategy.execute(config, options);
+    await strategy.execute(config, parsed);
   });
 
 program
@@ -81,4 +87,5 @@ tenant
     await strategy.execute(config, options);
   });
 
-program.parse();
+await program.parseAsync();
+

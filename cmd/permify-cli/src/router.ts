@@ -5,6 +5,14 @@ export interface CommandStrategy {
   execute(config: Config, args: any): Promise<void>;
 }
 
+function parseTypeId(value: string): { type: string; id: string } {
+  const [type, id] = value.split(':', 2);
+  if (!type || !id) {
+    throw new Error(`Expected type:id, got ${value}`);
+  }
+  return { type, id };
+}
+
 export class CheckStrategy implements CommandStrategy {
   async execute(config: Config, args: any) {
     const { apiUrl, apiToken, tenantId } = config;
@@ -13,21 +21,17 @@ export class CheckStrategy implements CommandStrategy {
         metadata: {
             schema_version: ""
         },
-        entity: {
-            type: args.object.split(':')[0],
-            id: args.object.split(':')[1],
-        },
+        entity: parseTypeId(args.object),
         permission: args.action,
-        subject: {
-            type: args.subject.split(':')[0],
-            id: args.subject.split(':')[1],
-        }
+        subject: parseTypeId(args.subject)
       }, {
-        headers: apiToken ? { 'Authorization': `Bearer ${apiToken}` } : {}
+        headers: apiToken ? { 'Authorization': `Bearer ${apiToken}` } : {},
+        timeout: 10000
       });
       console.log(JSON.stringify(response.data, null, 2));
     } catch (error: any) {
       console.error(`Error: ${error.response?.data?.message || error.message}`);
+      process.exitCode = 1;
     }
   }
 }
@@ -39,11 +43,13 @@ export class SchemaWriteStrategy implements CommandStrategy {
       const response = await axios.post(`${apiUrl}/v1/tenants/${tenantId}/schemas/write`, {
         schema: args.schema
       }, {
-        headers: apiToken ? { 'Authorization': `Bearer ${apiToken}` } : {}
+        headers: apiToken ? { 'Authorization': `Bearer ${apiToken}` } : {},
+        timeout: 10000
       });
       console.log(JSON.stringify(response.data, null, 2));
     } catch (error: any) {
       console.error(`Error: ${error.response?.data?.message || error.message}`);
+      process.exitCode = 1;
     }
   }
 }
@@ -56,11 +62,13 @@ export class TenantCreateStrategy implements CommandStrategy {
         id: args.id,
         name: args.name
       }, {
-        headers: apiToken ? { 'Authorization': `Bearer ${apiToken}` } : {}
+        headers: apiToken ? { 'Authorization': `Bearer ${apiToken}` } : {},
+        timeout: 10000
       });
       console.log(JSON.stringify(response.data, null, 2));
     } catch (error: any) {
       console.error(`Error: ${error.response?.data?.message || error.message}`);
+      process.exitCode = 1;
     }
   }
 }
@@ -70,11 +78,13 @@ export class TenantDeleteStrategy implements CommandStrategy {
     const { apiUrl, apiToken } = config;
     try {
       const response = await axios.delete(`${apiUrl}/v1/tenants/${args.id}`, {
-        headers: apiToken ? { 'Authorization': `Bearer ${apiToken}` } : {}
+        headers: apiToken ? { 'Authorization': `Bearer ${apiToken}` } : {},
+        timeout: 10000
       });
       console.log(JSON.stringify(response.data, null, 2));
     } catch (error: any) {
       console.error(`Error: ${error.response?.data?.message || error.message}`);
+      process.exitCode = 1;
     }
   }
 }
@@ -87,11 +97,13 @@ export class TenantListStrategy implements CommandStrategy {
         page_size: args.pageSize,
         continuous_token: args.continuousToken
       }, {
-        headers: apiToken ? { 'Authorization': `Bearer ${apiToken}` } : {}
+        headers: apiToken ? { 'Authorization': `Bearer ${apiToken}` } : {},
+        timeout: 10000
       });
       console.log(JSON.stringify(response.data, null, 2));
     } catch (error: any) {
       console.error(`Error: ${error.response?.data?.message || error.message}`);
+      process.exitCode = 1;
     }
   }
 }
