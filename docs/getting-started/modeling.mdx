@@ -254,6 +254,8 @@ Using the `action` or `permission` keywords yields the same authorization logic.
 
 The `and` operator intersects the resolved user sets of its operands.
 
+The same traversal rule applies to both `relation.userset` and `relation.permission`. If a relation points to multiple entities, Permify evaluates the referenced relation or permission across all related entities.
+
 For an expression such as `org.member and org.admin`, Permify evaluates `org.member` and `org.admin` independently across all organizations reachable through `org`, and then intersects the resulting user sets.
 
 Use this pattern when you want intersection across the users reachable through all related organizations:
