@@ -334,7 +334,7 @@ Both of these conditions need to be true for the **`withdraw`** permission to be
 
 In this model:
 
-1. **`employee`**: Represents an individual worker. It has no specific attributes or relations in this case.
+1. **`employee`**: Represents the subject type used in the permission check. In this example, the permission logic does not depend on employee relations, so any employee subject would receive the same result.
 2. **`organization`**: Represents an entire organization, which has a **`founding_year`** attribute. The **`view`** permission is granted if the **`check_founding_year`** rule (which checks if the organization was founded after 2000) returns true.
 3. **`department`**: Represents a department within the organization. It has a **`budget`** attribute and a relation to its parent **`organization`**. The **`view`** permission is granted if the department's budget is more than 10,000 (checked by the **`check_budget`** rule) and if the **`organization.view`** permission is true.
 
@@ -368,27 +368,39 @@ rule check_budget(budget double) {
 **Relationships**
 
 - department:1#organization@organization:1
-- department:1#organization@organization:2
 
 **Attributes**
 
 - department:1$budget|double:20000
-- organization:1$organization|integer:2021
+- organization:1$founding_year|integer:2021
 
-**Check Evolution Sub Queries For Department View**
+**Evaluation**
 
 → department:1$check_budget(budget) → true
 
-→ department:1#organization@user:1 → true
-    → organization:2$check_founding_year(founding_year) → false
-    
 → organization:1$check_founding_year(founding_year) → true
 
-**Request keys before hash**
+→ department:1#view → true
 
-- `check*{snapshot}*{schema*version}*{context}\_department:1$check_budget(budget)` → true
-- `check*{snapshot}*{schema*version}*{context}\_organization:2$check_founding_year(founding_year)` → false
-- `check*{snapshot}*{schema*version}*{context}\_organization:1$check_founding_year(founding_year)` → true
+<Warning>
+If a department is related to multiple organizations, `organization.view` is evaluated across all related organizations. For example, if `department:1` is related to both `organization:1` and `organization:2`, and only one of them passes `view`, the traversal still succeeds because `relation.permission` uses union semantics across the related entities.
+
+Example:
+
+- department:1#organization@organization:1
+- department:1#organization@organization:2
+- department:1$budget|double:20000
+- organization:1$founding_year|integer:2021
+- organization:2$founding_year|integer:1990
+
+Evaluation:
+
+- department:1$check_budget(budget) → true
+- organization:1$check_founding_year(founding_year) → true
+- organization:2$check_founding_year(founding_year) → false
+- department:1#organization.view → true
+- department:1#view → true
+</Warning>
 
 ## Evaluation of ABAC Access Checks
 
