@@ -44,6 +44,7 @@ export class SchemaWriteStrategy implements CommandStrategy {
       console.log(JSON.stringify(response.data, null, 2));
     } catch (error: any) {
       console.error(`Error: ${error.response?.data?.message || error.message}`);
+    }
   }
 }
 

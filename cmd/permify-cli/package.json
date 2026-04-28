@@ -1,17 +1,33 @@
 {
-  "name": "permify-cli",
+  "name": "@permify/permify-cli",
   "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Permify CLI for managing authorization",
+  "main": "./dist/index.js",
+  "bin": {
+    "permify": "./dist/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./dist/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "keywords": [
+    "permify",
+    "authorization",
+    "cli"
+  ],
+  "author": "alchemistlethal-a11y",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "axios": "^1.8.1",
+    "commander": "^13.1.0",
+    "fastify": "^5.2.1",
+    "zod": "^3.24.2"
+  },
   "devDependencies": {
-    "@types/node": "^25.6.0",
+    "@types/node": "^22.13.5",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.3"
+    "typescript": "^5.7.3"
   }
 }
