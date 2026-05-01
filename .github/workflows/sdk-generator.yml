@@ -23,7 +23,7 @@ jobs:
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
             - name: Invoke generator workflow Permify/permify-java repo
-              uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
+              uses: benc-uk/workflow-dispatch@7a027648b88c2413826b6ddd6c76114894dc5ec4 # v1.3.1
               with:
                 workflow: generator.yml
                 repo: Permify/permify-java
@@ -31,7 +31,7 @@ jobs:
                 token: "${{ secrets.SDK_GH_TOKEN }}"
         
             - name: Invoke generator workflow Permify/permify-python repo
-              uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
+              uses: benc-uk/workflow-dispatch@7a027648b88c2413826b6ddd6c76114894dc5ec4 # v1.3.1
               with:
                 workflow: generator.yml
                 repo: Permify/permify-python
@@ -39,7 +39,7 @@ jobs:
                 token: "${{ secrets.SDK_GH_TOKEN }}"
 
             - name: Invoke generator workflow Permify/permify-javascript repo
-              uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
+              uses: benc-uk/workflow-dispatch@7a027648b88c2413826b6ddd6c76114894dc5ec4 # v1.3.1
               with:
                 workflow: generator.yml
                 repo: Permify/permify-javascript
@@ -47,7 +47,7 @@ jobs:
                 token: "${{ secrets.SDK_GH_TOKEN }}"
 
             - name: Invoke generator workflow Permify/permify-typescript repo
-              uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
+              uses: benc-uk/workflow-dispatch@7a027648b88c2413826b6ddd6c76114894dc5ec4 # v1.3.1
               with:
                 workflow: generator.yml
                 repo: Permify/permify-typescript
@@ -55,7 +55,7 @@ jobs:
                 token: "${{ secrets.SDK_GH_TOKEN }}"
 
             - name: Invoke proto update workflow Permify/permify-node repo
-              uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
+              uses: benc-uk/workflow-dispatch@7a027648b88c2413826b6ddd6c76114894dc5ec4 # v1.3.1
               with:
                 workflow: protos.yml
                 repo: Permify/permify-node
