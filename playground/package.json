@@ -50,7 +50,7 @@
     "jsdom": "^26.1.0",
     "less": "^4.4.2",
     "typescript": "^6.0.2",
-    "vite": "^7.3.2",
+    "vite": "^8.0.10",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"
   }
