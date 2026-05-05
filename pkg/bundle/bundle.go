@@ -2,7 +2,7 @@ package bundle
 
 import (
 	"bytes"
-	"html/template"
+	"text/template"
 
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"

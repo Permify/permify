@@ -25,10 +25,10 @@ var File_base_v1_openapi_proto protoreflect.FileDescriptor
 
 const file_base_v1_openapi_proto_rawDesc = "" +
 	"\n" +
-	"\x15base/v1/openapi.proto\x12\abase.v1\x1a.protoc-gen-openapiv2/options/annotations.protoB\xf9\x03\x92A\xeb\x02\x12\x9c\x02\n" +
+	"\x15base/v1/openapi.proto\x12\abase.v1\x1a.protoc-gen-openapiv2/options/annotations.protoB\xfa\x03\x92A\xec\x02\x12\x9d\x02\n" +
 	"\vPermify API\x12mPermify is an open source authorization service for creating fine-grained and scalable authorization systems.\"J\n" +
 	"\vAPI Support\x12)https://github.com/Permify/permify/issues\x1a\x10hello@permify.co*J\n" +
-	"\x10AGPL-3.0 license\x126https://github.com/Permify/permify/blob/master/LICENSE2\x06v1.6.9*\x01\x022\x10application/json:\x10application/jsonZ#\n" +
+	"\x10AGPL-3.0 license\x126https://github.com/Permify/permify/blob/master/LICENSE2\av1.6.10*\x01\x022\x10application/json:\x10application/jsonZ#\n" +
 	"!\n" +
 	"\n" +
 	"ApiKeyAuth\x12\x13\b\x02\x1a\rAuthorization \x02\n" +
