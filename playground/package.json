@@ -15,7 +15,7 @@
     "@vercel/blob": "^2.0.0",
     "@vercel/speed-insights": "^2.0.0",
     "allotment": "^1.19.3",
-    "antd": "^6.0.0",
+    "antd": "^6.3.7",
     "axios": "^1.15.2",
     "js-yaml": "^4.1.0",
     "monaco-editor": "0.55.1",
