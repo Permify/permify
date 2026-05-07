@@ -8,14 +8,12 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/pkg/database"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/testinstance"
 )
 
 var _ = Describe("BundleReader", func() {
-	var db database.Database
+	var db *testinstance.PostgresInstance
 	var bundleWriter *BundleWriter
 	var bundleReader *BundleReader
 
@@ -27,8 +25,8 @@ var _ = Describe("BundleReader", func() {
 		}
 
 		db = testinstance.PostgresDB(version)
-		bundleWriter = NewBundleWriter(db.(*PQDatabase.Postgres))
-		bundleReader = NewBundleReader(db.(*PQDatabase.Postgres))
+		bundleWriter = NewBundleWriter(db.Postgres)
+		bundleReader = NewBundleReader(db.Postgres)
 	})
 
 	AfterEach(func() {
@@ -117,7 +115,7 @@ var _ = Describe("BundleReader", func() {
 			ctx := context.Background()
 
 			// First, write a bundle with valid JSON that doesn't match the protobuf structure
-			postgresDB := db.(*PQDatabase.Postgres)
+			postgresDB := db.Postgres
 
 			// Insert valid JSON that doesn't match the DataBundle structure
 			invalidJSON := `{"invalid_field": "invalid_value", "another_field": 123}`

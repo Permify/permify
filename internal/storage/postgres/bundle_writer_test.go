@@ -8,14 +8,12 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/internal/storage"
-	"github.com/Permify/permify/pkg/database"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/testinstance"
 )
 
 var _ = Describe("BundleWriter", func() {
-	var db database.Database
+	var db *testinstance.PostgresInstance
 	var bundleWriter *BundleWriter
 	var bundleReader *BundleReader
 
@@ -27,8 +25,8 @@ var _ = Describe("BundleWriter", func() {
 		}
 
 		db = testinstance.PostgresDB(version)
-		bundleWriter = NewBundleWriter(db.(*PQDatabase.Postgres))
-		bundleReader = NewBundleReader(db.(*PQDatabase.Postgres))
+		bundleWriter = NewBundleWriter(db.Postgres)
+		bundleReader = NewBundleReader(db.Postgres)
 	})
 
 	AfterEach(func() {

@@ -10,7 +10,6 @@ import (
 
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/testinstance"
 	"github.com/Permify/permify/pkg/token"
@@ -18,7 +17,7 @@ import (
 )
 
 var _ = Describe("DataReader", func() {
-	var db database.Database
+	var db *testinstance.PostgresInstance
 	var dataWriter *DataWriter
 	var dataReader *DataReader
 
@@ -30,8 +29,8 @@ var _ = Describe("DataReader", func() {
 		}
 
 		db = testinstance.PostgresDB(version)
-		dataWriter = NewDataWriter(db.(*PQDatabase.Postgres))
-		dataReader = NewDataReader(db.(*PQDatabase.Postgres))
+		dataWriter = NewDataWriter(db.Postgres)
+		dataReader = NewDataReader(db.Postgres)
 	})
 
 	AfterEach(func() {
@@ -499,8 +498,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger errors
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -533,8 +532,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger SQL builder error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -552,8 +551,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger execution error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -572,8 +571,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger scan error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -595,8 +594,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger errors
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -641,8 +640,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger SQL builder error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -660,8 +659,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger execution error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -680,8 +679,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger scan error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -703,8 +702,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger errors
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -737,8 +736,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger SQL builder error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -756,8 +755,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger execution error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -776,8 +775,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger scan error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -799,8 +798,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger errors
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -845,8 +844,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger SQL builder error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -864,8 +863,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger execution error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -884,8 +883,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger scan error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -922,8 +921,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger SQL builder error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -941,8 +940,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger execution error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -961,8 +960,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger scan error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -984,8 +983,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger SQL builder error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)
@@ -1011,8 +1010,8 @@ var _ = Describe("DataReader", func() {
 				ctx := context.Background()
 
 				// Create a dataReader with a closed database to trigger scan error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				readerWithClosedDB := NewDataReader(closedDB)

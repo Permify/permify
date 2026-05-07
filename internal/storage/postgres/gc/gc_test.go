@@ -17,7 +17,6 @@ import (
 	"github.com/Permify/permify/internal/storage/postgres"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/dsl/compiler"
 	"github.com/Permify/permify/pkg/dsl/parser"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -31,7 +30,7 @@ func TestGC(t *testing.T) {
 }
 
 var _ = Describe("GarbageCollector", func() {
-	var db database.Database
+	var db *testinstance.PostgresInstance
 	var ctx context.Context
 	var garbageCollector *GC
 	var tenantWriter *postgres.TenantWriter
@@ -49,16 +48,16 @@ var _ = Describe("GarbageCollector", func() {
 
 		db = testinstance.PostgresDB(version)
 		garbageCollector = NewGC(
-			db.(*PQDatabase.Postgres),
+			db.Postgres,
 			Window(5*time.Second),
 		)
 
-		tenantWriter = postgres.NewTenantWriter(db.(*PQDatabase.Postgres))
-		schemaWriter = postgres.NewSchemaWriter(db.(*PQDatabase.Postgres))
-		dataWriter = postgres.NewDataWriter(db.(*PQDatabase.Postgres))
+		tenantWriter = postgres.NewTenantWriter(db.Postgres)
+		schemaWriter = postgres.NewSchemaWriter(db.Postgres)
+		dataWriter = postgres.NewDataWriter(db.Postgres)
 
-		schemaReader = postgres.NewSchemaReader(db.(*PQDatabase.Postgres))
-		dataReader = postgres.NewDataReader(db.(*PQDatabase.Postgres))
+		schemaReader = postgres.NewSchemaReader(db.Postgres)
+		dataReader = postgres.NewDataReader(db.Postgres)
 	})
 
 	AfterEach(func() {
@@ -376,7 +375,7 @@ var _ = Describe("GarbageCollector", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			badGC := NewGC(
-				closedDB.(*PQDatabase.Postgres),
+				closedDB.Postgres,
 				Window(5*time.Second),
 			)
 
@@ -486,7 +485,7 @@ var _ = Describe("GarbageCollector", func() {
 		It("should handle Run with timeout", func() {
 			// Create a GC with very short timeout
 			shortTimeoutGC := NewGC(
-				db.(*PQDatabase.Postgres),
+				db.Postgres,
 				Window(5*time.Second),
 				Timeout(1*time.Nanosecond), // Very short timeout
 			)
@@ -610,7 +609,7 @@ var _ = Describe("GarbageCollector", func() {
 
 			// Get transaction count before GC
 			var transactionCountBefore int
-			err = db.(*PQDatabase.Postgres).WritePool.QueryRow(ctx,
+			err = db.Postgres.WritePool.QueryRow(ctx,
 				"SELECT COUNT(*) FROM "+postgres.TransactionsTable+" WHERE tenant_id = $1",
 				tenantID).Scan(&transactionCountBefore)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -626,7 +625,7 @@ var _ = Describe("GarbageCollector", func() {
 			// Verify old transactions were deleted by deleteTransactionsForTenant
 			// We should have fewer transactions now (only recent ones remain)
 			var transactionCountAfter int
-			err = db.(*PQDatabase.Postgres).WritePool.QueryRow(ctx,
+			err = db.Postgres.WritePool.QueryRow(ctx,
 				"SELECT COUNT(*) FROM "+postgres.TransactionsTable+" WHERE tenant_id = $1",
 				tenantID).Scan(&transactionCountAfter)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -638,7 +637,7 @@ var _ = Describe("GarbageCollector", func() {
 			// Create a fresh database instance with no custom tenants
 			freshDB := testinstance.PostgresDB("14")
 			freshGC := NewGC(
-				freshDB.(*PQDatabase.Postgres),
+				freshDB.Postgres,
 				Window(5*time.Second),
 			)
 

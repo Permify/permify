@@ -2,7 +2,9 @@ package testinstance
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/onsi/gomega"
@@ -16,7 +18,44 @@ import (
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 )
 
-func PostgresDB(postgresVersion string) database.Database {
+type PostgresInstance struct {
+	Postgres  *PQDatabase.Postgres
+	container testcontainers.Container
+	closeOnce sync.Once
+	closeErr  error
+}
+
+var _ database.Database = (*PostgresInstance)(nil)
+
+func (p *PostgresInstance) Close() error {
+	p.closeOnce.Do(func() {
+		var errs []error
+
+		if p.Postgres != nil {
+			errs = append(errs, p.Postgres.Close())
+		}
+
+		if p.container != nil {
+			terminateCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			errs = append(errs, p.container.Terminate(terminateCtx))
+		}
+
+		p.closeErr = errors.Join(errs...)
+	})
+
+	return p.closeErr
+}
+
+func (p *PostgresInstance) GetEngineType() string {
+	return p.Postgres.GetEngineType()
+}
+
+func (p *PostgresInstance) IsReady(ctx context.Context) (bool, error) {
+	return p.Postgres.IsReady(ctx)
+}
+
+func PostgresDB(postgresVersion string) *PostgresInstance {
 	ctx := context.Background()
 
 	image := fmt.Sprintf("postgres:%s-alpine", postgresVersion)
@@ -35,27 +74,47 @@ func PostgresDB(postgresVersion string) database.Database {
 	})
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 
+	var db *PQDatabase.Postgres
+
+	cleanup := func() {
+		if db != nil {
+			_ = db.Close()
+		}
+		if postgres != nil {
+			terminateCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			_ = postgres.Terminate(terminateCtx)
+		}
+	}
+
+	expectNoError := func(err error) {
+		if err != nil {
+			cleanup()
+		}
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	}
+
 	// Execute the command in the container
 	_, _, execErr := postgres.Exec(ctx, []string{"psql", "-U", "postgres", "-c", "ALTER SYSTEM SET track_commit_timestamp = on;"})
-	gomega.Expect(execErr).ShouldNot(gomega.HaveOccurred())
+	expectNoError(execErr)
 
 	stopTimeout := 2 * time.Second
 	err = postgres.Stop(context.Background(), &stopTimeout)
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	expectNoError(err)
 
 	err = postgres.Start(context.Background())
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	expectNoError(err)
 
 	cmd := []string{"sh", "-c", "export PGPASSWORD=postgres" + "; psql -U postgres -d permify -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'"}
 
 	_, _, err = postgres.Exec(ctx, cmd)
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	expectNoError(err)
 
 	host, err := postgres.Host(ctx)
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	expectNoError(err)
 
 	port, err := postgres.MappedPort(ctx, "5432")
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	expectNoError(err)
 
 	dbAddr := fmt.Sprintf("%s:%s", host, port.Port())
 	postgresDSN := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", "postgres", "postgres", dbAddr, "permify")
@@ -71,19 +130,21 @@ func PostgresDB(postgresVersion string) database.Database {
 	}
 
 	err = storage.Migrate(cfg)
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	expectNoError(err)
 
-	var db database.Database
 	db, err = PQDatabase.New(cfg.URI,
 		PQDatabase.MaxOpenConnections(cfg.MaxOpenConnections),
 		PQDatabase.MaxIdleConnections(cfg.MaxIdleConnections),
 		PQDatabase.MaxConnectionIdleTime(cfg.MaxConnectionIdleTime),
 		PQDatabase.MaxConnectionLifeTime(cfg.MaxConnectionLifetime),
 	)
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	expectNoError(err)
 
-	_, err = utils.EnsureDBVersion(db.(*PQDatabase.Postgres).WritePool)
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	_, err = utils.EnsureDBVersion(db.WritePool)
+	expectNoError(err)
 
-	return db
+	return &PostgresInstance{
+		Postgres:  db,
+		container: postgres,
+	}
 }
