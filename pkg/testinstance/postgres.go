@@ -65,6 +65,7 @@ func PostgresDB(postgresVersion string) *PostgresInstance {
 			Image:        image,
 			ExposedPorts: []string{"5432/tcp"},
 			Env:          map[string]string{"POSTGRES_USER": "postgres", "POSTGRES_PASSWORD": "postgres", "POSTGRES_DB": "permify"},
+			Cmd:          []string{"postgres", "-c", "track_commit_timestamp=on"},
 			WaitingFor: wait.ForAll(
 				wait.ForLog("database system is ready to accept connections"),
 				wait.ForListeningPort("5432/tcp"),
@@ -93,22 +94,6 @@ func PostgresDB(postgresVersion string) *PostgresInstance {
 		}
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	}
-
-	// Execute the command in the container
-	_, _, execErr := postgres.Exec(ctx, []string{"psql", "-U", "postgres", "-c", "ALTER SYSTEM SET track_commit_timestamp = on;"})
-	expectNoError(execErr)
-
-	stopTimeout := 2 * time.Second
-	err = postgres.Stop(context.Background(), &stopTimeout)
-	expectNoError(err)
-
-	err = postgres.Start(context.Background())
-	expectNoError(err)
-
-	cmd := []string{"sh", "-c", "export PGPASSWORD=postgres" + "; psql -U postgres -d permify -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'"}
-
-	_, _, err = postgres.Exec(ctx, cmd)
-	expectNoError(err)
 
 	host, err := postgres.Host(ctx)
 	expectNoError(err)
