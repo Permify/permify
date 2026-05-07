@@ -285,6 +285,7 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance and close it to trigger execution error
 				separateDB := testinstance.PostgresDB("14")
+				DeferCleanup(func() { _ = separateDB.Close() })
 				err := separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
@@ -306,6 +307,7 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance and close it to trigger transaction begin error
 				separateDB := testinstance.PostgresDB("14")
+				DeferCleanup(func() { _ = separateDB.Close() })
 				err := separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
@@ -330,6 +332,7 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance for this test
 				separateDB := testinstance.PostgresDB("14")
+				DeferCleanup(func() { _ = separateDB.Close() })
 				separateWriter := NewTenantWriter(separateDB.Postgres)
 
 				// Create tenant in separate DB
@@ -357,6 +360,7 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance for this test
 				separateDB := testinstance.PostgresDB("14")
+				DeferCleanup(func() { _ = separateDB.Close() })
 				separateWriter := NewTenantWriter(separateDB.Postgres)
 
 				// Create a tenant first
@@ -386,6 +390,7 @@ var _ = Describe("TenantWriter", func() {
 				// Create a separate database instance and close it to trigger connection errors
 				// This tests errors at various stages: transaction begin, query row, batch execution, commit
 				separateDB := testinstance.PostgresDB("14")
+				DeferCleanup(func() { _ = separateDB.Close() })
 				err := separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
@@ -405,6 +410,7 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance for this test
 				separateDB := testinstance.PostgresDB("14")
+				DeferCleanup(func() { _ = separateDB.Close() })
 				separateWriter := NewTenantWriter(separateDB.Postgres)
 
 				// Create a tenant first
@@ -433,6 +439,7 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance for this test
 				separateDB := testinstance.PostgresDB("14")
+				DeferCleanup(func() { _ = separateDB.Close() })
 				separateWriter := NewTenantWriter(separateDB.Postgres)
 
 				// Create a tenant first
@@ -461,6 +468,7 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance for this test
 				separateDB := testinstance.PostgresDB("14")
+				DeferCleanup(func() { _ = separateDB.Close() })
 				separateWriter := NewTenantWriter(separateDB.Postgres)
 
 				// Create a tenant first

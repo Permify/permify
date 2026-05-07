@@ -371,6 +371,7 @@ var _ = Describe("GarbageCollector", func() {
 			// This tests errors at various stages: getting database time, getAllTenants,
 			// getLastTransactionIDForTenant, deleteRecordsForTenant, deleteTransactionsForTenant
 			closedDB := testinstance.PostgresDB("14")
+			DeferCleanup(func() { _ = closedDB.Close() })
 			err := closedDB.Close()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -636,6 +637,7 @@ var _ = Describe("GarbageCollector", func() {
 		It("should handle getAllTenants with empty result", func() {
 			// Create a fresh database instance with no custom tenants
 			freshDB := testinstance.PostgresDB("14")
+			DeferCleanup(func() { _ = freshDB.Close() })
 			freshGC := NewGC(
 				freshDB.Postgres,
 				Window(5*time.Second),

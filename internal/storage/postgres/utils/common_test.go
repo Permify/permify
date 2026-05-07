@@ -463,6 +463,7 @@ var _ = Describe("Common", func() {
 
 				// Create a new database instance for this version
 				database := testinstance.PostgresDB(pgVersion)
+				DeferCleanup(func() { _ = database.Close() })
 				testDB := database
 				testPool := testDB.Postgres.WritePool
 
@@ -499,6 +500,7 @@ var _ = Describe("Common", func() {
 			}
 
 			database := testinstance.PostgresDB(version)
+			DeferCleanup(func() { _ = database.Close() })
 			db := database
 			writePool := db.Postgres.WritePool
 
