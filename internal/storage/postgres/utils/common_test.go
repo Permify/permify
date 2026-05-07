@@ -18,7 +18,6 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/Permify/permify/internal/storage/postgres/utils"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/testinstance"
 )
@@ -378,7 +377,7 @@ var _ = Describe("Common", func() {
 	})
 
 	Context("EnsureDBVersion", func() {
-		var db *PQDatabase.Postgres
+		var db *testinstance.PostgresInstance
 		var writePool *pgxpool.Pool
 
 		BeforeEach(func() {
@@ -388,8 +387,8 @@ var _ = Describe("Common", func() {
 			}
 
 			database := testinstance.PostgresDB(version)
-			db = database.(*PQDatabase.Postgres)
-			writePool = db.WritePool
+			db = database
+			writePool = db.Postgres.WritePool
 		})
 
 		AfterEach(func() {
@@ -464,8 +463,9 @@ var _ = Describe("Common", func() {
 
 				// Create a new database instance for this version
 				database := testinstance.PostgresDB(pgVersion)
-				testDB := database.(*PQDatabase.Postgres)
-				testPool := testDB.WritePool
+				DeferCleanup(func() { _ = database.Close() })
+				testDB := database
+				testPool := testDB.Postgres.WritePool
 
 				version, err := utils.EnsureDBVersion(testPool)
 
@@ -500,8 +500,9 @@ var _ = Describe("Common", func() {
 			}
 
 			database := testinstance.PostgresDB(version)
-			db := database.(*PQDatabase.Postgres)
-			writePool := db.WritePool
+			DeferCleanup(func() { _ = database.Close() })
+			db := database
+			writePool := db.Postgres.WritePool
 
 			versionStr, err := utils.EnsureDBVersion(writePool)
 			Expect(err).ShouldNot(HaveOccurred())

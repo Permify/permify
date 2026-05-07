@@ -11,14 +11,13 @@ import (
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/database"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/testinstance"
 	"github.com/Permify/permify/pkg/tuple"
 )
 
 var _ = Describe("DataWriter", func() {
-	var db database.Database
+	var db *testinstance.PostgresInstance
 	var dataWriter *DataWriter
 	var dataReader *DataReader
 	var bundleWriter *BundleWriter
@@ -32,10 +31,10 @@ var _ = Describe("DataWriter", func() {
 		}
 
 		db = testinstance.PostgresDB(version)
-		dataWriter = NewDataWriter(db.(*PQDatabase.Postgres))
-		dataReader = NewDataReader(db.(*PQDatabase.Postgres))
-		bundleWriter = NewBundleWriter(db.(*PQDatabase.Postgres))
-		bundleReader = NewBundleReader(db.(*PQDatabase.Postgres))
+		dataWriter = NewDataWriter(db.Postgres)
+		dataReader = NewDataReader(db.Postgres)
+		bundleWriter = NewBundleWriter(db.Postgres)
+		bundleReader = NewBundleReader(db.Postgres)
 	})
 
 	AfterEach(func() {
@@ -528,8 +527,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger serialization errors
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -552,8 +551,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger max retries
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -576,8 +575,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger transaction begin error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -600,8 +599,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger transaction query error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -624,8 +623,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger batch insert error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -650,8 +649,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger serialization errors
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -677,8 +676,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger max retries
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -706,8 +705,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger serialization errors
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -730,8 +729,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger max retries
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -756,8 +755,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger batch insert error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -780,8 +779,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger batch send error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -804,8 +803,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger batch result close error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -828,8 +827,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger transaction commit error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -854,8 +853,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger transaction begin error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -881,8 +880,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger transaction query error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -908,8 +907,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger batch delete error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -935,8 +934,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger batch delete error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -962,8 +961,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger batch send error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -989,8 +988,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger batch result close error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -1016,8 +1015,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger transaction commit error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -1045,8 +1044,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger transaction begin error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -1069,8 +1068,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger transaction query error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)
@@ -1093,8 +1092,8 @@ var _ = Describe("DataWriter", func() {
 				ctx := context.Background()
 
 				// Create a dataWriter with a closed database to trigger transaction commit error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				writerWithClosedDB := NewDataWriter(closedDB)

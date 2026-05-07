@@ -6,16 +6,15 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/testinstance"
 )
 
 var _ = Describe("GC Options", func() {
-	var db *PQDatabase.Postgres
+	var db *testinstance.PostgresInstance
 
 	BeforeEach(func() {
 		version := "14"
-		db = testinstance.PostgresDB(version).(*PQDatabase.Postgres)
+		db = testinstance.PostgresDB(version)
 	})
 
 	AfterEach(func() {
@@ -29,7 +28,7 @@ var _ = Describe("GC Options", func() {
 		It("should set interval option correctly", func() {
 			expectedInterval := 30 * time.Second
 
-			gc := NewGC(db, Interval(expectedInterval))
+			gc := NewGC(db.Postgres, Interval(expectedInterval))
 
 			Expect(gc.interval).Should(Equal(expectedInterval))
 		})
@@ -37,7 +36,7 @@ var _ = Describe("GC Options", func() {
 		It("should set window option correctly", func() {
 			expectedWindow := 10 * time.Minute
 
-			gc := NewGC(db, Window(expectedWindow))
+			gc := NewGC(db.Postgres, Window(expectedWindow))
 
 			Expect(gc.window).Should(Equal(expectedWindow))
 		})
@@ -45,7 +44,7 @@ var _ = Describe("GC Options", func() {
 		It("should set timeout option correctly", func() {
 			expectedTimeout := 5 * time.Minute
 
-			gc := NewGC(db, Timeout(expectedTimeout))
+			gc := NewGC(db.Postgres, Timeout(expectedTimeout))
 
 			Expect(gc.timeout).Should(Equal(expectedTimeout))
 		})
@@ -55,7 +54,7 @@ var _ = Describe("GC Options", func() {
 			expectedWindow := 15 * time.Minute
 			expectedTimeout := 8 * time.Minute
 
-			gc := NewGC(db,
+			gc := NewGC(db.Postgres,
 				Interval(expectedInterval),
 				Window(expectedWindow),
 				Timeout(expectedTimeout),
@@ -70,7 +69,7 @@ var _ = Describe("GC Options", func() {
 			firstInterval := 30 * time.Second
 			secondInterval := 60 * time.Second
 
-			gc := NewGC(db,
+			gc := NewGC(db.Postgres,
 				Interval(firstInterval),
 				Interval(secondInterval),
 			)
@@ -79,7 +78,7 @@ var _ = Describe("GC Options", func() {
 		})
 
 		It("should use default values when no options are provided", func() {
-			gc := NewGC(db)
+			gc := NewGC(db.Postgres)
 
 			Expect(gc.interval).Should(Equal(_defaultInterval))
 			Expect(gc.window).Should(Equal(_defaultWindow))
@@ -87,7 +86,7 @@ var _ = Describe("GC Options", func() {
 		})
 
 		It("should handle zero duration values", func() {
-			gc := NewGC(db,
+			gc := NewGC(db.Postgres,
 				Interval(0),
 				Window(0),
 				Timeout(0),
@@ -101,7 +100,7 @@ var _ = Describe("GC Options", func() {
 		It("should handle negative duration values", func() {
 			negativeDuration := -5 * time.Second
 
-			gc := NewGC(db,
+			gc := NewGC(db.Postgres,
 				Interval(negativeDuration),
 				Window(negativeDuration),
 				Timeout(negativeDuration),
@@ -115,7 +114,7 @@ var _ = Describe("GC Options", func() {
 		It("should handle very large duration values", func() {
 			largeDuration := 24 * time.Hour
 
-			gc := NewGC(db,
+			gc := NewGC(db.Postgres,
 				Interval(largeDuration),
 				Window(largeDuration),
 				Timeout(largeDuration),
@@ -127,13 +126,13 @@ var _ = Describe("GC Options", func() {
 		})
 
 		It("should maintain database reference when options are applied", func() {
-			gc := NewGC(db,
+			gc := NewGC(db.Postgres,
 				Interval(30*time.Second),
 				Window(10*time.Minute),
 				Timeout(5*time.Minute),
 			)
 
-			Expect(gc.database).Should(Equal(db))
+			Expect(gc.database).Should(Equal(db.Postgres))
 		})
 
 		It("should allow chaining of option functions", func() {
@@ -146,7 +145,7 @@ var _ = Describe("GC Options", func() {
 			windowOption := Window(window)
 			timeoutOption := Timeout(timeout)
 
-			gc := NewGC(db, intervalOption, windowOption, timeoutOption)
+			gc := NewGC(db.Postgres, intervalOption, windowOption, timeoutOption)
 
 			Expect(gc.interval).Should(Equal(interval))
 			Expect(gc.window).Should(Equal(window))
@@ -159,9 +158,9 @@ var _ = Describe("GC Options", func() {
 			timeout := 8 * time.Minute
 
 			// Test different orders of options
-			gc1 := NewGC(db, Interval(interval), Window(window), Timeout(timeout))
-			gc2 := NewGC(db, Timeout(timeout), Interval(interval), Window(window))
-			gc3 := NewGC(db, Window(window), Timeout(timeout), Interval(interval))
+			gc1 := NewGC(db.Postgres, Interval(interval), Window(window), Timeout(timeout))
+			gc2 := NewGC(db.Postgres, Timeout(timeout), Interval(interval), Window(window))
+			gc3 := NewGC(db.Postgres, Window(window), Timeout(timeout), Interval(interval))
 
 			Expect(gc1.interval).Should(Equal(interval))
 			Expect(gc1.window).Should(Equal(window))
@@ -186,7 +185,7 @@ var _ = Describe("GC Options", func() {
 			Expect(option).ShouldNot(BeNil())
 
 			// Create a GC instance and apply the option
-			gc := NewGC(db)
+			gc := NewGC(db.Postgres)
 			originalInterval := gc.interval
 
 			// Apply the option
@@ -201,8 +200,8 @@ var _ = Describe("GC Options", func() {
 			interval1 := 30 * time.Second
 			interval2 := 60 * time.Second
 
-			gc1 := NewGC(db, Interval(interval1))
-			gc2 := NewGC(db, Interval(interval2))
+			gc1 := NewGC(db.Postgres, Interval(interval1))
+			gc2 := NewGC(db.Postgres, Interval(interval2))
 
 			Expect(gc1.interval).Should(Equal(interval1))
 			Expect(gc2.interval).Should(Equal(interval2))
@@ -213,8 +212,8 @@ var _ = Describe("GC Options", func() {
 			interval := 30 * time.Second
 			option := Interval(interval)
 
-			gc1 := NewGC(db)
-			gc2 := NewGC(db)
+			gc1 := NewGC(db.Postgres)
+			gc2 := NewGC(db.Postgres)
 
 			// Apply the same option to both instances
 			option(gc1)

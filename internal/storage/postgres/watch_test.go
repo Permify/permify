@@ -18,7 +18,7 @@ import (
 )
 
 var _ = Describe("Watch", func() {
-	var db database.Database
+	var db *testinstance.PostgresInstance
 	var dataWriter *DataWriter
 	var watcher *Watch
 
@@ -30,8 +30,8 @@ var _ = Describe("Watch", func() {
 		}
 
 		db = testinstance.PostgresDB(version)
-		dataWriter = NewDataWriter(db.(*PQDatabase.Postgres))
-		watcher = NewWatcher(db.(*PQDatabase.Postgres))
+		dataWriter = NewDataWriter(db.Postgres)
+		watcher = NewWatcher(db.Postgres)
 	})
 
 	AfterEach(func() {
@@ -135,8 +135,8 @@ var _ = Describe("Watch", func() {
 				ctx := context.Background()
 
 				// Create a watcher with a closed database to trigger get changes error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				watcherWithClosedDB := NewWatcher(closedDB)
@@ -186,8 +186,8 @@ var _ = Describe("Watch", func() {
 				ctx := context.Background()
 
 				// Create a watcher with a closed database to trigger SQL builder error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				watcherWithClosedDB := NewWatcher(closedDB)
@@ -201,8 +201,8 @@ var _ = Describe("Watch", func() {
 				ctx := context.Background()
 
 				// Create a watcher with a closed database to trigger scan error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				watcherWithClosedDB := NewWatcher(closedDB)
@@ -216,8 +216,8 @@ var _ = Describe("Watch", func() {
 				ctx := context.Background()
 
 				// Create a watcher with a closed database to trigger rows error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				watcherWithClosedDB := NewWatcher(closedDB)
@@ -233,8 +233,8 @@ var _ = Describe("Watch", func() {
 				ctx := context.Background()
 
 				// Create a watcher with a closed database to trigger SQL builder error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				watcherWithClosedDB := NewWatcher(closedDB)
@@ -248,8 +248,8 @@ var _ = Describe("Watch", func() {
 				ctx := context.Background()
 
 				// Create a watcher with a closed database to trigger execution error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				watcherWithClosedDB := NewWatcher(closedDB)
@@ -263,8 +263,8 @@ var _ = Describe("Watch", func() {
 				ctx := context.Background()
 
 				// Create a watcher with a closed database to trigger SQL builder error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				watcherWithClosedDB := NewWatcher(closedDB)
@@ -278,8 +278,8 @@ var _ = Describe("Watch", func() {
 				ctx := context.Background()
 
 				// Create a watcher with a closed database to trigger execution error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				watcherWithClosedDB := NewWatcher(closedDB)
@@ -293,8 +293,8 @@ var _ = Describe("Watch", func() {
 				ctx := context.Background()
 
 				// Create a watcher with a closed database to trigger scan error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				watcherWithClosedDB := NewWatcher(closedDB)
@@ -308,8 +308,8 @@ var _ = Describe("Watch", func() {
 				ctx := context.Background()
 
 				// Create a watcher with a closed database to trigger scan error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				watcherWithClosedDB := NewWatcher(closedDB)
@@ -323,8 +323,8 @@ var _ = Describe("Watch", func() {
 				ctx := context.Background()
 
 				// Create a watcher with a closed database to trigger unmarshal error
-				closedDB := db.(*PQDatabase.Postgres)
-				err := closedDB.Close()
+				closedDB := db.Postgres
+				err := db.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
 				watcherWithClosedDB := NewWatcher(closedDB)

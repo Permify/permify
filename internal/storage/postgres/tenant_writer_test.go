@@ -11,7 +11,6 @@ import (
 
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/database"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/testinstance"
 	"github.com/Permify/permify/pkg/tuple"
@@ -19,7 +18,7 @@ import (
 )
 
 var _ = Describe("TenantWriter", func() {
-	var db database.Database
+	var db *testinstance.PostgresInstance
 	var tenantWriter *TenantWriter
 
 	BeforeEach(func() {
@@ -30,7 +29,7 @@ var _ = Describe("TenantWriter", func() {
 		}
 
 		db = testinstance.PostgresDB(version)
-		tenantWriter = NewTenantWriter(db.(*PQDatabase.Postgres))
+		tenantWriter = NewTenantWriter(db.Postgres)
 	})
 
 	AfterEach(func() {
@@ -158,7 +157,7 @@ var _ = Describe("TenantWriter", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Create schema for the tenant
-			schemaWriter := NewSchemaWriter(db.(*PQDatabase.Postgres))
+			schemaWriter := NewSchemaWriter(db.Postgres)
 			version := xid.New().String()
 			schema := []storage.SchemaDefinition{
 				{TenantID: tenantID, Name: "user", SerializedDefinition: []byte("entity user {}"), Version: version},
@@ -173,7 +172,7 @@ var _ = Describe("TenantWriter", func() {
 
 			// Verify schema data was actually deleted by checking database directly
 			var schemaCount int
-			err = db.(*PQDatabase.Postgres).WritePool.QueryRow(ctx,
+			err = db.Postgres.WritePool.QueryRow(ctx,
 				"SELECT COUNT(*) FROM "+SchemaDefinitionTable+" WHERE tenant_id = $1",
 				tenantID).Scan(&schemaCount)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -188,7 +187,7 @@ var _ = Describe("TenantWriter", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Create relation tuples for the tenant
-			dataWriter := NewDataWriter(db.(*PQDatabase.Postgres))
+			dataWriter := NewDataWriter(db.Postgres)
 			tup, err := tuple.Tuple("organization:1#admin@user:user-1")
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -209,7 +208,7 @@ var _ = Describe("TenantWriter", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Create schema
-			schemaWriter := NewSchemaWriter(db.(*PQDatabase.Postgres))
+			schemaWriter := NewSchemaWriter(db.Postgres)
 			version := xid.New().String()
 			schema := []storage.SchemaDefinition{
 				{TenantID: tenantID, Name: "user", SerializedDefinition: []byte("entity user {}"), Version: version},
@@ -218,7 +217,7 @@ var _ = Describe("TenantWriter", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Create relation tuples
-			dataWriter := NewDataWriter(db.(*PQDatabase.Postgres))
+			dataWriter := NewDataWriter(db.Postgres)
 			tup, err := tuple.Tuple("user:1#admin@user:user-1")
 			Expect(err).ShouldNot(HaveOccurred())
 			_, err = dataWriter.Write(ctx, tenantID, database.NewTupleCollection(tup), database.NewAttributeCollection())
@@ -286,10 +285,11 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance and close it to trigger execution error
 				separateDB := testinstance.PostgresDB("14")
+				DeferCleanup(func() { _ = separateDB.Close() })
 				err := separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+				writerWithClosedDB := NewTenantWriter(separateDB.Postgres)
 
 				_, err = writerWithClosedDB.CreateTenant(ctx, "test_id", "test_name")
 				Expect(err).Should(HaveOccurred())
@@ -307,10 +307,11 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance and close it to trigger transaction begin error
 				separateDB := testinstance.PostgresDB("14")
+				DeferCleanup(func() { _ = separateDB.Close() })
 				err := separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+				writerWithClosedDB := NewTenantWriter(separateDB.Postgres)
 
 				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
 				Expect(err).Should(HaveOccurred())
@@ -331,7 +332,8 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance for this test
 				separateDB := testinstance.PostgresDB("14")
-				separateWriter := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+				DeferCleanup(func() { _ = separateDB.Close() })
+				separateWriter := NewTenantWriter(separateDB.Postgres)
 
 				// Create tenant in separate DB
 				_, err = separateWriter.CreateTenant(ctx, tenantID, "Batch Exec Error Tenant")
@@ -342,7 +344,7 @@ var _ = Describe("TenantWriter", func() {
 				err = separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+				writerWithClosedDB := NewTenantWriter(separateDB.Postgres)
 
 				err = writerWithClosedDB.DeleteTenant(ctx, tenantID)
 				Expect(err).Should(HaveOccurred())
@@ -358,7 +360,8 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance for this test
 				separateDB := testinstance.PostgresDB("14")
-				separateWriter := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+				DeferCleanup(func() { _ = separateDB.Close() })
+				separateWriter := NewTenantWriter(separateDB.Postgres)
 
 				// Create a tenant first
 				tenantID := "batch-exec-tenant-error"
@@ -370,7 +373,7 @@ var _ = Describe("TenantWriter", func() {
 				err = separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+				writerWithClosedDB := NewTenantWriter(separateDB.Postgres)
 
 				err = writerWithClosedDB.DeleteTenant(ctx, tenantID)
 				Expect(err).Should(HaveOccurred())
@@ -387,10 +390,11 @@ var _ = Describe("TenantWriter", func() {
 				// Create a separate database instance and close it to trigger connection errors
 				// This tests errors at various stages: transaction begin, query row, batch execution, commit
 				separateDB := testinstance.PostgresDB("14")
+				DeferCleanup(func() { _ = separateDB.Close() })
 				err := separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+				writerWithClosedDB := NewTenantWriter(separateDB.Postgres)
 
 				err = writerWithClosedDB.DeleteTenant(ctx, "test_id")
 				Expect(err).Should(HaveOccurred())
@@ -406,7 +410,8 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance for this test
 				separateDB := testinstance.PostgresDB("14")
-				separateWriter := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+				DeferCleanup(func() { _ = separateDB.Close() })
+				separateWriter := NewTenantWriter(separateDB.Postgres)
 
 				// Create a tenant first
 				tenantID := "batch-close-error-tenant"
@@ -418,7 +423,7 @@ var _ = Describe("TenantWriter", func() {
 				err = separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+				writerWithClosedDB := NewTenantWriter(separateDB.Postgres)
 
 				err = writerWithClosedDB.DeleteTenant(ctx, tenantID)
 				Expect(err).Should(HaveOccurred())
@@ -434,7 +439,8 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance for this test
 				separateDB := testinstance.PostgresDB("14")
-				separateWriter := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+				DeferCleanup(func() { _ = separateDB.Close() })
+				separateWriter := NewTenantWriter(separateDB.Postgres)
 
 				// Create a tenant first
 				tenantID := "batch-close-success-error-tenant"
@@ -446,7 +452,7 @@ var _ = Describe("TenantWriter", func() {
 				err = separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+				writerWithClosedDB := NewTenantWriter(separateDB.Postgres)
 
 				err = writerWithClosedDB.DeleteTenant(ctx, tenantID)
 				Expect(err).Should(HaveOccurred())
@@ -462,7 +468,8 @@ var _ = Describe("TenantWriter", func() {
 
 				// Create a separate database instance for this test
 				separateDB := testinstance.PostgresDB("14")
-				separateWriter := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+				DeferCleanup(func() { _ = separateDB.Close() })
+				separateWriter := NewTenantWriter(separateDB.Postgres)
 
 				// Create a tenant first
 				tenantID := "commit-error-tenant"
@@ -474,7 +481,7 @@ var _ = Describe("TenantWriter", func() {
 				err = separateDB.Close()
 				Expect(err).ShouldNot(HaveOccurred())
 
-				writerWithClosedDB := NewTenantWriter(separateDB.(*PQDatabase.Postgres))
+				writerWithClosedDB := NewTenantWriter(separateDB.Postgres)
 
 				err = writerWithClosedDB.DeleteTenant(ctx, tenantID)
 				Expect(err).Should(HaveOccurred())

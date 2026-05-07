@@ -8,12 +8,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Permify/permify/pkg/database"
-	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 	"github.com/Permify/permify/pkg/testinstance"
 )
 
 var _ = Describe("TenantReader", func() {
-	var db database.Database
+	var db *testinstance.PostgresInstance
 	var tenantWriter *TenantWriter
 	var tenantReader *TenantReader
 
@@ -25,8 +24,8 @@ var _ = Describe("TenantReader", func() {
 		}
 
 		db = testinstance.PostgresDB(version)
-		tenantWriter = NewTenantWriter(db.(*PQDatabase.Postgres))
-		tenantReader = NewTenantReader(db.(*PQDatabase.Postgres))
+		tenantWriter = NewTenantWriter(db.Postgres)
+		tenantReader = NewTenantReader(db.Postgres)
 	})
 
 	AfterEach(func() {
