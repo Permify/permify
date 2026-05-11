@@ -681,5 +681,6 @@ func findEntityCoverage(sci SchemaCoverageInfo, entityName string) EntityCoverag
 			return entityCoverage
 		}
 	}
+	Fail("entity coverage for " + entityName + " not found")
 	return EntityCoverageInfo{}
 }
