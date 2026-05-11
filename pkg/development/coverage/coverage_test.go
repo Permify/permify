@@ -328,7 +328,70 @@ var _ = Describe("coverage", func() {
 			})).Should(Equal(true))
 		})
 
-		It("Case 4: Facebook Groups", func() {
+		It("Case 4: Tuple-to-userset Permission Rewrite Semantics", func() {
+			sci := Run(file.Shape{
+				Schema: `
+	entity user {}
+
+	entity folder {
+	    relation admin @user
+	    relation member @user
+
+	    permission access = admin or member
+	    permission strict = admin and member
+	    permission safe = admin not member
+	}
+
+	entity document {
+	    relation parent @folder
+
+	    permission view = parent.access
+	    permission strict_view = parent.strict
+	    permission safe_view = parent.safe
+	}`,
+				Relationships: []string{
+					"document:1#parent@folder:1",
+					"folder:1#admin@user:1",
+				},
+				Scenarios: []file.Scenario{
+					{
+						Name:        "rewrite semantics",
+						Description: "covers tuple-to-userset computed permissions according to their rewrites",
+						Checks: []file.Check{
+							{
+								Entity:  "document:1",
+								Subject: "user:1",
+								Assertions: map[string]bool{
+									"view":        true,
+									"strict_view": false,
+									"safe_view":   true,
+								},
+							},
+						},
+					},
+				},
+			})
+
+			documentCoverage := findEntityCoverage(sci, "document")
+			conditionCoverage := documentCoverage.PermissionConditionCoverage["rewrite semantics"]
+
+			Expect(conditionCoverage["view"].CoveragePercent).Should(Equal(100))
+			Expect(conditionComponentNames(conditionCoverage["view"].CoveredComponents)).Should(Equal([]string{
+				"tuple_to_userset:parent.access",
+			}))
+
+			Expect(conditionCoverage["strict_view"].CoveragePercent).Should(Equal(0))
+			Expect(conditionComponentNames(conditionCoverage["strict_view"].UncoveredComponents)).Should(Equal([]string{
+				"tuple_to_userset:parent.strict",
+			}))
+
+			Expect(conditionCoverage["safe_view"].CoveragePercent).Should(Equal(100))
+			Expect(conditionComponentNames(conditionCoverage["safe_view"].CoveredComponents)).Should(Equal([]string{
+				"tuple_to_userset:parent.safe",
+			}))
+		})
+
+		It("Case 5: Facebook Groups", func() {
 			sci := Run(file.Shape{
 				Schema: `
     entity user {}

@@ -940,46 +940,170 @@ func (data componentCoverageData) isComputedRelationCovered(
 		EntityID:     reachedTarget.EntityID,
 		EntityIDOnly: true,
 	}}
-	entityDefinition := data.definitionsByEntity[reachedTarget.EntityType]
+
+	return data.isComputedUserSetCovered(reachedTarget.EntityType, computedRelation, targets, visitedPermissions)
+}
+
+func (data componentCoverageData) isComputedUserSetCovered(
+	entityName,
+	relation string,
+	targets []assertionTarget,
+	visitedPermissions map[string]bool,
+) bool {
+	entityDefinition := data.definitionsByEntity[entityName]
 	if entityDefinition == nil {
-		return data.hasRelationship(reachedTarget.EntityType, computedRelation, targets)
+		return data.hasRelationship(entityName, relation, targets)
 	}
 
-	switch entityDefinition.GetReferences()[computedRelation] {
+	switch entityDefinition.GetReferences()[relation] {
 	case base.EntityDefinition_REFERENCE_RELATION:
-		return data.hasRelationship(reachedTarget.EntityType, computedRelation, targets)
+		return data.hasRelationship(entityName, relation, targets)
 	case base.EntityDefinition_REFERENCE_ATTRIBUTE:
-		return data.hasAttribute(reachedTarget.EntityType, computedRelation, targets)
+		return data.hasAttribute(entityName, relation, targets)
 	case base.EntityDefinition_REFERENCE_PERMISSION:
-		key := formatAssertion(reachedTarget.EntityType, computedRelation)
-		if visitedPermissions[key] {
+		return data.isPermissionCovered(entityName, relation, targets, visitedPermissions)
+	default:
+		return data.hasRelationship(entityName, relation, targets)
+	}
+}
+
+func (data componentCoverageData) isPermissionCovered(
+	entityName,
+	permissionName string,
+	targets []assertionTarget,
+	visitedPermissions map[string]bool,
+) bool {
+	key := formatAssertion(entityName, permissionName)
+	if visitedPermissions[key] {
+		return false
+	}
+
+	entityDefinition := data.definitionsByEntity[entityName]
+	if entityDefinition == nil {
+		return false
+	}
+
+	permission := entityDefinition.GetPermissions()[permissionName]
+	if permission == nil || permission.GetChild() == nil {
+		return false
+	}
+
+	visitedPermissions[key] = true
+	defer delete(visitedPermissions, key)
+
+	return data.isPermissionChildCovered(entityName, permission.GetChild(), targets, visitedPermissions)
+}
+
+func (data componentCoverageData) isPermissionChildCovered(
+	entityName string,
+	child *base.Child,
+	targets []assertionTarget,
+	visitedPermissions map[string]bool,
+) bool {
+	if child == nil {
+		return false
+	}
+
+	if leaf := child.GetLeaf(); leaf != nil {
+		return data.isPermissionLeafCovered(entityName, leaf, targets, visitedPermissions)
+	}
+
+	if rewrite := child.GetRewrite(); rewrite != nil {
+		return data.isPermissionRewriteCovered(entityName, rewrite, targets, visitedPermissions)
+	}
+
+	return false
+}
+
+func (data componentCoverageData) isPermissionRewriteCovered(
+	entityName string,
+	rewrite *base.Rewrite,
+	targets []assertionTarget,
+	visitedPermissions map[string]bool,
+) bool {
+	children := rewrite.GetChildren()
+	if len(children) == 0 {
+		return false
+	}
+
+	switch rewrite.GetRewriteOperation() {
+	case base.Rewrite_OPERATION_UNION:
+		for _, child := range children {
+			if data.isPermissionChildCovered(entityName, child, targets, visitedPermissions) {
+				return true
+			}
+		}
+		return false
+	case base.Rewrite_OPERATION_INTERSECTION:
+		for _, child := range children {
+			if !data.isPermissionChildCovered(entityName, child, targets, visitedPermissions) {
+				return false
+			}
+		}
+		return true
+	case base.Rewrite_OPERATION_EXCLUSION:
+		if len(children) <= 1 || !data.isPermissionChildCovered(entityName, children[0], targets, visitedPermissions) {
 			return false
 		}
-
-		permission := entityDefinition.GetPermissions()[computedRelation]
-		if permission == nil || permission.GetChild() == nil {
-			return false
-		}
-
-		visitedPermissions[key] = true
-		defer delete(visitedPermissions, key)
-
-		components := uniqueConditionComponents(extractConditionComponents(entityDefinition, permission.GetChild(), map[string]bool{
-			computedRelation: true,
-		}))
-		if len(components) == 0 {
-			return false
-		}
-
-		for _, component := range components {
-			if !data.isComponentCoveredWithVisited(reachedTarget.EntityType, component, targets, visitedPermissions) {
+		for _, child := range children[1:] {
+			if data.isPermissionChildCovered(entityName, child, targets, visitedPermissions) {
 				return false
 			}
 		}
 		return true
 	default:
-		return data.hasRelationship(reachedTarget.EntityType, computedRelation, targets)
+		return false
 	}
+}
+
+func (data componentCoverageData) isPermissionLeafCovered(
+	entityName string,
+	leaf *base.Leaf,
+	targets []assertionTarget,
+	visitedPermissions map[string]bool,
+) bool {
+	if computedUserSet := leaf.GetComputedUserSet(); computedUserSet != nil {
+		return data.isComputedUserSetCovered(entityName, computedUserSet.GetRelation(), targets, visitedPermissions)
+	}
+
+	if tupleToUserset := leaf.GetTupleToUserSet(); tupleToUserset != nil {
+		tupleSetRelation := ""
+		if tupleToUserset.GetTupleSet() != nil {
+			tupleSetRelation = tupleToUserset.GetTupleSet().GetRelation()
+		}
+
+		computedRelation := ""
+		if tupleToUserset.GetComputed() != nil {
+			computedRelation = tupleToUserset.GetComputed().GetRelation()
+		}
+
+		return data.hasTupleToUserset(entityName, ConditionComponent{
+			Name:             strings.Join(nonEmptyStrings(tupleSetRelation, computedRelation), "."),
+			Type:             componentTupleToUserset,
+			TupleSetRelation: tupleSetRelation,
+			ComputedRelation: computedRelation,
+		}, targets, visitedPermissions)
+	}
+
+	if computedAttribute := leaf.GetComputedAttribute(); computedAttribute != nil {
+		return data.hasAttribute(entityName, computedAttribute.GetName(), targets)
+	}
+
+	if call := leaf.GetCall(); call != nil {
+		return data.isCallCovered(entityName, call, targets)
+	}
+
+	return false
+}
+
+func (data componentCoverageData) isCallCovered(entityName string, call *base.Call, targets []assertionTarget) bool {
+	for _, argument := range call.GetArguments() {
+		if computedAttribute := argument.GetComputedAttribute(); computedAttribute != nil &&
+			!data.hasAttribute(entityName, computedAttribute.GetName(), targets) {
+			return false
+		}
+	}
+	return true
 }
 
 // hasRelationship checks whether a relation appears for any asserted target entity.
