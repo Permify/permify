@@ -335,6 +335,51 @@ var _ = Describe("coverage", func() {
 			Expect(sci.TotalAssertionsCoverage).Should(Equal(50))
 		})
 
+		It("Case 2.3: Expands nested same-entity permissions into leaf components", func() {
+			sci := Run(file.Shape{
+				Schema: `
+		entity user {}
+
+		entity document {
+			relation system @user
+			relation viewer @user
+			relation owner @user
+
+			permission can_view = system or viewer
+			permission view = can_view or owner
+		}`,
+				Relationships: []string{
+					"document:1#viewer@user:1",
+				},
+				Scenarios: []file.Scenario{
+					{
+						Name:        "scenario 1",
+						Description: "exercises one branch through a nested permission",
+						Checks: []file.Check{
+							{
+								Entity:  "document:1",
+								Subject: "user:1",
+								Assertions: map[string]bool{
+									"can_view": true,
+									"view":     true,
+								},
+							},
+						},
+						EntityFilters: []file.EntityFilter{},
+					},
+				},
+			})
+
+			Expect(sci.EntityCoverageInfo[1].EntityName).Should(Equal("document"))
+			Expect(sci.EntityCoverageInfo[1].UncoveredAssertionComponents["scenario 1"]).Should(ConsistOf([]string{
+				"document#can_view[system]",
+				"document#view[owner]",
+				"document#view[system]",
+			}))
+			Expect(sci.EntityCoverageInfo[1].CoverageAssertionComponentsPercent["scenario 1"]).Should(Equal(40))
+			Expect(sci.TotalAssertionsCoverage).Should(Equal(70))
+		})
+
 		It("Case 3: Facebook Groups", func() {
 			sci := Run(file.Shape{
 				Schema: `

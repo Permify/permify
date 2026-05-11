@@ -175,20 +175,39 @@ func extractAssertions(entity *base.EntityDefinition) []string {
 // extractAssertionComponents extracts permission condition leaves from an entity.
 func extractAssertionComponents(entity *base.EntityDefinition) []string {
 	components := []string{}
+	permissions := make(map[string]*base.Child)
 
 	for _, permission := range entity.GetPermissions() {
-		components = append(components, extractChildAssertionComponents(entity.GetName(), permission.GetName(), permission.GetChild())...)
+		permissions[permission.GetName()] = permission.GetChild()
+	}
+
+	for _, permission := range entity.GetPermissions() {
+		components = append(components, extractChildAssertionComponents(
+			entity.GetName(),
+			permission.GetName(),
+			permission.GetChild(),
+			permissions,
+			map[string]bool{permission.GetName(): true},
+		)...)
 	}
 
 	return components
 }
 
-func extractChildAssertionComponents(entityName, permissionName string, child *base.Child) []string {
+func extractChildAssertionComponents(entityName, permissionName string, child *base.Child, permissions map[string]*base.Child, visited map[string]bool) []string {
 	if child == nil {
 		return []string{formatAssertion(entityName, permissionName)}
 	}
 
 	if leaf := child.GetLeaf(); leaf != nil {
+		if computed := leaf.GetComputedUserSet(); computed != nil {
+			relationName := computed.GetRelation()
+			if nestedChild, ok := permissions[relationName]; ok && !visited[relationName] {
+				nextVisited := cloneVisitedPermissions(visited)
+				nextVisited[relationName] = true
+				return extractChildAssertionComponents(entityName, permissionName, nestedChild, permissions, nextVisited)
+			}
+		}
 		if component := formatLeafAssertionComponent(entityName, permissionName, leaf); component != "" {
 			return []string{component}
 		}
@@ -198,12 +217,20 @@ func extractChildAssertionComponents(entityName, permissionName string, child *b
 	if rewrite := child.GetRewrite(); rewrite != nil {
 		components := []string{}
 		for _, rewriteChild := range rewrite.GetChildren() {
-			components = append(components, extractChildAssertionComponents(entityName, permissionName, rewriteChild)...)
+			components = append(components, extractChildAssertionComponents(entityName, permissionName, rewriteChild, permissions, visited)...)
 		}
 		return components
 	}
 
 	return []string{formatAssertion(entityName, permissionName)}
+}
+
+func cloneVisitedPermissions(visited map[string]bool) map[string]bool {
+	cloned := make(map[string]bool, len(visited)+1)
+	for name, isVisited := range visited {
+		cloned[name] = isVisited
+	}
+	return cloned
 }
 
 func formatLeafAssertionComponent(entityName, permissionName string, leaf *base.Leaf) string {
