@@ -747,7 +747,6 @@ type componentCoverageData struct {
 type relationshipTarget struct {
 	EntityType string
 	EntityID   string
-	Relation   string
 }
 
 // newComponentCoverageData builds the scenario-local component coverage lookup.
@@ -811,7 +810,6 @@ func (data componentCoverageData) addRelationship(relationship string) {
 	target := relationshipTarget{
 		EntityType: tup.GetSubject().GetType(),
 		EntityID:   tup.GetSubject().GetId(),
-		Relation:   tup.GetSubject().GetRelation(),
 	}
 
 	if data.relationships[entityType] == nil {
