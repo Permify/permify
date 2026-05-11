@@ -247,7 +247,86 @@ var _ = Describe("coverage", func() {
 			Expect(sci.EntityCoverageInfo[3].CoverageAssertionsPercent["scenario 1"]).Should(Equal(0))
 		})
 
-		It("Case 3: Facebook Groups", func() {
+		It("Case 3: Permission Condition Components", func() {
+			sci := Run(file.Shape{
+				Schema: `
+    entity user {}
+
+    entity system {
+        relation viewer @user
+        permission view = viewer
+    }
+
+    entity company {
+        relation maintainer @user
+        permission maintain = maintainer
+    }
+
+    entity organization {
+        relation maintainer @user
+        permission maintain = maintainer
+    }
+
+    entity team {
+        relation viewer @user
+        permission view = viewer
+    }
+
+    entity document {
+        relation system @system
+        relation partner @user
+        relation viewer @user
+        relation company @company
+        relation organization @organization
+        relation team @team
+        relation denied @user
+
+        attribute is_public boolean
+        attribute is_partner boolean
+
+        permission view = system.view or ((is_public or (is_partner and partner) or (viewer or company.maintain or organization.maintain or team.view)) not denied)
+    }`,
+				Relationships: []string{
+					"document:1#system@system:1",
+					"system:1#viewer@user:1",
+				},
+				Scenarios: []file.Scenario{
+					{
+						Name:        "system branch only",
+						Description: "covers the system branch without covering the rest of the view condition",
+						Checks: []file.Check{
+							{
+								Entity:  "document:1",
+								Subject: "user:1",
+								Assertions: map[string]bool{
+									"view": true,
+								},
+							},
+						},
+					},
+				},
+			})
+
+			documentCoverage := findEntityCoverage(sci, "document")
+			conditionCoverage := documentCoverage.PermissionConditionCoverage["system branch only"]["view"]
+
+			Expect(conditionCoverage.CoveragePercent).Should(Equal(11))
+			Expect(conditionComponentNames(conditionCoverage.CoveredComponents)).Should(Equal([]string{
+				"tuple_to_userset:system.view",
+			}))
+			Expect(isSameArray(conditionComponentNames(conditionCoverage.UncoveredComponents), []string{
+				"attribute:is_public",
+				"attribute:is_partner",
+				"relation:partner",
+				"relation:viewer",
+				"tuple_to_userset:company.maintain",
+				"tuple_to_userset:organization.maintain",
+				"tuple_to_userset:team.view",
+				"relation:denied",
+			})).Should(Equal(true))
+		})
+
+		It("Case 4: Facebook Groups", func() {
 			sci := Run(file.Shape{
 				Schema: `
     entity user {}
@@ -529,4 +608,13 @@ func isSameArray(a, b []string) bool {
 	}
 
 	return true
+}
+
+func findEntityCoverage(sci SchemaCoverageInfo, entityName string) EntityCoverageInfo {
+	for _, entityCoverage := range sci.EntityCoverageInfo {
+		if entityCoverage.EntityName == entityName {
+			return entityCoverage
+		}
+	}
+	return EntityCoverageInfo{}
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"sort"
 
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
@@ -131,6 +132,8 @@ func DisplayCoverageInfo(schemaCoverageInfo cov.SchemaCoverageInfo) {
 			}
 		}
 
+		displayConditionCoverage(entityCoverageInfo)
+
 		fmt.Printf("  coverage relationships percentage:")
 
 		if entityCoverageInfo.CoverageRelationshipsPercent <= 50 {
@@ -155,6 +158,49 @@ func DisplayCoverageInfo(schemaCoverageInfo cov.SchemaCoverageInfo) {
 				color.Danger.Printf(" %d%%\n", value)
 			} else {
 				color.Success.Printf(" %d%%\n", value)
+			}
+		}
+	}
+}
+
+func displayConditionCoverage(entityCoverageInfo cov.EntityCoverageInfo) {
+	if len(entityCoverageInfo.PermissionConditionCoverage) == 0 {
+		return
+	}
+
+	fmt.Printf("  permission condition coverage:\n")
+
+	scenarioNames := make([]string, 0, len(entityCoverageInfo.PermissionConditionCoverage))
+	for scenarioName := range entityCoverageInfo.PermissionConditionCoverage {
+		scenarioNames = append(scenarioNames, scenarioName)
+	}
+	sort.Strings(scenarioNames)
+
+	for _, scenarioName := range scenarioNames {
+		permissionCoverages := entityCoverageInfo.PermissionConditionCoverage[scenarioName]
+		if len(permissionCoverages) == 0 {
+			continue
+		}
+
+		fmt.Printf("    %s:\n", scenarioName)
+
+		permissionNames := make([]string, 0, len(permissionCoverages))
+		for permissionName := range permissionCoverages {
+			permissionNames = append(permissionNames, permissionName)
+		}
+		sort.Strings(permissionNames)
+
+		for _, permissionName := range permissionNames {
+			conditionCoverage := permissionCoverages[permissionName]
+			fmt.Printf("      %s:", permissionName)
+			if conditionCoverage.CoveragePercent <= 50 {
+				color.Danger.Printf(" %d%%\n", conditionCoverage.CoveragePercent)
+			} else {
+				color.Success.Printf(" %d%%\n", conditionCoverage.CoveragePercent)
+			}
+
+			for _, component := range conditionCoverage.UncoveredComponents {
+				fmt.Printf("        - %s %s\n", component.Type, component.Name)
 			}
 		}
 	}
