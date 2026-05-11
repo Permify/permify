@@ -288,6 +288,7 @@ var _ = Describe("coverage", func() {
 				"document#view[viewer]",
 			})).Should(Equal(true))
 			Expect(sci.EntityCoverageInfo[1].CoverageAssertionComponentsPercent["scenario 1"]).Should(Equal(33))
+			// TotalAssertionsCoverage averages user coverage (100%) and document component coverage (33%).
 			Expect(sci.TotalAssertionsCoverage).Should(Equal(66))
 		})
 
