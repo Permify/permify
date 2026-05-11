@@ -519,6 +519,7 @@ func calculateConditionCoverage(
 	return result
 }
 
+// assertionTarget identifies whether coverage must match a concrete entity ID.
 type assertionTarget struct {
 	EntityID     string
 	EntityIDOnly bool
@@ -556,6 +557,7 @@ func extractAssertedPermissions(entityName string, scenario file.Scenario) map[s
 	return asserted
 }
 
+// appendAssertionTarget adds a target once so repeated assertions do not skew coverage.
 func appendAssertionTarget(targets []assertionTarget, target assertionTarget) []assertionTarget {
 	for _, existing := range targets {
 		if existing == target {
@@ -565,6 +567,7 @@ func appendAssertionTarget(targets []assertionTarget, target assertionTarget) []
 	return append(targets, target)
 }
 
+// sortedPermissionNames returns deterministic permission iteration order for reports.
 func sortedPermissionNames(asserted map[string][]assertionTarget) []string {
 	names := make([]string, 0, len(asserted))
 	for name := range asserted {
@@ -574,6 +577,7 @@ func sortedPermissionNames(asserted map[string][]assertionTarget) []string {
 	return names
 }
 
+// extractConditionComponents walks a compiled permission tree and returns its leaf components.
 func extractConditionComponents(
 	entityDefinition *base.EntityDefinition,
 	child *base.Child,
@@ -598,6 +602,7 @@ func extractConditionComponents(
 	return nil
 }
 
+// leafToComponents maps a compiled leaf to the condition components it exercises.
 func leafToComponents(
 	entityDefinition *base.EntityDefinition,
 	leaf *base.Leaf,
@@ -671,6 +676,7 @@ func leafToComponents(
 	return nil
 }
 
+// nonEmptyStrings filters empty strings before joining component names.
 func nonEmptyStrings(values ...string) []string {
 	filtered := make([]string, 0, len(values))
 	for _, value := range values {
@@ -681,6 +687,7 @@ func nonEmptyStrings(values ...string) []string {
 	return filtered
 }
 
+// uniqueConditionComponents de-duplicates components while preserving expression order.
 func uniqueConditionComponents(components []ConditionComponent) []ConditionComponent {
 	seen := make(map[ConditionComponent]bool, len(components))
 	unique := make([]ConditionComponent, 0, len(components))
@@ -696,6 +703,7 @@ func uniqueConditionComponents(components []ConditionComponent) []ConditionCompo
 	return unique
 }
 
+// conditionComponentNames formats components for percentage calculation and tests.
 func conditionComponentNames(components []ConditionComponent) []string {
 	names := make([]string, 0, len(components))
 	for _, component := range components {
@@ -704,11 +712,13 @@ func conditionComponentNames(components []ConditionComponent) []string {
 	return names
 }
 
+// componentCoverageData indexes shape and scenario data by entity type, component name, and entity ID.
 type componentCoverageData struct {
 	relationships map[string]map[string]map[string]bool
 	attributes    map[string]map[string]map[string]bool
 }
 
+// newComponentCoverageData builds the scenario-local component coverage lookup.
 func newComponentCoverageData(relationships, attributes []string, scenario file.Scenario) componentCoverageData {
 	data := componentCoverageData{
 		relationships: make(map[string]map[string]map[string]bool),
@@ -738,6 +748,7 @@ func newComponentCoverageData(relationships, attributes []string, scenario file.
 	return data
 }
 
+// addContext folds contextual tuples and attributes into the component coverage lookup.
 func (data componentCoverageData) addContext(context file.Context) {
 	for _, relationship := range context.Tuples {
 		data.addRelationship(relationship)
@@ -748,6 +759,7 @@ func (data componentCoverageData) addContext(context file.Context) {
 	}
 }
 
+// addRelationship records a relationship as available test data for a component.
 func (data componentCoverageData) addRelationship(relationship string) {
 	tup, err := tuple.Tuple(relationship)
 	if err != nil {
@@ -767,6 +779,7 @@ func (data componentCoverageData) addRelationship(relationship string) {
 	data.relationships[entityType][relation][entityID] = true
 }
 
+// addAttribute records an attribute as available test data for a component.
 func (data componentCoverageData) addAttribute(attributeString string) {
 	attr, err := attribute.Attribute(attributeString)
 	if err != nil {
@@ -786,6 +799,7 @@ func (data componentCoverageData) addAttribute(attributeString string) {
 	data.attributes[entityType][attributeName][entityID] = true
 }
 
+// isComponentCovered checks whether the asserted scenario contains data for a component.
 func (data componentCoverageData) isComponentCovered(entityName string, component ConditionComponent, targets []assertionTarget) bool {
 	switch component.Type {
 	case componentRelation:
@@ -796,22 +810,27 @@ func (data componentCoverageData) isComponentCovered(entityName string, componen
 	case componentAttribute:
 		return data.hasAttribute(entityName, component.Name, targets)
 	case componentCall:
+		// Rule bodies are opaque to static coverage; attribute arguments are tracked separately.
 		return true
 	case componentPermission:
+		// Recursive same-entity permission references are guarded by visitedPermissions upstream.
 		return false
 	default:
 		return false
 	}
 }
 
+// hasRelationship checks whether a relation appears for any asserted target entity.
 func (data componentCoverageData) hasRelationship(entityName, relation string, targets []assertionTarget) bool {
 	return hasCoverageForTargets(data.relationships[entityName][relation], targets)
 }
 
+// hasAttribute checks whether an attribute appears for any asserted target entity.
 func (data componentCoverageData) hasAttribute(entityName, attributeName string, targets []assertionTarget) bool {
 	return hasCoverageForTargets(data.attributes[entityName][attributeName], targets)
 }
 
+// hasCoverageForTargets matches type-level filters or concrete check entity IDs.
 func hasCoverageForTargets(coveredEntityIDs map[string]bool, targets []assertionTarget) bool {
 	if len(coveredEntityIDs) == 0 {
 		return false
