@@ -131,6 +131,15 @@ func DisplayCoverageInfo(schemaCoverageInfo cov.SchemaCoverageInfo) {
 			}
 		}
 
+		fmt.Printf("  uncovered assertion components:\n")
+
+		for key, value := range entityCoverageInfo.UncoveredAssertionComponents {
+			fmt.Printf("    %s:\n", key)
+			for _, v := range value {
+				fmt.Printf("    	%v\n", v)
+			}
+		}
+
 		fmt.Printf("  coverage relationships percentage:")
 
 		if entityCoverageInfo.CoverageRelationshipsPercent <= 50 {
@@ -150,6 +159,17 @@ func DisplayCoverageInfo(schemaCoverageInfo cov.SchemaCoverageInfo) {
 		fmt.Printf("  coverage assertions percentage: \n")
 
 		for key, value := range entityCoverageInfo.CoverageAssertionsPercent {
+			fmt.Printf("    %s:", key)
+			if value <= 50 {
+				color.Danger.Printf(" %d%%\n", value)
+			} else {
+				color.Success.Printf(" %d%%\n", value)
+			}
+		}
+
+		fmt.Printf("  coverage assertion components percentage: \n")
+
+		for key, value := range entityCoverageInfo.CoverageAssertionComponentsPercent {
 			fmt.Printf("    %s:", key)
 			if value <= 50 {
 				color.Danger.Printf(" %d%%\n", value)

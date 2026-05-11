@@ -3,6 +3,7 @@ package coverage
 import (
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/Permify/permify/pkg/attribute"
 	"github.com/Permify/permify/pkg/development/file"
@@ -32,6 +33,9 @@ type EntityCoverageInfo struct {
 
 	UncoveredAssertions       map[string][]string
 	CoverageAssertionsPercent map[string]int
+
+	UncoveredAssertionComponents       map[string][]string
+	CoverageAssertionComponentsPercent map[string]int
 }
 
 // SchemaCoverage represents the expected coverage for a schema entity
@@ -63,10 +67,11 @@ type EntityCoverageInfo struct {
 //   - repository#edit
 //   - repository#delete
 type SchemaCoverage struct {
-	EntityName    string
-	Relationships []string
-	Attributes    []string
-	Assertions    []string
+	EntityName          string
+	Relationships       []string
+	Attributes          []string
+	Assertions          []string
+	AssertionComponents []string
 }
 
 // Run analyzes the coverage of relationships, attributes, and assertions
@@ -110,10 +115,11 @@ func extractSchemaReferences(definitions []*base.EntityDefinition) []SchemaCover
 // extractEntityReferences extracts relationships, attributes, and assertions from an entity definition
 func extractEntityReferences(entity *base.EntityDefinition) SchemaCoverage {
 	coverage := SchemaCoverage{
-		EntityName:    entity.GetName(),
-		Relationships: extractRelationships(entity),
-		Attributes:    extractAttributes(entity),
-		Assertions:    extractAssertions(entity),
+		EntityName:          entity.GetName(),
+		Relationships:       extractRelationships(entity),
+		Attributes:          extractAttributes(entity),
+		Assertions:          extractAssertions(entity),
+		AssertionComponents: extractAssertionComponents(entity),
 	}
 	return coverage
 }
@@ -159,6 +165,69 @@ func extractAssertions(entity *base.EntityDefinition) []string {
 	}
 
 	return assertions
+}
+
+// extractAssertionComponents extracts permission condition leaves from an entity.
+func extractAssertionComponents(entity *base.EntityDefinition) []string {
+	components := []string{}
+
+	for _, permission := range entity.GetPermissions() {
+		components = append(components, extractChildAssertionComponents(entity.GetName(), permission.GetName(), permission.GetChild())...)
+	}
+
+	return components
+}
+
+func extractChildAssertionComponents(entityName, permissionName string, child *base.Child) []string {
+	if child == nil {
+		return []string{formatAssertion(entityName, permissionName)}
+	}
+
+	if leaf := child.GetLeaf(); leaf != nil {
+		if component := formatLeafAssertionComponent(entityName, permissionName, leaf); component != "" {
+			return []string{component}
+		}
+		return []string{formatAssertion(entityName, permissionName)}
+	}
+
+	if rewrite := child.GetRewrite(); rewrite != nil {
+		components := []string{}
+		for _, rewriteChild := range rewrite.GetChildren() {
+			components = append(components, extractChildAssertionComponents(entityName, permissionName, rewriteChild)...)
+		}
+		return components
+	}
+
+	return []string{formatAssertion(entityName, permissionName)}
+}
+
+func formatLeafAssertionComponent(entityName, permissionName string, leaf *base.Leaf) string {
+	switch leaf.GetType().(type) {
+	case *base.Leaf_ComputedUserSet:
+		if computed := leaf.GetComputedUserSet(); computed != nil {
+			return formatAssertionComponent(entityName, permissionName, computed.GetRelation())
+		}
+	case *base.Leaf_TupleToUserSet:
+		tupleToUserSet := leaf.GetTupleToUserSet()
+		if tupleToUserSet != nil && tupleToUserSet.GetTupleSet() != nil && tupleToUserSet.GetComputed() != nil {
+			return formatAssertionComponent(
+				entityName,
+				permissionName,
+				fmt.Sprintf("%s.%s", tupleToUserSet.GetTupleSet().GetRelation(), tupleToUserSet.GetComputed().GetRelation()),
+			)
+		}
+	case *base.Leaf_ComputedAttribute:
+		if computed := leaf.GetComputedAttribute(); computed != nil {
+			return formatAssertionComponent(entityName, permissionName, computed.GetName())
+		}
+	case *base.Leaf_Call:
+		if call := leaf.GetCall(); call != nil {
+			return formatAssertionComponent(entityName, permissionName, fmt.Sprintf("%s()", call.GetRuleName()))
+		}
+	default:
+		return ""
+	}
+	return ""
 }
 
 // calculateEntityCoverages calculates coverage for all entities
@@ -215,6 +284,22 @@ func calculateEntityCoverage(ref SchemaCoverage, shape file.Shape) EntityCoverag
 			ref.Assertions,
 			uncovered,
 		)
+
+		uncoveredComponents := findUncoveredAssertionComponents(
+			ref.EntityName,
+			ref.AssertionComponents,
+			scenario.Checks,
+			scenario.EntityFilters,
+			shape.Relationships,
+			shape.Attributes,
+		)
+		if len(uncoveredComponents) > 0 {
+			entityCoverageInfo.UncoveredAssertionComponents[scenario.Name] = uncoveredComponents
+		}
+		entityCoverageInfo.CoverageAssertionComponentsPercent[scenario.Name] = calculateCoveragePercent(
+			ref.AssertionComponents,
+			uncoveredComponents,
+		)
 	}
 
 	return entityCoverageInfo
@@ -223,13 +308,15 @@ func calculateEntityCoverage(ref SchemaCoverage, shape file.Shape) EntityCoverag
 // newEntityCoverageInfo creates a new EntityCoverageInfo with initialized fields
 func newEntityCoverageInfo(entityName string) EntityCoverageInfo {
 	return EntityCoverageInfo{
-		EntityName:                   entityName,
-		UncoveredRelationships:       []string{},
-		UncoveredAttributes:          []string{},
-		CoverageAssertionsPercent:    make(map[string]int),
-		UncoveredAssertions:          make(map[string][]string),
-		CoverageRelationshipsPercent: 0,
-		CoverageAttributesPercent:    0,
+		EntityName:                         entityName,
+		UncoveredRelationships:             []string{},
+		UncoveredAttributes:                []string{},
+		CoverageAssertionsPercent:          make(map[string]int),
+		UncoveredAssertions:                make(map[string][]string),
+		CoverageAssertionComponentsPercent: make(map[string]int),
+		UncoveredAssertionComponents:       make(map[string][]string),
+		CoverageRelationshipsPercent:       0,
+		CoverageAttributesPercent:          0,
 	}
 }
 
@@ -269,6 +356,20 @@ func findUncoveredAssertions(entityName string, expected []string, checks []file
 	for _, assertion := range expected {
 		if !slices.Contains(covered, assertion) {
 			uncovered = append(uncovered, assertion)
+		}
+	}
+
+	return uncovered
+}
+
+func findUncoveredAssertionComponents(entityName string, expected []string, checks []file.Check, filters []file.EntityFilter, relationships, attributes []string) []string {
+	coveredAssertions := extractCoveredAssertions(entityName, checks, filters)
+	uncovered := []string{}
+
+	for _, component := range expected {
+		assertion := assertionFromComponent(component)
+		if !slices.Contains(coveredAssertions, assertion) || !assertionComponentHasSupportingData(entityName, component, relationships, attributes) {
+			uncovered = append(uncovered, component)
 		}
 	}
 
@@ -316,7 +417,7 @@ func calculateTotalCoverage(entities []EntityCoverageInfo) (int, int, int) {
 		totalAttributes++
 		totalCoveredAttributes += entity.CoverageAttributesPercent
 
-		for _, assertionPercent := range entity.CoverageAssertionsPercent {
+		for _, assertionPercent := range entity.CoverageAssertionComponentsPercent {
 			totalAssertions++
 			totalCoveredAssertions += assertionPercent
 		}
@@ -434,4 +535,75 @@ func formatAttribute(entityName, attributeName string) string {
 // formatAssertion formats an assertion/permission string
 func formatAssertion(entityName, permissionName string) string {
 	return fmt.Sprintf("%s#%s", entityName, permissionName)
+}
+
+func formatAssertionComponent(entityName, permissionName, componentName string) string {
+	return fmt.Sprintf("%s#%s[%s]", entityName, permissionName, componentName)
+}
+
+func assertionFromComponent(component string) string {
+	for idx, ch := range component {
+		if ch == '[' {
+			return component[:idx]
+		}
+	}
+	return component
+}
+
+func componentName(component string) string {
+	start := -1
+	for idx, ch := range component {
+		if ch == '[' {
+			start = idx + 1
+			continue
+		}
+		if ch == ']' && start >= 0 {
+			return component[start:idx]
+		}
+	}
+	return ""
+}
+
+func assertionComponentHasSupportingData(entityName, component string, relationships, attributes []string) bool {
+	name := componentName(component)
+	if name == "" {
+		return true
+	}
+	if strings.Contains(name, ".") {
+		relationName := strings.SplitN(name, ".", 2)[0]
+		return relationshipRelationCovered(entityName, relationName, relationships)
+	}
+	if strings.HasSuffix(name, "()") {
+		return true
+	}
+	if attributeCovered(entityName, name, attributes) {
+		return true
+	}
+	return relationshipRelationCovered(entityName, name, relationships)
+}
+
+func relationshipRelationCovered(entityName, relationName string, relationships []string) bool {
+	for _, relationship := range relationships {
+		tup, err := tuple.Tuple(relationship)
+		if err != nil {
+			continue
+		}
+		if tup.GetEntity().GetType() == entityName && tup.GetRelation() == relationName {
+			return true
+		}
+	}
+	return false
+}
+
+func attributeCovered(entityName, attributeName string, attributes []string) bool {
+	for _, attrStr := range attributes {
+		attr, err := attribute.Attribute(attrStr)
+		if err != nil {
+			continue
+		}
+		if attr.GetEntity().GetType() == entityName && attr.GetAttribute() == attributeName {
+			return true
+		}
+	}
+	return false
 }
