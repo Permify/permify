@@ -20,6 +20,7 @@ type SchemaCoverageInfo struct {
 	TotalRelationshipsCoverage int
 	TotalAttributesCoverage    int
 	TotalAssertionsCoverage    int
+	TotalConditionsCoverage    int
 }
 
 const (
@@ -32,8 +33,10 @@ const (
 
 // ConditionComponent represents a single leaf component in a permission condition tree.
 type ConditionComponent struct {
-	Name string
-	Type string
+	Name             string
+	Type             string
+	TupleSetRelation string
+	ComputedRelation string
 }
 
 // ConditionCoverageInfo represents condition component coverage for one permission.
@@ -198,7 +201,7 @@ func calculateEntityCoverages(refs []SchemaCoverage, shape file.Shape, definitio
 	}
 
 	for _, ref := range refs {
-		entityCoverageInfo := calculateEntityCoverage(ref, shape, definitionsByEntity[ref.EntityName])
+		entityCoverageInfo := calculateEntityCoverage(ref, shape, definitionsByEntity[ref.EntityName], definitionsByEntity)
 		entityCoverageInfos = append(entityCoverageInfos, entityCoverageInfo)
 	}
 
@@ -206,7 +209,12 @@ func calculateEntityCoverages(refs []SchemaCoverage, shape file.Shape, definitio
 }
 
 // calculateEntityCoverage calculates coverage for a single entity
-func calculateEntityCoverage(ref SchemaCoverage, shape file.Shape, entityDefinition *base.EntityDefinition) EntityCoverageInfo {
+func calculateEntityCoverage(
+	ref SchemaCoverage,
+	shape file.Shape,
+	entityDefinition *base.EntityDefinition,
+	definitionsByEntity map[string]*base.EntityDefinition,
+) EntityCoverageInfo {
 	entityCoverageInfo := newEntityCoverageInfo(ref.EntityName)
 
 	// Calculate relationships coverage
@@ -250,6 +258,7 @@ func calculateEntityCoverage(ref SchemaCoverage, shape file.Shape, entityDefinit
 
 		conditionCoverage := calculateConditionCoverage(
 			entityDefinition,
+			definitionsByEntity,
 			scenario,
 			shape.Relationships,
 			shape.Attributes,
@@ -320,13 +329,14 @@ func findUncoveredAssertions(entityName string, expected []string, checks []file
 
 // buildSchemaCoverageInfo builds the final SchemaCoverageInfo with total coverage
 func buildSchemaCoverageInfo(entityCoverageInfos []EntityCoverageInfo) SchemaCoverageInfo {
-	relationshipsCoverage, attributesCoverage, assertionsCoverage := calculateTotalCoverage(entityCoverageInfos)
+	relationshipsCoverage, attributesCoverage, assertionsCoverage, conditionsCoverage := calculateTotalCoverage(entityCoverageInfos)
 
 	return SchemaCoverageInfo{
 		EntityCoverageInfo:         entityCoverageInfos,
 		TotalRelationshipsCoverage: relationshipsCoverage,
 		TotalAttributesCoverage:    attributesCoverage,
 		TotalAssertionsCoverage:    assertionsCoverage,
+		TotalConditionsCoverage:    conditionsCoverage,
 	}
 }
 
@@ -342,7 +352,7 @@ func calculateCoveragePercent(totalElements, uncoveredElements []string) int {
 }
 
 // calculateTotalCoverage calculates average coverage percentages across all entities
-func calculateTotalCoverage(entities []EntityCoverageInfo) (int, int, int) {
+func calculateTotalCoverage(entities []EntityCoverageInfo) (int, int, int, int) {
 	var (
 		totalRelationships        int
 		totalCoveredRelationships int
@@ -350,6 +360,8 @@ func calculateTotalCoverage(entities []EntityCoverageInfo) (int, int, int) {
 		totalCoveredAttributes    int
 		totalAssertions           int
 		totalCoveredAssertions    int
+		totalConditions           int
+		totalCoveredConditions    int
 	)
 
 	for _, entity := range entities {
@@ -363,11 +375,19 @@ func calculateTotalCoverage(entities []EntityCoverageInfo) (int, int, int) {
 			totalAssertions++
 			totalCoveredAssertions += assertionPercent
 		}
+
+		for _, scenarioConditionCoverage := range entity.PermissionConditionCoverage {
+			for _, conditionCoverage := range scenarioConditionCoverage {
+				totalConditions++
+				totalCoveredConditions += conditionCoverage.CoveragePercent
+			}
+		}
 	}
 
 	return calculateAverageCoverage(totalRelationships, totalCoveredRelationships),
 		calculateAverageCoverage(totalAttributes, totalCoveredAttributes),
-		calculateAverageCoverage(totalAssertions, totalCoveredAssertions)
+		calculateAverageCoverage(totalAssertions, totalCoveredAssertions),
+		calculateAverageCoverage(totalConditions, totalCoveredConditions)
 }
 
 // calculateAverageCoverage calculates average coverage with zero-division guard
@@ -465,6 +485,7 @@ func extractCoveredAssertions(entityName string, checks []file.Check, filters []
 // leaf components inside each permission condition have no matching test data.
 func calculateConditionCoverage(
 	entityDefinition *base.EntityDefinition,
+	definitionsByEntity map[string]*base.EntityDefinition,
 	scenario file.Scenario,
 	relationships []string,
 	attributes []string,
@@ -479,7 +500,7 @@ func calculateConditionCoverage(
 		return result
 	}
 
-	coverageData := newComponentCoverageData(relationships, attributes, scenario)
+	coverageData := newComponentCoverageData(relationships, attributes, scenario, definitionsByEntity)
 
 	for _, permissionName := range sortedPermissionNames(assertedPermissions) {
 		permission, ok := entityDefinition.GetPermissions()[permissionName]
@@ -643,8 +664,10 @@ func leafToComponents(
 		}
 
 		return []ConditionComponent{{
-			Name: strings.Join(nonEmptyStrings(tupleSetRelation, computedRelation), "."),
-			Type: componentTupleToUserset,
+			Name:             strings.Join(nonEmptyStrings(tupleSetRelation, computedRelation), "."),
+			Type:             componentTupleToUserset,
+			TupleSetRelation: tupleSetRelation,
+			ComputedRelation: computedRelation,
 		}}
 	}
 
@@ -714,15 +737,31 @@ func conditionComponentNames(components []ConditionComponent) []string {
 
 // componentCoverageData indexes shape and scenario data by entity type, component name, and entity ID.
 type componentCoverageData struct {
-	relationships map[string]map[string]map[string]bool
-	attributes    map[string]map[string]map[string]bool
+	relationships       map[string]map[string]map[string]bool
+	relationshipTargets map[string]map[string]map[string][]relationshipTarget
+	attributes          map[string]map[string]map[string]bool
+	definitionsByEntity map[string]*base.EntityDefinition
+}
+
+// relationshipTarget identifies the entity reached by a relationship tuple.
+type relationshipTarget struct {
+	EntityType string
+	EntityID   string
+	Relation   string
 }
 
 // newComponentCoverageData builds the scenario-local component coverage lookup.
-func newComponentCoverageData(relationships, attributes []string, scenario file.Scenario) componentCoverageData {
+func newComponentCoverageData(
+	relationships,
+	attributes []string,
+	scenario file.Scenario,
+	definitionsByEntity map[string]*base.EntityDefinition,
+) componentCoverageData {
 	data := componentCoverageData{
-		relationships: make(map[string]map[string]map[string]bool),
-		attributes:    make(map[string]map[string]map[string]bool),
+		relationships:       make(map[string]map[string]map[string]bool),
+		relationshipTargets: make(map[string]map[string]map[string][]relationshipTarget),
+		attributes:          make(map[string]map[string]map[string]bool),
+		definitionsByEntity: definitionsByEntity,
 	}
 
 	for _, relationship := range relationships {
@@ -769,6 +808,11 @@ func (data componentCoverageData) addRelationship(relationship string) {
 	entityType := tup.GetEntity().GetType()
 	relation := tup.GetRelation()
 	entityID := tup.GetEntity().GetId()
+	target := relationshipTarget{
+		EntityType: tup.GetSubject().GetType(),
+		EntityID:   tup.GetSubject().GetId(),
+		Relation:   tup.GetSubject().GetRelation(),
+	}
 
 	if data.relationships[entityType] == nil {
 		data.relationships[entityType] = make(map[string]map[string]bool)
@@ -777,6 +821,14 @@ func (data componentCoverageData) addRelationship(relationship string) {
 		data.relationships[entityType][relation] = make(map[string]bool)
 	}
 	data.relationships[entityType][relation][entityID] = true
+
+	if data.relationshipTargets[entityType] == nil {
+		data.relationshipTargets[entityType] = make(map[string]map[string][]relationshipTarget)
+	}
+	if data.relationshipTargets[entityType][relation] == nil {
+		data.relationshipTargets[entityType][relation] = make(map[string][]relationshipTarget)
+	}
+	data.relationshipTargets[entityType][relation][entityID] = append(data.relationshipTargets[entityType][relation][entityID], target)
 }
 
 // addAttribute records an attribute as available test data for a component.
@@ -801,12 +853,20 @@ func (data componentCoverageData) addAttribute(attributeString string) {
 
 // isComponentCovered checks whether the asserted scenario contains data for a component.
 func (data componentCoverageData) isComponentCovered(entityName string, component ConditionComponent, targets []assertionTarget) bool {
+	return data.isComponentCoveredWithVisited(entityName, component, targets, map[string]bool{})
+}
+
+func (data componentCoverageData) isComponentCoveredWithVisited(
+	entityName string,
+	component ConditionComponent,
+	targets []assertionTarget,
+	visitedPermissions map[string]bool,
+) bool {
 	switch component.Type {
 	case componentRelation:
 		return data.hasRelationship(entityName, component.Name, targets)
 	case componentTupleToUserset:
-		tupleSetRelation, _, _ := strings.Cut(component.Name, ".")
-		return data.hasRelationship(entityName, tupleSetRelation, targets)
+		return data.hasTupleToUserset(entityName, component, targets, visitedPermissions)
 	case componentAttribute:
 		return data.hasAttribute(entityName, component.Name, targets)
 	case componentCall:
@@ -817,6 +877,110 @@ func (data componentCoverageData) isComponentCovered(entityName string, componen
 		return false
 	default:
 		return false
+	}
+}
+
+// hasTupleToUserset checks both the local tuple-set edge and the referenced computed relation.
+func (data componentCoverageData) hasTupleToUserset(
+	entityName string,
+	component ConditionComponent,
+	targets []assertionTarget,
+	visitedPermissions map[string]bool,
+) bool {
+	tupleSetRelation := component.TupleSetRelation
+	computedRelation := component.ComputedRelation
+	if tupleSetRelation == "" {
+		tupleSetRelation, computedRelation, _ = strings.Cut(component.Name, ".")
+	}
+
+	reachedTargets := data.relationshipTargetsFor(entityName, tupleSetRelation, targets)
+	if len(reachedTargets) == 0 {
+		return false
+	}
+
+	if computedRelation == "" {
+		return true
+	}
+
+	for _, reachedTarget := range reachedTargets {
+		if data.isComputedRelationCovered(reachedTarget, computedRelation, visitedPermissions) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// relationshipTargetsFor returns related entities for check targets or all entities for filters.
+func (data componentCoverageData) relationshipTargetsFor(entityName, relation string, targets []assertionTarget) []relationshipTarget {
+	targetsByEntityID := data.relationshipTargets[entityName][relation]
+	if len(targetsByEntityID) == 0 {
+		return nil
+	}
+
+	reachedTargets := []relationshipTarget{}
+	for _, target := range targets {
+		if !target.EntityIDOnly {
+			for _, values := range targetsByEntityID {
+				reachedTargets = append(reachedTargets, values...)
+			}
+			continue
+		}
+		reachedTargets = append(reachedTargets, targetsByEntityID[target.EntityID]...)
+	}
+
+	return reachedTargets
+}
+
+// isComputedRelationCovered verifies the computed side of a tuple-to-userset component.
+func (data componentCoverageData) isComputedRelationCovered(
+	reachedTarget relationshipTarget,
+	computedRelation string,
+	visitedPermissions map[string]bool,
+) bool {
+	targets := []assertionTarget{{
+		EntityID:     reachedTarget.EntityID,
+		EntityIDOnly: true,
+	}}
+	entityDefinition := data.definitionsByEntity[reachedTarget.EntityType]
+	if entityDefinition == nil {
+		return data.hasRelationship(reachedTarget.EntityType, computedRelation, targets)
+	}
+
+	switch entityDefinition.GetReferences()[computedRelation] {
+	case base.EntityDefinition_REFERENCE_RELATION:
+		return data.hasRelationship(reachedTarget.EntityType, computedRelation, targets)
+	case base.EntityDefinition_REFERENCE_ATTRIBUTE:
+		return data.hasAttribute(reachedTarget.EntityType, computedRelation, targets)
+	case base.EntityDefinition_REFERENCE_PERMISSION:
+		key := formatAssertion(reachedTarget.EntityType, computedRelation)
+		if visitedPermissions[key] {
+			return false
+		}
+
+		permission := entityDefinition.GetPermissions()[computedRelation]
+		if permission == nil || permission.GetChild() == nil {
+			return false
+		}
+
+		visitedPermissions[key] = true
+		defer delete(visitedPermissions, key)
+
+		components := uniqueConditionComponents(extractConditionComponents(entityDefinition, permission.GetChild(), map[string]bool{
+			computedRelation: true,
+		}))
+		if len(components) == 0 {
+			return false
+		}
+
+		for _, component := range components {
+			if !data.isComponentCoveredWithVisited(reachedTarget.EntityType, component, targets, visitedPermissions) {
+				return false
+			}
+		}
+		return true
+	default:
+		return data.hasRelationship(reachedTarget.EntityType, computedRelation, targets)
 	}
 }
 

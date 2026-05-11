@@ -29,6 +29,7 @@ func NewCoverageCommand() *cobra.Command {
 	f.Int("coverage-relationships", 0, "the min coverage for relationships")
 	f.Int("coverage-attributes", 0, "the min coverage for attributes")
 	f.Int("coverage-assertions", 0, "the min coverage for assertions")
+	f.Int("coverage-conditions", 0, "the min coverage for permission condition components")
 
 	// register flags for coverage
 	command.PreRun = func(cmd *cobra.Command, args []string) {
@@ -50,6 +51,7 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 		coverageRelationships := viper.GetInt("coverage-relationships") // Min relationships coverage
 		coverageAttributes := viper.GetInt("coverage-attributes")
 		coverageAssertions := viper.GetInt("coverage-assertions") // Min assertions coverage
+		coverageConditions := viper.GetInt("coverage-conditions")
 		// Create decoder from URL
 		// create a new decoder from the url
 		decoder, err := file.NewDecoderFromURL(u)
@@ -103,6 +105,12 @@ func coverage() func(cmd *cobra.Command, args []string) error {
 
 		if schemaCoverageInfo.TotalAttributesCoverage < coverageAttributes {
 			color.Danger.Printf("attributes coverage < %d%%\n", coverageAttributes)
+			color.Danger.Println("FAILED")
+			os.Exit(1)
+		}
+
+		if schemaCoverageInfo.TotalConditionsCoverage < coverageConditions {
+			color.Danger.Printf("permission condition coverage < %d%%\n", coverageConditions)
 			color.Danger.Println("FAILED")
 			os.Exit(1)
 		}

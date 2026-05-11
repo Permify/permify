@@ -16,4 +16,7 @@ func RegisterCoverageFlags(flags *pflag.FlagSet) {
 	if err := viper.BindPFlag("coverage-assertions", flags.Lookup("coverage-assertions")); err != nil {
 		panic(err)
 	}
+	if err := viper.BindPFlag("coverage-conditions", flags.Lookup("coverage-conditions")); err != nil {
+		panic(err)
+	}
 }

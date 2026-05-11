@@ -288,6 +288,7 @@ var _ = Describe("coverage", func() {
     }`,
 				Relationships: []string{
 					"document:1#system@system:1",
+					"document:1#company@company:1",
 					"system:1#viewer@user:1",
 				},
 				Scenarios: []file.Scenario{
@@ -311,6 +312,7 @@ var _ = Describe("coverage", func() {
 			conditionCoverage := documentCoverage.PermissionConditionCoverage["system branch only"]["view"]
 
 			Expect(conditionCoverage.CoveragePercent).Should(Equal(11))
+			Expect(sci.TotalConditionsCoverage).Should(Equal(11))
 			Expect(conditionComponentNames(conditionCoverage.CoveredComponents)).Should(Equal([]string{
 				"tuple_to_userset:system.view",
 			}))
