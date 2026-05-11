@@ -291,6 +291,50 @@ var _ = Describe("coverage", func() {
 			Expect(sci.TotalAssertionsCoverage).Should(Equal(66))
 		})
 
+		It("Case 2.2: Does not cover a permission component from a different entity instance", func() {
+			sci := Run(file.Shape{
+				Schema: `
+		entity user {}
+
+		entity document {
+			relation system @user
+			relation viewer @user
+			relation owner @user
+
+			permission view = system or (viewer or owner)
+		}`,
+				Relationships: []string{
+					"document:2#system@user:1",
+				},
+				Scenarios: []file.Scenario{
+					{
+						Name:        "scenario 1",
+						Description: "supporting tuple belongs to another document",
+						Checks: []file.Check{
+							{
+								Entity:  "document:1",
+								Subject: "user:1",
+								Assertions: map[string]bool{
+									"view": true,
+								},
+							},
+						},
+						EntityFilters: []file.EntityFilter{},
+					},
+				},
+			})
+
+			Expect(sci.EntityCoverageInfo[1].EntityName).Should(Equal("document"))
+			Expect(sci.EntityCoverageInfo[1].UncoveredAssertions).Should(Equal(map[string][]string{}))
+			Expect(isSameArray(sci.EntityCoverageInfo[1].UncoveredAssertionComponents["scenario 1"], []string{
+				"document#view[owner]",
+				"document#view[system]",
+				"document#view[viewer]",
+			})).Should(Equal(true))
+			Expect(sci.EntityCoverageInfo[1].CoverageAssertionComponentsPercent["scenario 1"]).Should(Equal(0))
+			Expect(sci.TotalAssertionsCoverage).Should(Equal(50))
+		})
+
 		It("Case 3: Facebook Groups", func() {
 			sci := Run(file.Shape{
 				Schema: `

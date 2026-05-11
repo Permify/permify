@@ -74,6 +74,11 @@ type SchemaCoverage struct {
 	AssertionComponents []string
 }
 
+type assertionCoverageContext struct {
+	EntityID string
+	Subject  *base.Subject
+}
+
 // Run analyzes the coverage of relationships, attributes, and assertions
 // for a given schema shape and returns the coverage information
 func Run(shape file.Shape) SchemaCoverageInfo {
@@ -363,17 +368,56 @@ func findUncoveredAssertions(entityName string, expected []string, checks []file
 }
 
 func findUncoveredAssertionComponents(entityName string, expected []string, checks []file.Check, filters []file.EntityFilter, relationships, attributes []string) []string {
-	coveredAssertions := extractCoveredAssertions(entityName, checks, filters)
+	coverageContexts := extractAssertionCoverageContexts(entityName, checks, filters)
 	uncovered := []string{}
 
 	for _, component := range expected {
 		assertion := assertionFromComponent(component)
-		if !slices.Contains(coveredAssertions, assertion) || !assertionComponentHasSupportingData(entityName, component, relationships, attributes) {
+		if !assertionComponentHasSupportingData(entityName, component, coverageContexts[assertion], relationships, attributes) {
 			uncovered = append(uncovered, component)
 		}
 	}
 
 	return uncovered
+}
+
+func extractAssertionCoverageContexts(entityName string, checks []file.Check, filters []file.EntityFilter) map[string][]assertionCoverageContext {
+	contexts := make(map[string][]assertionCoverageContext)
+
+	for _, check := range checks {
+		entity, err := tuple.E(check.Entity)
+		if err != nil || entity.GetType() != entityName {
+			continue
+		}
+
+		subject := parseSubject(check.Subject)
+		for permission := range check.Assertions {
+			assertion := formatAssertion(entity.GetType(), permission)
+			contexts[assertion] = append(contexts[assertion], assertionCoverageContext{
+				EntityID: entity.GetId(),
+				Subject:  subject,
+			})
+		}
+	}
+
+	for _, filter := range filters {
+		if filter.EntityType != entityName {
+			continue
+		}
+
+		subject := parseSubject(filter.Subject)
+		for permission, entityIDs := range filter.Assertions {
+			assertion := formatAssertion(filter.EntityType, permission)
+			for _, entityID := range entityIDs {
+				contexts[assertion] = append(contexts[assertion], assertionCoverageContext{
+					EntityID: entityID,
+					Subject:  subject,
+				})
+			}
+		}
+	}
+
+	return contexts
 }
 
 // buildSchemaCoverageInfo builds the final SchemaCoverageInfo with total coverage
@@ -564,46 +608,102 @@ func componentName(component string) string {
 	return ""
 }
 
-func assertionComponentHasSupportingData(entityName, component string, relationships, attributes []string) bool {
+func assertionComponentHasSupportingData(entityName, component string, contexts []assertionCoverageContext, relationships, attributes []string) bool {
+	if len(contexts) == 0 {
+		return false
+	}
+
 	name := componentName(component)
 	if name == "" {
 		return true
 	}
+
 	if strings.Contains(name, ".") {
-		relationName := strings.SplitN(name, ".", 2)[0]
-		return relationshipRelationCovered(entityName, relationName, relationships)
+		parts := strings.SplitN(name, ".", 2)
+		return tupleToUserSetComponentCovered(entityName, parts[0], parts[1], contexts, relationships)
 	}
+
 	if strings.HasSuffix(name, "()") {
 		return true
 	}
-	if attributeCovered(entityName, name, attributes) {
-		return true
+
+	for _, context := range contexts {
+		if attributeCovered(entityName, context.EntityID, name, attributes) || relationshipRelationCovered(entityName, context.EntityID, name, relationships) {
+			return true
+		}
 	}
-	return relationshipRelationCovered(entityName, name, relationships)
+
+	return false
 }
 
-func relationshipRelationCovered(entityName, relationName string, relationships []string) bool {
+func relationshipRelationCovered(entityName, entityID, relationName string, relationships []string) bool {
 	for _, relationship := range relationships {
 		tup, err := tuple.Tuple(relationship)
 		if err != nil {
 			continue
 		}
-		if tup.GetEntity().GetType() == entityName && tup.GetRelation() == relationName {
+		if tup.GetEntity().GetType() == entityName && tup.GetEntity().GetId() == entityID && tup.GetRelation() == relationName {
 			return true
 		}
 	}
 	return false
 }
 
-func attributeCovered(entityName, attributeName string, attributes []string) bool {
+func attributeCovered(entityName, entityID, attributeName string, attributes []string) bool {
 	for _, attrStr := range attributes {
 		attr, err := attribute.Attribute(attrStr)
 		if err != nil {
 			continue
 		}
-		if attr.GetEntity().GetType() == entityName && attr.GetAttribute() == attributeName {
+		if attr.GetEntity().GetType() == entityName && attr.GetEntity().GetId() == entityID && attr.GetAttribute() == attributeName {
 			return true
 		}
 	}
 	return false
+}
+
+func tupleToUserSetComponentCovered(entityName, tupleRelationName, computedRelationName string, contexts []assertionCoverageContext, relationships []string) bool {
+	for _, context := range contexts {
+		for _, relationship := range relationships {
+			tup, err := tuple.Tuple(relationship)
+			if err != nil {
+				continue
+			}
+			if tup.GetEntity().GetType() != entityName || tup.GetEntity().GetId() != context.EntityID || tup.GetRelation() != tupleRelationName {
+				continue
+			}
+			if computedRelationCovered(tup.GetSubject(), computedRelationName, context.Subject, relationships) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func computedRelationCovered(source *base.Subject, computedRelationName string, expectedSubject *base.Subject, relationships []string) bool {
+	for _, relationship := range relationships {
+		tup, err := tuple.Tuple(relationship)
+		if err != nil {
+			continue
+		}
+		if tup.GetEntity().GetType() != source.GetType() || tup.GetEntity().GetId() != source.GetId() || tup.GetRelation() != computedRelationName {
+			continue
+		}
+		if expectedSubject == nil || tuple.AreSubjectsEqual(tup.GetSubject(), expectedSubject) {
+			return true
+		}
+	}
+	return false
+}
+
+func parseSubject(subject string) *base.Subject {
+	ear, err := tuple.EAR(subject)
+	if err != nil {
+		return nil
+	}
+	return &base.Subject{
+		Type:     ear.GetEntity().GetType(),
+		Id:       ear.GetEntity().GetId(),
+		Relation: ear.GetRelation(),
+	}
 }
