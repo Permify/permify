@@ -9,7 +9,7 @@ updates:
   - package-ecosystem: docker
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
 
   - package-ecosystem: npm
     directory: /playground
