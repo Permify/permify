@@ -20,7 +20,7 @@
     "js-yaml": "^4.1.0",
     "monaco-editor": "0.55.1",
     "monaco-yaml": "^5.4.0",
-    "nanoid": "^5.1.5",
+    "nanoid": "^5.1.11",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "react-hot-toast": "^2.1.0",
