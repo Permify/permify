@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './_assets/less/index.less';
 import './monaco-environment';
-import Main from './main';
+import Main from './main-app';
 import reportWebVitals from './report-web-vitals';
 import {LoadWasm} from './wasm';
 
