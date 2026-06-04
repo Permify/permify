@@ -37,7 +37,8 @@
     "test": "vitest run"
   },
   "resolutions": {
-    "dompurify": "3.3.3"
+    "dompurify": "3.3.3",
+    "vitest/vite": "7.3.2"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.1.4",
