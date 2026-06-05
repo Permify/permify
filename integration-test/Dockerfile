@@ -1,11 +1,11 @@
 # Step 1: Modules caching
-FROM golang:1.26.3-alpine@sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d AS modules
+FROM golang:1.26.4-alpine@sha256:f23e8b227fb4493eabe03bede4d5a32d04092da71962f1fb79b5f7d1e6c2a17f AS modules
 COPY go.mod go.sum /modules/
 WORKDIR /modules
 RUN go mod download
 
 # Step 2: Tests
-FROM golang:1.26.3-alpine@sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d
+FROM golang:1.26.4-alpine@sha256:f23e8b227fb4493eabe03bede4d5a32d04092da71962f1fb79b5f7d1e6c2a17f
 COPY --from=modules /go/pkg /go/pkg
 COPY . /app
 WORKDIR /app
