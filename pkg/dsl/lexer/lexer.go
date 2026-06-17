@@ -228,7 +228,13 @@ func (l *Lexer) lexString() string {
 		}
 		l.readChar()
 	}
-	str += l.input[position:l.position]
+	end := l.position
+	if end > len(l.input) {
+		end = len(l.input)
+	}
+	if position < end {
+		str += l.input[position:end]
+	}
 	if l.ch == '"' {
 		l.readChar()
 	}
