@@ -1189,4 +1189,20 @@ rule test_rule(created_at time, started_at time) {
 		Expect(hasBoolean).Should(BeTrue())
 		Expect(hasComparison).Should(BeTrue())
 	})
+
+	It("Case 11 - Unterminated string ending in a trailing backslash should not panic", func() {
+		// Regression test: a string literal that ends right after a backslash
+		// (no character left to escape) used to overshoot the input bounds
+		// and panic with a slice-out-of-range error.
+		l := NewLexer("\"\\")
+
+		Expect(func() {
+			for {
+				tok := l.NextToken()
+				if tok.Type == token.EOF {
+					break
+				}
+			}
+		}).ShouldNot(Panic())
+	})
 })
