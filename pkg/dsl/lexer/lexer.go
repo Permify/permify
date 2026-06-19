@@ -212,6 +212,12 @@ func (l *Lexer) lexString() string {
 		if l.ch == '\\' {
 			str += l.input[position:l.position]
 			l.readChar() // Skip the backslash
+			if l.ch == 0 {
+				// Unterminated string: input ended right after a trailing
+				// backslash, so there's no character left to escape.
+				position = l.position
+				break
+			}
 			switch l.ch {
 			case 'n':
 				str += "\n"
