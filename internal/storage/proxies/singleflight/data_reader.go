@@ -95,7 +95,7 @@ func (r *DataReader) HeadSnapshot(ctx context.Context, tenantID string) (token.S
 
 func queryRelationshipsKey(tenantID string, filter *base.TupleFilter, token string, pagination database.CursorPagination) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "qr\x00%s\x00%s\x00%v\x00%s\x00%s\x00%v\x00%s\x00%s\x00%s\x00%s\x00%d",
+	fmt.Fprintf(&b, "qr\x00%q\x00%q\x00%#v\x00%q\x00%q\x00%#v\x00%q\x00%q\x00%q\x00%q\x00%d",
 		tenantID,
 		filter.GetEntity().GetType(),
 		filter.GetEntity().GetIds(),
