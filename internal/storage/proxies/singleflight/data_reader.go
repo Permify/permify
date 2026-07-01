@@ -113,7 +113,7 @@ func queryRelationshipsKey(tenantID string, filter *base.TupleFilter, token stri
 
 func querySingleAttributeKey(tenantID string, filter *base.AttributeFilter, token string) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "qsa\x00%s\x00%s\x00%v\x00%v\x00%s",
+	fmt.Fprintf(&b, "qsa\x00%q\x00%q\x00%#v\x00%#v\x00%q",
 		tenantID,
 		filter.GetEntity().GetType(),
 		filter.GetEntity().GetIds(),
