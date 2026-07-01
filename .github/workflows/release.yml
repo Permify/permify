@@ -1,9 +1,11 @@
 ---
 name: Release
 on:
-  push:
-    tags:
-      - '*'
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag (e.g. v1.6.6-jb.1)'
+        required: true
 permissions:
   contents: read
   packages: write
@@ -27,10 +29,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version from tag
-        id: version
-        run: echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
-
       - name: Build and push Docker image
         uses: docker/build-push-action@263435318d21b8e681c14492fe198e362a7d2c83 # v6.18.0
         with:
@@ -38,5 +36,4 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/${{ github.repository }}:${{ steps.version.outputs.tag }}
-            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ inputs.image_tag }}
