@@ -125,7 +125,7 @@ func querySingleAttributeKey(tenantID string, filter *base.AttributeFilter, toke
 
 func queryAttributesKey(tenantID string, filter *base.AttributeFilter, token string, pagination database.CursorPagination) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "qa\x00%s\x00%s\x00%v\x00%v\x00%s\x00%s\x00%s\x00%d",
+	fmt.Fprintf(&b, "qa\x00%q\x00%q\x00%#v\x00%#v\x00%q\x00%q\x00%q\x00%d",
 		tenantID,
 		filter.GetEntity().GetType(),
 		filter.GetEntity().GetIds(),
