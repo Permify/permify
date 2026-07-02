@@ -1189,4 +1189,13 @@ rule test_rule(created_at time, started_at time) {
 		Expect(hasBoolean).Should(BeTrue())
 		Expect(hasComparison).Should(BeTrue())
 	})
+
+	It("Unterminated string ending in a backslash does not panic", func() {
+		// A quote followed by a trailing backslash reaches EOF mid-escape.
+		l := NewLexer("\"\\")
+
+		var tok token.Token
+		Expect(func() { tok = l.NextToken() }).ShouldNot(Panic())
+		Expect(tok.Type).Should(BeEquivalentTo(token.STRING))
+	})
 })
