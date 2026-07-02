@@ -1189,4 +1189,17 @@ rule test_rule(created_at time, started_at time) {
 		Expect(hasBoolean).Should(BeTrue())
 		Expect(hasComparison).Should(BeTrue())
 	})
+
+	It("Case 4 - should not panic on an unterminated string", func() {
+		for _, input := range []string{`"\`, `"`, `"abc\`, `"\\`} {
+			Expect(func() {
+				l := NewLexer(input)
+				for {
+					if l.NextToken().Type == token.EOF {
+						break
+					}
+				}
+			}).ShouldNot(Panic())
+		}
+	})
 })
