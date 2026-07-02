@@ -212,6 +212,11 @@ func (l *Lexer) lexString() string {
 		if l.ch == '\\' {
 			str += l.input[position:l.position]
 			l.readChar() // Skip the backslash
+			if l.ch == 0 {
+				// Backslash at end of input (unterminated escape); stop before
+				// position runs past the input.
+				break
+			}
 			switch l.ch {
 			case 'n':
 				str += "\n"
