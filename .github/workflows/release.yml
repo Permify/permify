@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: 'Docker image tag (e.g. v1.6.6-jb.1)'
+        description: 'Docker image tag (e.g. v1.6.6-jb.N)'
         required: true
 permissions:
   contents: read
