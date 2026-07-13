@@ -88,6 +88,8 @@ func NewContainer() *Development {
 			schemaWriter,
 			tenantReader,
 			tenantWriter,
+			storage.NewNoopSharedSchemaReader(),
+			storage.NewNoopSharedSchemaWriter(),
 			storage.NewNoopWatcher(),
 		),
 	}
@@ -96,13 +98,13 @@ func NewContainer() *Development {
 // ReadSchema - Creates new read schema request
 func (c *Development) ReadSchema(ctx context.Context) (sch *v1.SchemaDefinition, err error) {
 	// Get the head version of the "t1" schema from the schema repository
-	version, err := c.Container.SR.HeadVersion(ctx, "t1")
+	_, version, err := c.Container.SR.HeadVersion(ctx, "t1")
 	if err != nil {
 		return nil, err
 	}
 
 	// Read the schema definition for the given schema and version from the schema repository
-	return c.Container.SR.ReadSchema(ctx, "t1", version)
+	return c.Container.SR.ReadSchema(ctx, "t1", "", version)
 }
 
 type Error struct {
@@ -199,7 +201,7 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 		}
 
 		// Read the schema definition for this relationship
-		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", "", tup.GetEntity().GetType(), version)
 		if err != nil {
 			errors = append(errors, Error{
 				Type:    "relationships",
@@ -246,7 +248,7 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 		}
 
 		// Read the schema definition for this attribute
-		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", "", attr.GetEntity().GetType(), version)
 		if err != nil {
 			errors = append(errors, Error{
 				Type:    "attributes",

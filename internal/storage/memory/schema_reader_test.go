@@ -57,7 +57,7 @@ var _ = Describe("SchemaReader", func() {
 			}
 
 			// Attempt to retrieve the head version from SchemaReader
-			headVersion, err := schemaReader.HeadVersion(ctx, "t1")
+			_, headVersion, err := schemaReader.HeadVersion(ctx, "t1")
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Validate that the retrieved head version matches the most recently inserted version
@@ -79,7 +79,7 @@ var _ = Describe("SchemaReader", func() {
 			err := schemaWriter.WriteSchema(ctx, schema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			sch, err := schemaReader.ReadSchema(ctx, "t1", version)
+			sch, err := schemaReader.ReadSchema(ctx, "t1", "", version)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(sch.EntityDefinitions["user"]).Should(Equal(&base.EntityDefinition{
@@ -120,7 +120,7 @@ var _ = Describe("SchemaReader", func() {
 			err := schemaWriter.WriteSchema(ctx, schema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			defs, err := schemaReader.ReadSchemaString(ctx, "t1", version)
+			defs, err := schemaReader.ReadSchemaString(ctx, "t1", "", version)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(isSameArray(defs, []string{"entity user {}", "entity organization { relation admin @user}"})).Should(BeTrue())
@@ -141,7 +141,7 @@ var _ = Describe("SchemaReader", func() {
 			err := schemaWriter.WriteSchema(ctx, schema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			en, v, err := schemaReader.ReadEntityDefinition(ctx, "t1", "organization", version)
+			en, v, err := schemaReader.ReadEntityDefinition(ctx, "t1", "", "organization", version)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(version).Should(Equal(v))
@@ -173,7 +173,7 @@ var _ = Describe("SchemaReader", func() {
 			err := schemaWriter.WriteSchema(ctx, schema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ru, v, err := schemaReader.ReadRuleDefinition(ctx, "t1", "check_ip_range", version)
+			ru, v, err := schemaReader.ReadRuleDefinition(ctx, "t1", "", "check_ip_range", version)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(version).Should(Equal(v))
 			Expect(ru.Name).Should(Equal("check_ip_range"))
@@ -230,11 +230,11 @@ var _ = Describe("SchemaReader", func() {
 			err = schemaWriter.WriteSchema(ctx, schema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			col1, ct1, err := schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(3), database.Token("")))
+			col1, ct1, err := schemaReader.ListSchemas(ctx, "t1", "", database.NewPagination(database.Size(3), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(col1)).Should(Equal(3))
 
-			col2, ct2, err := schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(3), database.Token(ct1.String())))
+			col2, ct2, err := schemaReader.ListSchemas(ctx, "t1", "", database.NewPagination(database.Size(3), database.Token(ct1.String())))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(col2)).Should(Equal(2))
 			Expect(ct2.String()).Should(Equal(""))
@@ -246,7 +246,7 @@ var _ = Describe("SchemaReader", func() {
 			ctx := context.Background()
 
 			// Test with non-existent tenant
-			_, err := schemaReader.HeadVersion(ctx, "non-existent-tenant")
+			_, _, err := schemaReader.HeadVersion(ctx, "non-existent-tenant")
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(ContainSubstring("ERROR_CODE_SCHEMA_NOT_FOUND"))
 		})
@@ -255,7 +255,7 @@ var _ = Describe("SchemaReader", func() {
 			ctx := context.Background()
 
 			// Test with non-existent entity
-			_, _, err := schemaReader.ReadEntityDefinition(ctx, "t1", "non-existent-entity", "v1")
+			_, _, err := schemaReader.ReadEntityDefinition(ctx, "t1", "", "non-existent-entity", "v1")
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(ContainSubstring("ERROR_CODE_SCHEMA_NOT_FOUND"))
 		})
@@ -264,7 +264,7 @@ var _ = Describe("SchemaReader", func() {
 			ctx := context.Background()
 
 			// Test with non-existent rule
-			_, _, err := schemaReader.ReadRuleDefinition(ctx, "t1", "non-existent-rule", "v1")
+			_, _, err := schemaReader.ReadRuleDefinition(ctx, "t1", "", "non-existent-rule", "v1")
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(ContainSubstring("ERROR_CODE_SCHEMA_NOT_FOUND"))
 		})
@@ -283,7 +283,7 @@ var _ = Describe("SchemaReader", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Try to read entity definition - should fail due to invalid schema
-			_, _, err = schemaReader.ReadEntityDefinition(ctx, "t1", "invalid", version)
+			_, _, err = schemaReader.ReadEntityDefinition(ctx, "t1", "", "invalid", version)
 			Expect(err).Should(HaveOccurred())
 		})
 
@@ -301,7 +301,7 @@ var _ = Describe("SchemaReader", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Try to read rule definition - should fail due to invalid schema
-			_, _, err = schemaReader.ReadRuleDefinition(ctx, "t1", "invalid_rule", version)
+			_, _, err = schemaReader.ReadRuleDefinition(ctx, "t1", "", "invalid_rule", version)
 			Expect(err).Should(HaveOccurred())
 		})
 
@@ -309,7 +309,7 @@ var _ = Describe("SchemaReader", func() {
 			ctx := context.Background()
 
 			// Test with invalid token
-			_, _, err := schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(10), database.Token("invalid-token")))
+			_, _, err := schemaReader.ListSchemas(ctx, "t1", "", database.NewPagination(database.Size(10), database.Token("invalid-token")))
 			Expect(err).Should(HaveOccurred())
 		})
 
@@ -325,7 +325,7 @@ var _ = Describe("SchemaReader", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Try to list schemas - should fail due to invalid xid
-			_, _, err = schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(10), database.Token("")))
+			_, _, err = schemaReader.ListSchemas(ctx, "t1", "", database.NewPagination(database.Size(10), database.Token("")))
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(ContainSubstring("ERROR_CODE_INTERNAL"))
 		})
@@ -349,7 +349,7 @@ var _ = Describe("SchemaReader", func() {
 			// The type conversion error is hard to trigger in normal operation
 			// since the database should only contain storage.SchemaDefinition objects
 			// This test verifies the error handling exists in the code
-			_, _, err = schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(10), database.Token("")))
+			_, _, err = schemaReader.ListSchemas(ctx, "t1", "", database.NewPagination(database.Size(10), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -370,19 +370,19 @@ var _ = Describe("SchemaReader", func() {
 			}
 
 			// Get first page
-			schemas1, token1, err := schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(2), database.Token("")))
+			schemas1, token1, err := schemaReader.ListSchemas(ctx, "t1", "", database.NewPagination(database.Size(2), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(schemas1)).Should(Equal(2))
 			Expect(token1.String()).ShouldNot(Equal(""))
 
 			// Get second page using token
-			schemas2, token2, err := schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(2), database.Token(token1.String())))
+			schemas2, token2, err := schemaReader.ListSchemas(ctx, "t1", "", database.NewPagination(database.Size(2), database.Token(token1.String())))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(schemas2)).Should(Equal(2))
 			Expect(token2.String()).ShouldNot(Equal(""))
 
 			// Get remaining pages
-			schemas3, token3, err := schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(2), database.Token(token2.String())))
+			schemas3, token3, err := schemaReader.ListSchemas(ctx, "t1", "", database.NewPagination(database.Size(2), database.Token(token2.String())))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(schemas3)).Should(Equal(1))
 			Expect(token3.String()).Should(Equal(""))
@@ -402,7 +402,7 @@ var _ = Describe("SchemaReader", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Try to read schema - should succeed with empty schema
-			sch, err := schemaReader.ReadSchema(ctx, "t1", version)
+			sch, err := schemaReader.ReadSchema(ctx, "t1", "", version)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(sch).ShouldNot(BeNil())
 			Expect(len(sch.EntityDefinitions)).Should(Equal(0))
@@ -422,7 +422,7 @@ var _ = Describe("SchemaReader", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Read schema string - should return empty definitions
-			defs, err := schemaReader.ReadSchemaString(ctx, "t1", version)
+			defs, err := schemaReader.ReadSchemaString(ctx, "t1", "", version)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(defs)).Should(Equal(1))
 			Expect(defs[0]).Should(Equal(""))
@@ -432,7 +432,7 @@ var _ = Describe("SchemaReader", func() {
 			ctx := context.Background()
 
 			// Try to read non-existent version
-			_, err := schemaReader.ReadSchema(ctx, "t1", "non-existent-version")
+			_, err := schemaReader.ReadSchema(ctx, "t1", "", "non-existent-version")
 			Expect(err).ShouldNot(HaveOccurred())
 			// Should return empty schema, not an error
 		})
@@ -441,7 +441,7 @@ var _ = Describe("SchemaReader", func() {
 			ctx := context.Background()
 
 			// Try to read non-existent version
-			defs, err := schemaReader.ReadSchemaString(ctx, "t1", "non-existent-version")
+			defs, err := schemaReader.ReadSchemaString(ctx, "t1", "", "non-existent-version")
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(defs)).Should(Equal(0))
 		})

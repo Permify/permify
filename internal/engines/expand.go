@@ -73,7 +73,7 @@ func (engine *ExpandEngine) expand(ctx context.Context, request *base.Permission
 	var fn ExpandFunction // Declare an ExpandFunction variable.
 
 	// Read entity definition based on the entity type in the request.
-	en, _, err := engine.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
+	en, _, err := engine.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetMetadata().GetSharedSchemaId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		// If an error occurred while reading entity definition, return an ExpandResponse with the error.
 		return ExpandResponse{Err: err}
@@ -568,7 +568,7 @@ func (engine *ExpandEngine) expandDirectCall(
 		var ru *base.RuleDefinition // variable to hold the rule definition.
 
 		// Read the rule definition based on the rule name in the call.
-		ru, _, err = engine.schemaReader.ReadRuleDefinition(ctx, request.GetTenantId(), request.GetPermission(), request.GetMetadata().GetSchemaVersion())
+		ru, _, err = engine.schemaReader.ReadRuleDefinition(ctx, request.GetTenantId(), request.GetMetadata().GetSharedSchemaId(), request.GetPermission(), request.GetMetadata().GetSchemaVersion())
 		if err != nil {
 			// If there's an error in reading the rule definition, send a failure response through the channel and return from the function.
 			expandChan <- expandFailResponse(err)

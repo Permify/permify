@@ -22,9 +22,9 @@ func NewSchemaReader(delegate storage.SchemaReader, cb *gobreaker.CircuitBreaker
 }
 
 // ReadSchema returns the schema definition for a specific tenant and version as a structured object.
-func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (*base.SchemaDefinition, error) {
+func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, sharedSchemaID, version string) (*base.SchemaDefinition, error) {
 	response, err := r.cb.Execute(func() (interface{}, error) {
-		return r.delegate.ReadSchema(ctx, tenantID, version)
+		return r.delegate.ReadSchema(ctx, tenantID, sharedSchemaID, version)
 	})
 	if err != nil {
 		return nil, err
@@ -33,9 +33,9 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 }
 
 // ReadSchemaString returns the schema definition for a specific tenant and version as a string.
-func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, version string) (definitions []string, err error) {
+func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, sharedSchemaID, version string) (definitions []string, err error) {
 	response, err := r.cb.Execute(func() (interface{}, error) {
-		return r.delegate.ReadSchemaString(ctx, tenantID, version)
+		return r.delegate.ReadSchemaString(ctx, tenantID, sharedSchemaID, version)
 	})
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, version s
 }
 
 // ReadEntityDefinition - Read entity definition from repository
-func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, entityName, version string) (*base.EntityDefinition, string, error) {
+func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, sharedSchemaID, entityName, version string) (*base.EntityDefinition, string, error) {
 	type circuitBreakerResponse struct {
 		Definition *base.EntityDefinition
 		Version    string
@@ -53,7 +53,7 @@ func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, entit
 	response, err := r.cb.Execute(func() (interface{}, error) {
 		var err error
 		var resp circuitBreakerResponse
-		resp.Definition, resp.Version, err = r.delegate.ReadEntityDefinition(ctx, tenantID, entityName, version)
+		resp.Definition, resp.Version, err = r.delegate.ReadEntityDefinition(ctx, tenantID, sharedSchemaID, entityName, version)
 		return resp, err
 	})
 	if err != nil {
@@ -65,7 +65,7 @@ func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, entit
 }
 
 // ReadRuleDefinition - Read rule definition from repository
-func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, ruleName, version string) (*base.RuleDefinition, string, error) {
+func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, sharedSchemaID, ruleName, version string) (*base.RuleDefinition, string, error) {
 	type circuitBreakerResponse struct {
 		Definition *base.RuleDefinition
 		Version    string
@@ -74,7 +74,7 @@ func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, ruleNam
 	response, err := r.cb.Execute(func() (interface{}, error) {
 		var err error
 		var resp circuitBreakerResponse
-		resp.Definition, resp.Version, err = r.delegate.ReadRuleDefinition(ctx, tenantID, ruleName, version)
+		resp.Definition, resp.Version, err = r.delegate.ReadRuleDefinition(ctx, tenantID, sharedSchemaID, ruleName, version)
 		return resp, err
 	})
 	if err != nil {
@@ -86,18 +86,27 @@ func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, ruleNam
 }
 
 // HeadVersion - Finds the latest version of the schema.
-func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (version string, err error) {
+func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (string, string, error) {
+	type headVersionResponse struct {
+		Version        string
+		SharedSchemaID string
+	}
+
 	response, err := r.cb.Execute(func() (interface{}, error) {
-		return r.delegate.HeadVersion(ctx, tenantID)
+		var resp headVersionResponse
+		var e error
+		resp.SharedSchemaID, resp.Version, e = r.delegate.HeadVersion(ctx, tenantID)
+		return resp, e
 	})
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return response.(string), nil
+	resp := response.(headVersionResponse)
+	return resp.SharedSchemaID, resp.Version, nil
 }
 
 // ListSchemas - List all Schemas
-func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
+func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID, sharedSchemaID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
 	type circuitBreakerResponse struct {
 		Schemas []*base.SchemaList
 		Ct      database.EncodedContinuousToken
@@ -106,7 +115,7 @@ func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID string, paginat
 	response, err := r.cb.Execute(func() (interface{}, error) {
 		var err error
 		var resp circuitBreakerResponse
-		resp.Schemas, resp.Ct, err = r.delegate.ListSchemas(ctx, tenantID, pagination)
+		resp.Schemas, resp.Ct, err = r.delegate.ListSchemas(ctx, tenantID, sharedSchemaID, pagination)
 		return resp, err
 	})
 	if err != nil {

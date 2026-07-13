@@ -96,8 +96,11 @@ func (r *SchemaServer) PartialWrite(ctx context.Context, request *v1.SchemaParti
 
 	// Retrieve or default the schema version from the request.
 	version := request.GetMetadata().GetSchemaVersion()
+	var sharedSchemaID string
 	if version == "" { // If not provided, fetch the latest version.
-		ver, err := r.sr.HeadVersion(ctx, request.GetTenantId())
+		var ver string
+		var err error
+		sharedSchemaID, ver, err = r.sr.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
 			return nil, status.Error(GetStatus(err), err.Error()) // Return version error
 		}
@@ -105,7 +108,7 @@ func (r *SchemaServer) PartialWrite(ctx context.Context, request *v1.SchemaParti
 	}
 
 	// Fetch the current schema definition as a string.
-	definitions, err := r.sr.ReadSchemaString(ctx, request.GetTenantId(), version)
+	definitions, err := r.sr.ReadSchemaString(ctx, request.GetTenantId(), sharedSchemaID, version)
 	if err != nil {
 		span.RecordError(err) // Log and record the error.
 		return nil, status.Error(GetStatus(err), err.Error())
@@ -205,15 +208,16 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 	defer span.End()
 
 	version := request.GetMetadata().GetSchemaVersion()
+	var sharedSchemaID string
 	if version == "" {
-		ver, err := r.sr.HeadVersion(ctx, request.GetTenantId())
+		var err error
+		sharedSchemaID, version, err = r.sr.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
 			return nil, status.Error(GetStatus(err), err.Error()) // Return version error
 		}
-		version = ver
 	}
 
-	response, err := r.sr.ReadSchema(ctx, request.GetTenantId(), version)
+	response, err := r.sr.ReadSchema(ctx, request.GetTenantId(), sharedSchemaID, version)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -229,22 +233,23 @@ func (r *SchemaServer) Read(ctx context.Context, request *v1.SchemaReadRequest) 
 }
 
 // List retrieves all schema versions for a tenant with pagination
-func (r *SchemaServer) List(ctx context.Context, request *v1.SchemaListRequest) (*v1.SchemaListResponse, error) { // List schemas
+func (r *SchemaServer) List(ctx context.Context, request *v1.SchemaListRequest) (*v1.SchemaListResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "schemas.list")
 	defer span.End()
-	// Fetch schemas with pagination
-	schemas, ct, err := r.sr.ListSchemas(ctx, request.GetTenantId(), database.NewPagination(database.Size(request.GetPageSize()), database.Token(request.GetContinuousToken()))) // List schemas
-	if err != nil {                                                                                                                                                              // Check for errors
-		span.RecordError(err)                        // Record error in span
-		span.SetStatus(otelCodes.Error, err.Error()) // Set error status
-		slog.ErrorContext(ctx, err.Error())
-		return nil, status.Error(GetStatus(err), err.Error()) // Return list error
+
+	// Get the latest version and shared schema ID
+	sharedSchemaID, head, err := r.sr.HeadVersion(ctx, request.GetTenantId())
+	if err != nil {
+		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	// Get the latest version
-	head, err := r.sr.HeadVersion(ctx, request.GetTenantId()) // Get head version
-	if err != nil {                                           // Check for errors
-		return nil, status.Error(GetStatus(err), err.Error()) // Return version error
+	// Fetch schemas with pagination
+	schemas, ct, err := r.sr.ListSchemas(ctx, request.GetTenantId(), sharedSchemaID, database.NewPagination(database.Size(request.GetPageSize()), database.Token(request.GetContinuousToken())))
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(otelCodes.Error, err.Error())
+		slog.ErrorContext(ctx, err.Error())
+		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
 	// Record metrics

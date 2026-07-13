@@ -22,27 +22,27 @@ import (
 
 type mockSchemaReader struct{}
 
-func (m *mockSchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (*base.SchemaDefinition, error) {
+func (m *mockSchemaReader) ReadSchema(ctx context.Context, tenantID, sharedSchemaID, version string) (*base.SchemaDefinition, error) {
 	return nil, fmt.Errorf("mock schema reader error")
 }
 
-func (m *mockSchemaReader) ReadSchemaString(ctx context.Context, tenantID, version string) ([]string, error) {
+func (m *mockSchemaReader) ReadSchemaString(ctx context.Context, tenantID, sharedSchemaID, version string) ([]string, error) {
 	return nil, fmt.Errorf("mock schema reader error")
 }
 
-func (m *mockSchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, entityName, version string) (*base.EntityDefinition, string, error) {
+func (m *mockSchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, sharedSchemaID, entityName, version string) (*base.EntityDefinition, string, error) {
 	return nil, "", fmt.Errorf("mock schema reader error")
 }
 
-func (m *mockSchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, ruleName, version string) (*base.RuleDefinition, string, error) {
+func (m *mockSchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, sharedSchemaID, ruleName, version string) (*base.RuleDefinition, string, error) {
 	return nil, "", fmt.Errorf("mock schema reader error")
 }
 
-func (m *mockSchemaReader) HeadVersion(ctx context.Context, tenantID string) (string, error) {
-	return "", fmt.Errorf("mock schema reader error")
+func (m *mockSchemaReader) HeadVersion(ctx context.Context, tenantID string) (string, string, error) {
+	return "", "", fmt.Errorf("mock schema reader error")
 }
 
-func (m *mockSchemaReader) ListSchemas(ctx context.Context, tenantID string, pagination database.Pagination) ([]*base.SchemaList, database.EncodedContinuousToken, error) {
+func (m *mockSchemaReader) ListSchemas(ctx context.Context, tenantID, sharedSchemaID string, pagination database.Pagination) ([]*base.SchemaList, database.EncodedContinuousToken, error) {
 	return nil, nil, fmt.Errorf("mock schema reader error")
 }
 
@@ -5098,7 +5098,7 @@ entity group_perms {
 			engine := NewLookupEngine(mockCheckEngine, schemaReader, dataReader)
 
 			// This should trigger the readSchema error (line 304)
-			_, err = engine.readSchema(context.Background(), "t1", "")
+			_, err = engine.readSchema(context.Background(), "t1", "", "")
 			Expect(err).Should(HaveOccurred())
 		})
 	})

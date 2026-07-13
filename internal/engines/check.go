@@ -65,7 +65,7 @@ func (engine *CheckEngine) Check(ctx context.Context, request *base.PermissionCh
 
 	// Retrieve entity definition
 	var en *base.EntityDefinition
-	en, _, err = engine.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
+	en, _, err = engine.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetMetadata().GetSharedSchemaId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return emptyResp, err
 	}
@@ -535,7 +535,7 @@ func (engine *CheckEngine) checkDirectCall(
 
 		// Read the rule definition from the schema. If an error occurs, return the default denied response.
 		var ru *base.RuleDefinition
-		ru, _, err = engine.schemaReader.ReadRuleDefinition(ctx, request.GetTenantId(), request.GetPermission(), request.GetMetadata().GetSchemaVersion())
+		ru, _, err = engine.schemaReader.ReadRuleDefinition(ctx, request.GetTenantId(), request.GetMetadata().GetSharedSchemaId(), request.GetPermission(), request.GetMetadata().GetSchemaVersion())
 		if err != nil {
 			return emptyResp, err
 		}

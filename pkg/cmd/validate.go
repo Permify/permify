@@ -159,7 +159,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			}
 
 			// Retrieve the entity definition associated with the tuple's entity type
-			definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+			definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", "", tup.GetEntity().GetType(), version)
 			// If an error occurs while reading the entity definition, return the error
 			if err != nil {
 				return err
@@ -200,7 +200,7 @@ func validate() func(cmd *cobra.Command, args []string) error {
 			}
 
 			// Retrieve the entity definition associated with the attribute's entity type
-			definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+			definition, _, err := dev.Container.SR.ReadEntityDefinition(ctx, "t1", "", attr.GetEntity().GetType(), version)
 			// If an error occurs while reading the entity definition, return the error
 			if err != nil {
 				return err

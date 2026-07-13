@@ -853,6 +853,9 @@ message PermissionCheckRequestMetadata {
     (validate.rules).int32.gte = 3,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop"}
   ];
+
+  // Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+  string shared_schema_id = 4 [json_name = "shared_schema_id"];
 }
 
 // PermissionCheckResponse is the response message for the Check method in the Permission service.
@@ -994,6 +997,9 @@ message PermissionExpandRequestMetadata {
     json_name = "snap_token",
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)."}
   ];
+
+  // Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+  string shared_schema_id = 3 [json_name = "shared_schema_id"];
 }
 
 // PermissionExpandResponse is the response message for the Expand method in the Permission service.
@@ -1091,6 +1097,9 @@ message PermissionLookupEntityRequestMetadata {
     (validate.rules).int32.gte = 3,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop."}
   ];
+
+  // Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+  string shared_schema_id = 4 [json_name = "shared_schema_id"];
 }
 
 // PermissionLookupEntityResponse is the response message for the LookupEntity method in the Permission service.
@@ -1170,6 +1179,9 @@ message PermissionEntityFilterRequestMetadata {
     (validate.rules).int32.gte = 3,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop."}
   ];
+
+  // Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+  string shared_schema_id = 4 [json_name = "shared_schema_id"];
 }
 
 // LOOKUP SUBJECT
@@ -1256,6 +1268,9 @@ message PermissionLookupSubjectRequestMetadata {
     (validate.rules).int32.gte = 3,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop."}
   ];
+
+  // Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+  string shared_schema_id = 4 [json_name = "shared_schema_id"];
 }
 
 // PermissionLookupSubjectResponse is the response message for the LookupSubject method in the Permission service.
@@ -1324,6 +1339,9 @@ message PermissionSubjectPermissionRequestMetadata {
     (validate.rules).int32.gte = 3,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop."}
   ];
+
+  // Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+  string shared_schema_id = 5 [json_name = "shared_schema_id"];
 }
 
 // PermissionSubjectPermissionResponse is the response message for the SubjectPermission method in the Permission service.
@@ -2695,6 +2713,9 @@ message DataWriteRequest {
 message DataWriteRequestMetadata {
   // schema_version represents the version of the schema for the data being written.
   string schema_version = 1 [json_name = "schema_version"];
+
+  // Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+  string shared_schema_id = 2 [json_name = "shared_schema_id"];
 }
 
 // DataWriteResponse defines the structure of the response after writing data.
@@ -2741,6 +2762,9 @@ message RelationshipWriteRequest {
 // RelationshipWriteRequestMetadata
 message RelationshipWriteRequestMetadata {
   string schema_version = 1 [json_name = "schema_version"];
+
+  // Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+  string shared_schema_id = 2 [json_name = "shared_schema_id"];
 }
 
 // RelationshipWriteResponse
@@ -3682,4 +3706,174 @@ message TenantListResponse {
 
   // continuous_token is a string that can be used to paginate and retrieve the next set of results.
   string continuous_token = 2 [json_name = "continuous_token"];
+}
+
+// ** SHARED SCHEMA SERVICE **
+// SharedSchema service provides methods to manage shared schemas across tenants.
+// A shared schema is stored once and can be assigned to multiple tenants,
+// eliminating the need to duplicate the same schema definition for each tenant.
+
+service SharedSchema {
+  // Write creates or updates a shared schema by its ID.
+  rpc Write(SharedSchemaWriteRequest) returns (SharedSchemaWriteResponse) {
+    option (google.api.http) = {
+      post: "/v1/shared-schemas/{shared_schema_id}/write"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "write shared schema"
+      tags: ["SharedSchema"]
+      operation_id: "shared-schemas.write"
+    };
+  }
+
+  // Read reads a shared schema by its ID and optional version.
+  rpc Read(SharedSchemaReadRequest) returns (SharedSchemaReadResponse) {
+    option (google.api.http) = {
+      post: "/v1/shared-schemas/{shared_schema_id}/read"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "read shared schema"
+      tags: ["SharedSchema"]
+      operation_id: "shared-schemas.read"
+    };
+  }
+
+  // Assign links one or more tenants to a shared schema.
+  rpc Assign(SharedSchemaAssignRequest) returns (SharedSchemaAssignResponse) {
+    option (google.api.http) = {
+      post: "/v1/shared-schemas/{shared_schema_id}/assign"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "assign shared schema to tenants"
+      tags: ["SharedSchema"]
+      operation_id: "shared-schemas.assign"
+    };
+  }
+
+  // List lists all shared schemas with pagination.
+  rpc List(SharedSchemaListRequest) returns (SharedSchemaListResponse) {
+    option (google.api.http) = {
+      post: "/v1/shared-schemas/list"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "list shared schemas"
+      tags: ["SharedSchema"]
+      operation_id: "shared-schemas.list"
+    };
+  }
+}
+
+// SharedSchemaWriteRequest is the request message for writing a shared schema.
+message SharedSchemaWriteRequest {
+  // shared_schema_id is a user-provided string identifier for the shared schema.
+  string shared_schema_id = 1 [
+    json_name = "shared_schema_id",
+    (validate.rules).string = {
+      pattern: "^[a-zA-Z0-9_\\-@\\.:+]{1,128}$"
+      max_bytes: 128
+      ignore_empty: false
+    }
+  ];
+
+  // schema is the string representation of the schema (Permify DSL).
+  string schema = 2 [json_name = "schema"];
+}
+
+// SharedSchemaWriteResponse is the response message for writing a shared schema.
+message SharedSchemaWriteResponse {
+  // schema_version is the version identifier of the written schema.
+  string schema_version = 1 [json_name = "schema_version"];
+}
+
+// SharedSchemaReadRequest is the request message for reading a shared schema.
+message SharedSchemaReadRequest {
+  // shared_schema_id identifies the shared schema to read.
+  string shared_schema_id = 1 [
+    json_name = "shared_schema_id",
+    (validate.rules).string = {
+      pattern: "^[a-zA-Z0-9_\\-@\\.:+]{1,128}$"
+      max_bytes: 128
+      ignore_empty: false
+    }
+  ];
+
+  // metadata contains optional parameters such as schema_version.
+  SharedSchemaReadRequestMetadata metadata = 2 [json_name = "metadata"];
+}
+
+// SharedSchemaReadRequestMetadata provides additional information for the read request.
+message SharedSchemaReadRequestMetadata {
+  // schema_version is the version to read. If empty, the latest version is used.
+  string schema_version = 1 [json_name = "schema_version"];
+}
+
+// SharedSchemaReadResponse is the response message for reading a shared schema.
+message SharedSchemaReadResponse {
+  // schema is the schema definition.
+  SchemaDefinition schema = 1 [json_name = "schema"];
+}
+
+// SharedSchemaAssignRequest is the request message for assigning a shared schema to tenants.
+message SharedSchemaAssignRequest {
+  // shared_schema_id identifies the shared schema to assign.
+  string shared_schema_id = 1 [
+    json_name = "shared_schema_id",
+    (validate.rules).string = {
+      pattern: "^[a-zA-Z0-9_\\-@\\.:+]{1,128}$"
+      max_bytes: 128
+      ignore_empty: false
+    }
+  ];
+
+  // tenant_ids is the list of tenant IDs to assign the shared schema to.
+  repeated string tenant_ids = 2 [json_name = "tenant_ids"];
+}
+
+// SharedSchemaAssignResponse is the response message for assigning a shared schema.
+message SharedSchemaAssignResponse {
+  // tenant_ids is the list of tenant IDs that were assigned.
+  repeated string tenant_ids = 1 [json_name = "tenant_ids"];
+}
+
+// SharedSchemaListRequest is the request message for listing shared schemas.
+message SharedSchemaListRequest {
+  // page_size is the number of shared schemas to return per page.
+  uint32 page_size = 1 [
+    json_name = "page_size",
+    (validate.rules).uint32 = {
+      gte: 1
+      ignore_empty: true
+    }
+  ];
+
+  // continuous_token is used for pagination.
+  string continuous_token = 2 [
+    json_name = "continuous_token",
+    (validate.rules).string = {ignore_empty: true}
+  ];
+}
+
+// SharedSchemaListResponse is the response message for listing shared schemas.
+message SharedSchemaListResponse {
+  // schemas is a list of shared schemas.
+  repeated SharedSchemaListItem schemas = 1 [json_name = "schemas"];
+
+  // continuous_token is used for pagination.
+  string continuous_token = 2 [json_name = "continuous_token"];
+}
+
+// SharedSchemaListItem represents a single shared schema in a list response.
+message SharedSchemaListItem {
+  // shared_schema_id is the identifier of the shared schema.
+  string shared_schema_id = 1 [json_name = "shared_schema_id"];
+
+  // head_version is the latest version of this shared schema.
+  string head_version = 2 [json_name = "head_version"];
+
+  // created_at is the creation timestamp of the latest version.
+  string created_at = 3 [json_name = "created_at"];
 }

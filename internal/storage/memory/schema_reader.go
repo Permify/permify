@@ -28,19 +28,28 @@ func NewSchemaReader(database *db.Memory) *SchemaReader {
 	}
 }
 
-// ReadSchema - Reads a new schema from repository
-func (r *SchemaReader) ReadSchema(_ context.Context, tenantID, version string) (sch *base.SchemaDefinition, err error) {
+// ReadSchema - Reads a schema from repository
+func (r *SchemaReader) ReadSchema(_ context.Context, tenantID, sharedSchemaID, version string) (sch *base.SchemaDefinition, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var it memdb.ResultIterator
-	it, err = txn.Get(constants.SchemaDefinitionsTable, "version", tenantID, version) // Query schema by version
+	if sharedSchemaID != "" {
+		it, err = txn.Get(constants.SharedSchemaDefinitionsTable, "version", sharedSchemaID, version)
+	} else {
+		it, err = txn.Get(constants.SchemaDefinitionsTable, "version", tenantID, version)
+	}
 	if err != nil {
 		return sch, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
 	var definitions []string
 	for obj := it.Next(); obj != nil; obj = it.Next() {
-		definitions = append(definitions, obj.(storage.SchemaDefinition).Serialized())
+		switch d := obj.(type) {
+		case storage.SchemaDefinition:
+			definitions = append(definitions, d.Serialized())
+		case storage.SharedSchemaDefinition:
+			definitions = append(definitions, d.Serialized())
+		}
 	}
 
 	sch, err = schema.NewSchemaFromStringDefinitions(false, definitions...)
@@ -52,105 +61,166 @@ func (r *SchemaReader) ReadSchema(_ context.Context, tenantID, version string) (
 }
 
 // ReadSchemaString returns the schema definition for a specific tenant and version as a string.
-func (r *SchemaReader) ReadSchemaString(_ context.Context, tenantID, version string) (definitions []string, err error) {
+func (r *SchemaReader) ReadSchemaString(_ context.Context, tenantID, sharedSchemaID, version string) (definitions []string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var it memdb.ResultIterator
-	it, err = txn.Get(constants.SchemaDefinitionsTable, "version", tenantID, version)
+	if sharedSchemaID != "" {
+		it, err = txn.Get(constants.SharedSchemaDefinitionsTable, "version", sharedSchemaID, version)
+	} else {
+		it, err = txn.Get(constants.SchemaDefinitionsTable, "version", tenantID, version)
+	}
 	if err != nil {
 		return []string{}, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
 	for obj := it.Next(); obj != nil; obj = it.Next() {
-		definitions = append(definitions, obj.(storage.SchemaDefinition).Serialized())
+		switch d := obj.(type) {
+		case storage.SchemaDefinition:
+			definitions = append(definitions, d.Serialized())
+		case storage.SharedSchemaDefinition:
+			definitions = append(definitions, d.Serialized())
+		}
 	}
 
 	return definitions, nil
 }
 
 // ReadEntityDefinition - Reads a Entity Definition from repository
-func (r *SchemaReader) ReadEntityDefinition(_ context.Context, tenantID, entityName, version string) (definition *base.EntityDefinition, v string, err error) {
+func (r *SchemaReader) ReadEntityDefinition(_ context.Context, tenantID, sharedSchemaID, entityName, version string) (definition *base.EntityDefinition, v string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
-	raw, err = txn.First(constants.SchemaDefinitionsTable, "id", tenantID, entityName, version) // Query entity definition
+	if sharedSchemaID != "" {
+		raw, err = txn.First(constants.SharedSchemaDefinitionsTable, "id", sharedSchemaID, entityName, version)
+	} else {
+		raw, err = txn.First(constants.SchemaDefinitionsTable, "id", tenantID, entityName, version)
+	}
 	if err != nil {
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
-	def, ok := raw.(storage.SchemaDefinition)
-	if ok {
-		var sch *base.SchemaDefinition
-		sch, err = schema.NewSchemaFromStringDefinitions(false, def.Serialized())
-		if err != nil {
-			return nil, "", err
-		}
-		definition, err = schema.GetEntityByName(sch, entityName)
-		if err != nil {
-			return nil, "", err
-		}
-		return definition, def.Version, err
+	var serialized string
+	var defVersion string
+	switch d := raw.(type) {
+	case storage.SchemaDefinition:
+		serialized = d.Serialized()
+		defVersion = d.Version
+	case storage.SharedSchemaDefinition:
+		serialized = d.Serialized()
+		defVersion = d.Version
+	default:
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 	}
 
-	return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
+	var sch *base.SchemaDefinition
+	sch, err = schema.NewSchemaFromStringDefinitions(false, serialized)
+	if err != nil {
+		return nil, "", err
+	}
+	definition, err = schema.GetEntityByName(sch, entityName)
+	if err != nil {
+		return nil, "", err
+	}
+	return definition, defVersion, nil
 }
 
 // ReadRuleDefinition - Reads a Rule Definition from repository
-func (r *SchemaReader) ReadRuleDefinition(_ context.Context, tenantID, ruleName, version string) (definition *base.RuleDefinition, v string, err error) {
+func (r *SchemaReader) ReadRuleDefinition(_ context.Context, tenantID, sharedSchemaID, ruleName, version string) (definition *base.RuleDefinition, v string, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 	var raw interface{}
-	raw, err = txn.First(constants.SchemaDefinitionsTable, "id", tenantID, ruleName, version) // Query rule definition
+	if sharedSchemaID != "" {
+		raw, err = txn.First(constants.SharedSchemaDefinitionsTable, "id", sharedSchemaID, ruleName, version)
+	} else {
+		raw, err = txn.First(constants.SchemaDefinitionsTable, "id", tenantID, ruleName, version)
+	}
 	if err != nil {
 		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 
-	def, ok := raw.(storage.SchemaDefinition)
-	if ok {
-		var sch *base.SchemaDefinition
-		sch, err = schema.NewSchemaFromStringDefinitions(false, def.Serialized())
-		if err != nil {
-			return nil, "", err
-		}
-		definition, err = schema.GetRuleByName(sch, ruleName)
-		if err != nil {
-			return nil, "", err
-		}
-		return definition, def.Version, err
+	var serialized string
+	var defVersion string
+	switch d := raw.(type) {
+	case storage.SchemaDefinition:
+		serialized = d.Serialized()
+		defVersion = d.Version
+	case storage.SharedSchemaDefinition:
+		serialized = d.Serialized()
+		defVersion = d.Version
+	default:
+		return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 	}
 
-	return nil, "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
+	var sch *base.SchemaDefinition
+	sch, err = schema.NewSchemaFromStringDefinitions(false, serialized)
+	if err != nil {
+		return nil, "", err
+	}
+	definition, err = schema.GetRuleByName(sch, ruleName)
+	if err != nil {
+		return nil, "", err
+	}
+	return definition, defVersion, nil
 }
 
 // HeadVersion - Reads the latest version from the repository.
-func (r *SchemaReader) HeadVersion(_ context.Context, tenantID string) (string, error) {
+// Checks if the tenant has a shared schema assigned. If so, returns the shared schema's head version.
+func (r *SchemaReader) HeadVersion(_ context.Context, tenantID string) (string, string, error) {
+	// Check if tenant has a shared schema
+	txn := r.database.DB.Txn(false)
+	raw, err := txn.First(constants.TenantsTable, "id", tenantID)
+	txn.Abort()
+	if err == nil && raw != nil {
+		tenant, ok := raw.(storage.Tenant)
+		if ok && tenant.SharedSchemaID != "" {
+			sharedHeadVersionMu.Lock()
+			ver, found := sharedHeadVersion[tenant.SharedSchemaID]
+			sharedHeadVersionMu.Unlock()
+			if !found {
+				return "", "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
+			}
+			return tenant.SharedSchemaID, ver, nil
+		}
+	}
+
 	mu.Lock()
 	defer mu.Unlock()
 
 	version, ok := headVersion[tenantID]
 	if !ok {
-		return "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
+		return "", "", errors.New(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String())
 	}
 
-	return version, nil
+	return "", version, nil
 }
 
 // ListSchemas - List all Schemas
-func (r *SchemaReader) ListSchemas(_ context.Context, tenantID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
+func (r *SchemaReader) ListSchemas(_ context.Context, tenantID, sharedSchemaID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
 	var result memdb.ResultIterator
-	result, err = txn.Get(constants.SchemaDefinitionsTable, "tenant", tenantID)
+	if sharedSchemaID != "" {
+		result, err = txn.Get(constants.SharedSchemaDefinitionsTable, "shared_schema_id", sharedSchemaID)
+	} else {
+		result, err = txn.Get(constants.SchemaDefinitionsTable, "tenant", tenantID)
+	}
 	if err != nil {
 		return nil, nil, errors.New(base.ErrorCode_ERROR_CODE_EXECUTION.String())
 	}
 	distinctVersions := make(map[string]bool)
 	filterFunc := func(schemaRaw interface{}) bool {
-		schema := schemaRaw.(storage.SchemaDefinition)
-		_, ok := distinctVersions[schema.Version]
+		var ver string
+		switch s := schemaRaw.(type) {
+		case storage.SchemaDefinition:
+			ver = s.Version
+		case storage.SharedSchemaDefinition:
+			ver = s.Version
+		}
+		_, ok := distinctVersions[ver]
 		if !ok {
-			distinctVersions[schema.Version] = true
+			distinctVersions[ver] = true
 			return false
 		}
 		return true
@@ -171,23 +241,28 @@ func (r *SchemaReader) ListSchemas(_ context.Context, tenantID string, paginatio
 	}
 
 	for obj := filtered.Next(); obj != nil; obj = filtered.Next() {
-		s, ok := obj.(storage.SchemaDefinition)
-		if !ok {
+		var ver string
+		switch s := obj.(type) {
+		case storage.SchemaDefinition:
+			ver = s.Version
+		case storage.SharedSchemaDefinition:
+			ver = s.Version
+		default:
 			return nil, nil, errors.New(base.ErrorCode_ERROR_CODE_TYPE_CONVERSATION.String())
 		}
-		if s.Version == lowerBound {
+		if ver == lowerBound {
 			startPage = true
 		}
 		if pagination.Token() == "" || startPage {
-			id, err := xid.FromString(s.Version)
+			id, err := xid.FromString(ver)
 			if err != nil {
 				return nil, nil, errors.New(base.ErrorCode_ERROR_CODE_INTERNAL.String())
 			}
 			createdAt := id.Time().String()
-			schemas = append(schemas, &base.SchemaList{Version: s.Version, CreatedAt: createdAt})
+			schemas = append(schemas, &base.SchemaList{Version: ver, CreatedAt: createdAt})
 		}
 		if len(schemas) > int(pagination.PageSize()) {
-			return schemas[:pagination.PageSize()], utils.NewContinuousToken(s.Version).Encode(), nil
+			return schemas[:pagination.PageSize()], utils.NewContinuousToken(ver).Encode(), nil
 		}
 	}
 

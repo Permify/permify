@@ -405,6 +405,8 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		schemaWriter := factories.SchemaWriterFactory(db)
 		tenantReader := factories.TenantReaderFactory(db)
 		tenantWriter := factories.TenantWriterFactory(db)
+		sharedSchemaReader := factories.SharedSchemaReaderFactory(db)
+		sharedSchemaWriter := factories.SharedSchemaWriterFactory(db)
 
 		// Add caching to the schema reader using a decorator
 		schemaReader = cacheproxy.NewSchemaReader(schemaReader, schemaCache)
@@ -531,6 +533,8 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			schemaWriter,
 			tenantReader,
 			tenantWriter,
+			sharedSchemaReader,
+			sharedSchemaWriter,
 			watcher,
 		)
 

@@ -27,7 +27,7 @@ func NewMockSchemaReader() *MockSchemaReader {
 	}
 }
 
-func (m *MockSchemaReader) HeadVersion(ctx context.Context, tenantID string) (string, error) {
+func (m *MockSchemaReader) HeadVersion(ctx context.Context, tenantID string) (string, string, error) {
 	// Track call count per tenant
 	m.mu.Lock()
 	counter, exists := m.headVersionCalls[tenantID]
@@ -43,7 +43,7 @@ func (m *MockSchemaReader) HeadVersion(ctx context.Context, tenantID string) (st
 	// Simulate some work
 	time.Sleep(10 * time.Millisecond)
 
-	return "version-" + tenantID, nil
+	return "", "version-" + tenantID, nil
 }
 
 // ErrorMockSchemaReader is a mock that returns errors for testing error handling
@@ -51,8 +51,8 @@ type ErrorMockSchemaReader struct {
 	storage.NoopSchemaReader
 }
 
-func (m *ErrorMockSchemaReader) HeadVersion(ctx context.Context, tenantID string) (string, error) {
-	return "", errors.New("delegate error")
+func (m *ErrorMockSchemaReader) HeadVersion(ctx context.Context, tenantID string) (string, string, error) {
+	return "", "", errors.New("delegate error")
 }
 
 func GetVersionCallCount(m *MockSchemaReader, tenantID string) int64 {
@@ -99,7 +99,7 @@ var _ = Describe("Singleflight SchemaReader", func() {
 			delegate := storage.NewNoopSchemaReader()
 			reader := NewSchemaReader(delegate)
 
-			schema, err := reader.ReadSchema(ctx, "tenant1", "v1.0")
+			schema, err := reader.ReadSchema(ctx, "tenant1", "", "v1.0")
 
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(schema).ShouldNot(BeNil())
@@ -111,7 +111,7 @@ var _ = Describe("Singleflight SchemaReader", func() {
 			delegate := storage.NewNoopSchemaReader()
 			reader := NewSchemaReader(delegate)
 
-			definitions, err := reader.ReadSchemaString(ctx, "tenant1", "v1.0")
+			definitions, err := reader.ReadSchemaString(ctx, "tenant1", "", "v1.0")
 
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(definitions).ShouldNot(BeNil())
@@ -123,7 +123,7 @@ var _ = Describe("Singleflight SchemaReader", func() {
 			delegate := storage.NewNoopSchemaReader()
 			reader := NewSchemaReader(delegate)
 
-			definition, version, err := reader.ReadEntityDefinition(ctx, "tenant1", "user", "v1.0")
+			definition, version, err := reader.ReadEntityDefinition(ctx, "tenant1", "", "user", "v1.0")
 
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(definition).ShouldNot(BeNil())
@@ -137,7 +137,7 @@ var _ = Describe("Singleflight SchemaReader", func() {
 			delegate := storage.NewNoopSchemaReader()
 			reader := NewSchemaReader(delegate)
 
-			definition, version, err := reader.ReadRuleDefinition(ctx, "tenant1", "check_balance", "v1.0")
+			definition, version, err := reader.ReadRuleDefinition(ctx, "tenant1", "", "check_balance", "v1.0")
 
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(definition).ShouldNot(BeNil())
@@ -151,7 +151,7 @@ var _ = Describe("Singleflight SchemaReader", func() {
 			delegate := storage.NewNoopSchemaReader()
 			reader := NewSchemaReader(delegate)
 
-			schemas, ct, err := reader.ListSchemas(ctx, "tenant1", database.Pagination{})
+			schemas, ct, err := reader.ListSchemas(ctx, "tenant1", "", database.Pagination{})
 
 			Expect(err).ShouldNot(HaveOccurred())
 			// NoopSchemaReader returns nil for both schemas and ct
@@ -172,7 +172,7 @@ var _ = Describe("Singleflight SchemaReader", func() {
 			for i := 0; i < numConcurrentRequests; i++ {
 				go func() {
 					defer wg.Done()
-					_, err := reader.HeadVersion(ctx, tenantID)
+					_, _, err := reader.HeadVersion(ctx, tenantID)
 					Expect(err).ShouldNot(HaveOccurred())
 				}()
 			}
@@ -197,7 +197,7 @@ var _ = Describe("Singleflight SchemaReader", func() {
 			for i := 0; i < numConcurrentRequests; i++ {
 				go func() {
 					defer wg.Done()
-					_, err := reader.HeadVersion(ctx, tenant1)
+					_, _, err := reader.HeadVersion(ctx, tenant1)
 					Expect(err).ShouldNot(HaveOccurred())
 				}()
 			}
@@ -206,7 +206,7 @@ var _ = Describe("Singleflight SchemaReader", func() {
 			for i := 0; i < numConcurrentRequests; i++ {
 				go func() {
 					defer wg.Done()
-					_, err := reader.HeadVersion(ctx, tenant2)
+					_, _, err := reader.HeadVersion(ctx, tenant2)
 					Expect(err).ShouldNot(HaveOccurred())
 				}()
 			}
@@ -232,14 +232,14 @@ var _ = Describe("Singleflight SchemaReader", func() {
 			go func() {
 				defer wg.Done()
 				var err error
-				result1, err = reader.HeadVersion(ctx, tenant1)
+				_, result1, err = reader.HeadVersion(ctx, tenant1)
 				Expect(err).ShouldNot(HaveOccurred())
 			}()
 
 			go func() {
 				defer wg.Done()
 				var err error
-				result2, err = reader.HeadVersion(ctx, tenant2)
+				_, result2, err = reader.HeadVersion(ctx, tenant2)
 				Expect(err).ShouldNot(HaveOccurred())
 			}()
 
@@ -254,14 +254,14 @@ var _ = Describe("Singleflight SchemaReader", func() {
 			tenantID := "tenant1"
 
 			// First request
-			_, err := reader.HeadVersion(ctx, tenantID)
+			_, _, err := reader.HeadVersion(ctx, tenantID)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Small delay to ensure first request completes
 			time.Sleep(50 * time.Millisecond)
 
 			// Second request (should trigger another call to delegate)
-			_, err = reader.HeadVersion(ctx, tenantID)
+			_, _, err = reader.HeadVersion(ctx, tenantID)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			mock := mockDelegate.(*MockSchemaReader)
@@ -275,7 +275,7 @@ var _ = Describe("Singleflight SchemaReader", func() {
 			errorDelegate := &ErrorMockSchemaReader{}
 			errorReader := NewSchemaReader(errorDelegate)
 
-			_, err := errorReader.HeadVersion(ctx, "tenant1")
+			_, _, err := errorReader.HeadVersion(ctx, "tenant1")
 
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(Equal("delegate error"))
@@ -285,7 +285,7 @@ var _ = Describe("Singleflight SchemaReader", func() {
 			cancelledCtx, cancel := context.WithCancel(ctx)
 			cancel() // Cancel immediately
 
-			_, err := reader.HeadVersion(cancelledCtx, "tenant1")
+			_, _, err := reader.HeadVersion(cancelledCtx, "tenant1")
 
 			// Context cancellation behavior depends on singleflight implementation
 			// We just verify it doesn't panic
@@ -307,7 +307,7 @@ var _ = Describe("Singleflight SchemaReader", func() {
 			for i := 0; i < numConcurrentRequests; i++ {
 				go func() {
 					defer wg.Done()
-					_, err := errorReader.HeadVersion(ctx, tenantID)
+					_, _, err := errorReader.HeadVersion(ctx, tenantID)
 					if err != nil {
 						atomic.AddInt64(&errorCount, 1)
 					}

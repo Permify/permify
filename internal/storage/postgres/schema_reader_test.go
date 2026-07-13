@@ -60,7 +60,7 @@ var _ = Describe("SchemaReader", func() {
 			}
 
 			// Attempt to retrieve the head version from SchemaReader
-			headVersion, err := schemaReader.HeadVersion(ctx, "t1")
+			_, headVersion, err := schemaReader.HeadVersion(ctx, "t1")
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Validate that the retrieved head version matches the most recently inserted version
@@ -82,7 +82,7 @@ var _ = Describe("SchemaReader", func() {
 			err := schemaWriter.WriteSchema(ctx, schema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			sch, err := schemaReader.ReadSchema(ctx, "t1", version)
+			sch, err := schemaReader.ReadSchema(ctx, "t1", "", version)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(sch.EntityDefinitions["user"]).Should(Equal(&base.EntityDefinition{
@@ -123,7 +123,7 @@ var _ = Describe("SchemaReader", func() {
 			err := schemaWriter.WriteSchema(ctx, schema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			defs, err := schemaReader.ReadSchemaString(ctx, "t1", version)
+			defs, err := schemaReader.ReadSchemaString(ctx, "t1", "", version)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(isSameArray(defs, []string{"entity user {}", "entity organization { relation admin @user}"})).Should(BeTrue())
@@ -144,7 +144,7 @@ var _ = Describe("SchemaReader", func() {
 			err := schemaWriter.WriteSchema(ctx, schema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			en, v, err := schemaReader.ReadEntityDefinition(ctx, "t1", "organization", version)
+			en, v, err := schemaReader.ReadEntityDefinition(ctx, "t1", "", "organization", version)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(version).Should(Equal(v))
@@ -176,7 +176,7 @@ var _ = Describe("SchemaReader", func() {
 			err := schemaWriter.WriteSchema(ctx, schema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ru, v, err := schemaReader.ReadRuleDefinition(ctx, "t1", "check_ip_range", version)
+			ru, v, err := schemaReader.ReadRuleDefinition(ctx, "t1", "", "check_ip_range", version)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(version).Should(Equal(v))
 			Expect(ru.Name).Should(Equal("check_ip_range"))
@@ -226,12 +226,12 @@ var _ = Describe("SchemaReader", func() {
 			err = schemaWriter.WriteSchema(ctx, schema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			col1, ct1, err := schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(4), database.Token("")))
+			col1, ct1, err := schemaReader.ListSchemas(ctx, "t1", "", database.NewPagination(database.Size(4), database.Token("")))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(col1)).Should(Equal(4))
 			Expect(ct1.String()).ShouldNot(BeEmpty())
 
-			col2, ct2, err := schemaReader.ListSchemas(ctx, "t1", database.NewPagination(database.Size(4), database.Token(ct1.String())))
+			col2, ct2, err := schemaReader.ListSchemas(ctx, "t1", "", database.NewPagination(database.Size(4), database.Token(ct1.String())))
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(col2)).Should(Equal(1))
 			Expect(ct2.String()).Should(Equal(""))
@@ -250,7 +250,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, err = readerWithClosedDB.ReadSchema(ctx, "t1", "version1")
+				_, err = readerWithClosedDB.ReadSchema(ctx, "t1", "", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -269,7 +269,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, err = readerWithClosedDB.ReadSchema(ctx, "t1", "version1")
+				_, err = readerWithClosedDB.ReadSchema(ctx, "t1", "", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -288,7 +288,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, err = readerWithClosedDB.ReadSchema(ctx, "t1", "version1")
+				_, err = readerWithClosedDB.ReadSchema(ctx, "t1", "", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -307,7 +307,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, err = readerWithClosedDB.ReadSchema(ctx, "t1", "version1")
+				_, err = readerWithClosedDB.ReadSchema(ctx, "t1", "", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -329,7 +329,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, err = readerWithClosedDB.ReadSchemaString(ctx, "t1", "version1")
+				_, err = readerWithClosedDB.ReadSchemaString(ctx, "t1", "", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -348,7 +348,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, err = readerWithClosedDB.ReadSchemaString(ctx, "t1", "version1")
+				_, err = readerWithClosedDB.ReadSchemaString(ctx, "t1", "", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -367,7 +367,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, err = readerWithClosedDB.ReadSchemaString(ctx, "t1", "version1")
+				_, err = readerWithClosedDB.ReadSchemaString(ctx, "t1", "", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -388,7 +388,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, _, err = readerWithClosedDB.ReadEntityDefinition(ctx, "t1", "entity1", "version1")
+				_, _, err = readerWithClosedDB.ReadEntityDefinition(ctx, "t1", "", "entity1", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -401,7 +401,7 @@ var _ = Describe("SchemaReader", func() {
 				ctx := context.Background()
 
 				// Try to read a non-existent entity definition
-				_, _, err := schemaReader.ReadEntityDefinition(ctx, "t1", "nonexistent", "version1")
+				_, _, err := schemaReader.ReadEntityDefinition(ctx, "t1", "", "nonexistent", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String()))
 			})
@@ -416,7 +416,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, _, err = readerWithClosedDB.ReadEntityDefinition(ctx, "t1", "entity1", "version1")
+				_, _, err = readerWithClosedDB.ReadEntityDefinition(ctx, "t1", "", "entity1", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -435,7 +435,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, _, err = readerWithClosedDB.ReadEntityDefinition(ctx, "t1", "entity1", "version1")
+				_, _, err = readerWithClosedDB.ReadEntityDefinition(ctx, "t1", "", "entity1", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -457,7 +457,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, _, err = readerWithClosedDB.ReadRuleDefinition(ctx, "t1", "rule1", "version1")
+				_, _, err = readerWithClosedDB.ReadRuleDefinition(ctx, "t1", "", "rule1", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -470,7 +470,7 @@ var _ = Describe("SchemaReader", func() {
 				ctx := context.Background()
 
 				// Try to read a non-existent rule definition
-				_, _, err := schemaReader.ReadRuleDefinition(ctx, "t1", "nonexistent", "version1")
+				_, _, err := schemaReader.ReadRuleDefinition(ctx, "t1", "", "nonexistent", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String()))
 			})
@@ -485,7 +485,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, _, err = readerWithClosedDB.ReadRuleDefinition(ctx, "t1", "rule1", "version1")
+				_, _, err = readerWithClosedDB.ReadRuleDefinition(ctx, "t1", "", "rule1", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -504,7 +504,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, _, err = readerWithClosedDB.ReadRuleDefinition(ctx, "t1", "rule1", "version1")
+				_, _, err = readerWithClosedDB.ReadRuleDefinition(ctx, "t1", "", "rule1", "version1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -526,7 +526,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, err = readerWithClosedDB.HeadVersion(ctx, "t1")
+				_, _, _ = readerWithClosedDB.HeadVersion(ctx, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -539,7 +539,7 @@ var _ = Describe("SchemaReader", func() {
 				ctx := context.Background()
 
 				// Try to get head version for a tenant with no schemas
-				_, err := schemaReader.HeadVersion(ctx, "nonexistent_tenant")
+				_, _, err := schemaReader.HeadVersion(ctx, "nonexistent_tenant")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND.String()))
 			})
@@ -554,7 +554,7 @@ var _ = Describe("SchemaReader", func() {
 
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
-				_, err = readerWithClosedDB.HeadVersion(ctx, "t1")
+				_, _, _ = readerWithClosedDB.HeadVersion(ctx, "t1")
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -571,7 +571,7 @@ var _ = Describe("SchemaReader", func() {
 				// Create pagination with invalid token
 				pagination := database.NewPagination(database.Size(10), database.Token("invalid_token"))
 
-				_, _, err := schemaReader.ListSchemas(ctx, "t1", pagination)
+				_, _, err := schemaReader.ListSchemas(ctx, "t1", "", pagination)
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String()))
 			})
@@ -587,7 +587,7 @@ var _ = Describe("SchemaReader", func() {
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
 				pagination := database.NewPagination(database.Size(10), database.Token(""))
-				_, _, err = readerWithClosedDB.ListSchemas(ctx, "t1", pagination)
+				_, _, err = readerWithClosedDB.ListSchemas(ctx, "t1", "", pagination)
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -607,7 +607,7 @@ var _ = Describe("SchemaReader", func() {
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
 				pagination := database.NewPagination(database.Size(10), database.Token(""))
-				_, _, err = readerWithClosedDB.ListSchemas(ctx, "t1", pagination)
+				_, _, err = readerWithClosedDB.ListSchemas(ctx, "t1", "", pagination)
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -627,7 +627,7 @@ var _ = Describe("SchemaReader", func() {
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
 				pagination := database.NewPagination(database.Size(10), database.Token(""))
-				_, _, err = readerWithClosedDB.ListSchemas(ctx, "t1", pagination)
+				_, _, err = readerWithClosedDB.ListSchemas(ctx, "t1", "", pagination)
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),
@@ -647,7 +647,7 @@ var _ = Describe("SchemaReader", func() {
 				readerWithClosedDB := NewSchemaReader(closedDB)
 
 				pagination := database.NewPagination(database.Size(10), database.Token(""))
-				_, _, err = readerWithClosedDB.ListSchemas(ctx, "t1", pagination)
+				_, _, err = readerWithClosedDB.ListSchemas(ctx, "t1", "", pagination)
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(Or(
 					Equal(base.ErrorCode_ERROR_CODE_SQL_BUILDER.String()),

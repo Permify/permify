@@ -152,7 +152,7 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 
 	// Set the SchemaVersion if it's not provided in the request.
 	if request.GetMetadata().GetSchemaVersion() == "" {
-		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
+		request.Metadata.SharedSchemaId, request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
@@ -214,7 +214,7 @@ func (invoker *DirectInvoker) Expand(ctx context.Context, request *base.Permissi
 	}
 
 	if request.GetMetadata().GetSchemaVersion() == "" {
-		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
+		request.Metadata.SharedSchemaId, request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
@@ -251,7 +251,7 @@ func (invoker *DirectInvoker) LookupEntity(ctx context.Context, request *base.Pe
 
 	// Set SchemaVersion if not provided
 	if request.GetMetadata().GetSchemaVersion() == "" { // Check if the request has a SchemaVersion.
-		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId()) // Retrieve the head schema version from the schema reader.
+		request.Metadata.SharedSchemaId, request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId()) // Retrieve the head schema version from the schema reader.
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
@@ -292,7 +292,7 @@ func (invoker *DirectInvoker) LookupEntityStream(ctx context.Context, request *b
 
 	// Set SchemaVersion if not provided
 	if request.GetMetadata().GetSchemaVersion() == "" { // Check if the request has a SchemaVersion.
-		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId()) // Retrieve the head schema version from the schema reader.
+		request.Metadata.SharedSchemaId, request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId()) // Retrieve the head schema version from the schema reader.
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
@@ -337,7 +337,7 @@ func (invoker *DirectInvoker) LookupSubject(ctx context.Context, request *base.P
 	// Similar to SnapToken, check if the request has a SchemaVersion. If not, a SchemaVersion is set.
 	if request.GetMetadata().GetSchemaVersion() == "" {
 		// Retrieve the head schema version from the schema reader
-		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
+		request.Metadata.SharedSchemaId, request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
 		// If there's an error retrieving the schema version, return the response and the error
 		if err != nil {
 			span.RecordError(err)
@@ -384,7 +384,7 @@ func (invoker *DirectInvoker) SubjectPermission(ctx context.Context, request *ba
 	// Similar to SnapToken, check if the request has a SchemaVersion. If not, a SchemaVersion is set.
 	if request.GetMetadata().GetSchemaVersion() == "" {
 		// Retrieve the head schema version from the schema reader
-		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
+		request.Metadata.SharedSchemaId, request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
 		// If there's an error retrieving the schema version, return the response and the error
 		if err != nil {
 			span.RecordError(err)

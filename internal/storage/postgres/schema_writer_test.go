@@ -52,7 +52,7 @@ var _ = Describe("SchemaWriter", func() {
 			err := schemaWriter.WriteSchema(ctx, schema)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			sch, err := schemaReader.ReadSchema(ctx, "t1", version)
+			sch, err := schemaReader.ReadSchema(ctx, "t1", "", version)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(sch.EntityDefinitions["user"]).Should(Equal(&base.EntityDefinition{

@@ -166,14 +166,15 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 	}
 
 	version := request.GetMetadata().GetSchemaVersion()
+	sharedSchemaID := request.GetMetadata().GetSharedSchemaId()
 	if version == "" {
-		v, err := r.sr.HeadVersion(ctx, request.GetTenantId())
+		var err error
+		sharedSchemaID, version, err = r.sr.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, status.Error(GetStatus(err), err.Error()) // Return version error
 		}
-		version = v
 	}
 
 	relationships := make([]*v1.Tuple, 0, len(request.GetTuples()))
@@ -189,7 +190,7 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 
 		relationshipsMap[key] = struct{}{}
 
-		definition, _, err := r.sr.ReadEntityDefinition(ctx, request.GetTenantId(), tup.GetEntity().GetType(), version)
+		definition, _, err := r.sr.ReadEntityDefinition(ctx, request.GetTenantId(), sharedSchemaID, tup.GetEntity().GetType(), version)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
@@ -219,7 +220,7 @@ func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*
 
 		attributesMap[key] = struct{}{}
 
-		definition, _, err := r.sr.ReadEntityDefinition(ctx, request.GetTenantId(), attr.GetEntity().GetType(), version)
+		definition, _, err := r.sr.ReadEntityDefinition(ctx, request.GetTenantId(), sharedSchemaID, attr.GetEntity().GetType(), version)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
@@ -262,14 +263,15 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 	}
 
 	version := request.GetMetadata().GetSchemaVersion()
+	sharedSchemaID := request.GetMetadata().GetSharedSchemaId()
 	if version == "" {
-		v, err := r.sr.HeadVersion(ctx, request.GetTenantId())
+		var err error
+		sharedSchemaID, version, err = r.sr.HeadVersion(ctx, request.GetTenantId())
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			return nil, status.Error(GetStatus(err), err.Error()) // Return version error
 		}
-		version = v
 	}
 
 	relationships := make([]*v1.Tuple, 0, len(request.GetTuples()))
@@ -285,7 +287,7 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 
 		relationshipsMap[key] = struct{}{}
 
-		definition, _, err := r.sr.ReadEntityDefinition(ctx, request.GetTenantId(), tup.GetEntity().GetType(), version)
+		definition, _, err := r.sr.ReadEntityDefinition(ctx, request.GetTenantId(), sharedSchemaID, tup.GetEntity().GetType(), version)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())

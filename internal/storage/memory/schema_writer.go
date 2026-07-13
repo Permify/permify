@@ -54,5 +54,17 @@ func (w *SchemaWriter) WriteSchema(_ context.Context, definitions []storage.Sche
 	headVersion[tenantID] = version
 	mu.Unlock()
 
+	// Clear shared schema assignment for this tenant
+	tenantTxn := w.database.DB.Txn(true)
+	raw, lookupErr := tenantTxn.First(constants.TenantsTable, "id", tenantID)
+	if lookupErr == nil && raw != nil {
+		t := raw.(storage.Tenant)
+		if t.SharedSchemaID != "" {
+			t.SharedSchemaID = ""
+			_ = tenantTxn.Insert(constants.TenantsTable, t)
+		}
+	}
+	tenantTxn.Commit()
+
 	return nil
 }

@@ -32,6 +32,9 @@
     },
     {
       "name": "Tenancy"
+    },
+    {
+      "name": "SharedSchema"
     }
   ],
   "schemes": [
@@ -44,6 +47,160 @@
     "application/json"
   ],
   "paths": {
+    "/v1/shared-schemas/list": {
+      "post": {
+        "summary": "list shared schemas",
+        "operationId": "shared-schemas.list",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/SharedSchemaListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "SharedSchemaListRequest is the request message for listing shared schemas.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SharedSchemaListRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SharedSchema"
+        ]
+      }
+    },
+    "/v1/shared-schemas/{shared_schema_id}/assign": {
+      "post": {
+        "summary": "assign shared schema to tenants",
+        "operationId": "shared-schemas.assign",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/SharedSchemaAssignResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "shared_schema_id",
+            "description": "shared_schema_id identifies the shared schema to assign.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AssignBody"
+            }
+          }
+        ],
+        "tags": [
+          "SharedSchema"
+        ]
+      }
+    },
+    "/v1/shared-schemas/{shared_schema_id}/read": {
+      "post": {
+        "summary": "read shared schema",
+        "operationId": "shared-schemas.read",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/SharedSchemaReadResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "shared_schema_id",
+            "description": "shared_schema_id identifies the shared schema to read.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SharedSchema.ReadBody"
+            }
+          }
+        ],
+        "tags": [
+          "SharedSchema"
+        ]
+      }
+    },
+    "/v1/shared-schemas/{shared_schema_id}/write": {
+      "post": {
+        "summary": "write shared schema",
+        "operationId": "shared-schemas.write",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/SharedSchemaWriteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "shared_schema_id",
+            "description": "shared_schema_id is a user-provided string identifier for the shared schema.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SharedSchema.WriteBody"
+            }
+          }
+        ],
+        "tags": [
+          "SharedSchema"
+        ]
+      }
+    },
     "/v1/tenants/create": {
       "post": {
         "summary": "create tenant",
@@ -1430,6 +1587,19 @@
       },
       "description": "Argument defines the type of argument in a Call. It can be either a ComputedAttribute or a ContextAttribute."
     },
+    "AssignBody": {
+      "type": "object",
+      "properties": {
+        "tenant_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "tenant_ids is the list of tenant IDs to assign the shared schema to."
+        }
+      },
+      "description": "SharedSchemaAssignRequest is the request message for assigning a shared schema to tenants."
+    },
     "Attribute": {
       "type": "object",
       "properties": {
@@ -2021,6 +2191,10 @@
         "schema_version": {
           "type": "string",
           "description": "schema_version represents the version of the schema for the data being written."
+        },
+        "shared_schema_id": {
+          "type": "string",
+          "description": "Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas."
         }
       },
       "description": "DataWriteRequestMetadata defines the structure of metadata for a write request.\nIt includes the schema version of the data to be written."
@@ -2606,6 +2780,10 @@
           "type": "integer",
           "format": "int32",
           "description": "Query limit when if recursive database queries got in loop"
+        },
+        "shared_schema_id": {
+          "type": "string",
+          "description": "Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas."
         }
       },
       "description": "PermissionCheckRequestMetadata metadata for the PermissionCheckRequest."
@@ -2659,6 +2837,10 @@
         "snap_token": {
           "type": "string",
           "description": "The snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)."
+        },
+        "shared_schema_id": {
+          "type": "string",
+          "description": "Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas."
         }
       },
       "description": "PermissionExpandRequestMetadata metadata for the PermissionExpandRequest."
@@ -2688,6 +2870,10 @@
           "type": "integer",
           "format": "int32",
           "description": "Query limit when if recursive database queries got in loop."
+        },
+        "shared_schema_id": {
+          "type": "string",
+          "description": "Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas."
         }
       },
       "description": "PermissionLookupEntityRequestMetadata metadata for the PermissionLookupEntityRequest."
@@ -2738,6 +2924,10 @@
           "type": "integer",
           "format": "int32",
           "description": "Query limit when if recursive database queries got in loop."
+        },
+        "shared_schema_id": {
+          "type": "string",
+          "description": "Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas."
         }
       },
       "description": "PermissionLookupSubjectRequestMetadata metadata for the PermissionLookupSubjectRequest."
@@ -2778,6 +2968,10 @@
           "type": "integer",
           "format": "int32",
           "description": "Query limit when if recursive database queries got in loop."
+        },
+        "shared_schema_id": {
+          "type": "string",
+          "description": "Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas."
         }
       },
       "description": "PermissionSubjectPermissionRequestMetadata metadata for the PermissionSubjectPermissionRequest."
@@ -2930,6 +3124,10 @@
       "properties": {
         "schema_version": {
           "type": "string"
+        },
+        "shared_schema_id": {
+          "type": "string",
+          "description": "Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas."
         }
       },
       "title": "RelationshipWriteRequestMetadata"
@@ -3184,6 +3382,120 @@
         }
       },
       "description": "A field selection expression. e.g. `request.auth`."
+    },
+    "SharedSchema.ReadBody": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/SharedSchemaReadRequestMetadata",
+          "description": "metadata contains optional parameters such as schema_version."
+        }
+      },
+      "description": "SharedSchemaReadRequest is the request message for reading a shared schema."
+    },
+    "SharedSchema.WriteBody": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "type": "string",
+          "description": "schema is the string representation of the schema (Permify DSL)."
+        }
+      },
+      "description": "SharedSchemaWriteRequest is the request message for writing a shared schema."
+    },
+    "SharedSchemaAssignResponse": {
+      "type": "object",
+      "properties": {
+        "tenant_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "tenant_ids is the list of tenant IDs that were assigned."
+        }
+      },
+      "description": "SharedSchemaAssignResponse is the response message for assigning a shared schema."
+    },
+    "SharedSchemaListItem": {
+      "type": "object",
+      "properties": {
+        "shared_schema_id": {
+          "type": "string",
+          "description": "shared_schema_id is the identifier of the shared schema."
+        },
+        "head_version": {
+          "type": "string",
+          "description": "head_version is the latest version of this shared schema."
+        },
+        "created_at": {
+          "type": "string",
+          "description": "created_at is the creation timestamp of the latest version."
+        }
+      },
+      "description": "SharedSchemaListItem represents a single shared schema in a list response."
+    },
+    "SharedSchemaListRequest": {
+      "type": "object",
+      "properties": {
+        "page_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "page_size is the number of shared schemas to return per page."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is used for pagination."
+        }
+      },
+      "description": "SharedSchemaListRequest is the request message for listing shared schemas."
+    },
+    "SharedSchemaListResponse": {
+      "type": "object",
+      "properties": {
+        "schemas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/SharedSchemaListItem"
+          },
+          "description": "schemas is a list of shared schemas."
+        },
+        "continuous_token": {
+          "type": "string",
+          "description": "continuous_token is used for pagination."
+        }
+      },
+      "description": "SharedSchemaListResponse is the response message for listing shared schemas."
+    },
+    "SharedSchemaReadRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "description": "schema_version is the version to read. If empty, the latest version is used."
+        }
+      },
+      "description": "SharedSchemaReadRequestMetadata provides additional information for the read request."
+    },
+    "SharedSchemaReadResponse": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "$ref": "#/definitions/SchemaDefinition",
+          "description": "schema is the schema definition."
+        }
+      },
+      "description": "SharedSchemaReadResponse is the response message for reading a shared schema."
+    },
+    "SharedSchemaWriteResponse": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "description": "schema_version is the version identifier of the written schema."
+        }
+      },
+      "description": "SharedSchemaWriteResponse is the response message for writing a shared schema."
     },
     "SourceInfo": {
       "type": "object",

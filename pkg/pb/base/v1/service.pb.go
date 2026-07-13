@@ -132,9 +132,11 @@ type PermissionCheckRequestMetadata struct {
 	// Token associated with the snap.
 	SnapToken string `protobuf:"bytes,2,opt,name=snap_token,proto3" json:"snap_token,omitempty"`
 	// Depth of the check, must be greater than or equal to 3.
-	Depth         int32 `protobuf:"varint,3,opt,name=depth,proto3" json:"depth,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Depth int32 `protobuf:"varint,3,opt,name=depth,proto3" json:"depth,omitempty"`
+	// Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+	SharedSchemaId string `protobuf:"bytes,4,opt,name=shared_schema_id,proto3" json:"shared_schema_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *PermissionCheckRequestMetadata) Reset() {
@@ -186,6 +188,13 @@ func (x *PermissionCheckRequestMetadata) GetDepth() int32 {
 		return x.Depth
 	}
 	return 0
+}
+
+func (x *PermissionCheckRequestMetadata) GetSharedSchemaId() string {
+	if x != nil {
+		return x.SharedSchemaId
+	}
+	return ""
 }
 
 // PermissionCheckResponse is the response message for the Check method in the Permission service.
@@ -578,9 +587,11 @@ type PermissionExpandRequestMetadata struct {
 	// Version of the schema.
 	SchemaVersion string `protobuf:"bytes,1,opt,name=schema_version,proto3" json:"schema_version,omitempty"`
 	// Token associated with the snap.
-	SnapToken     string `protobuf:"bytes,2,opt,name=snap_token,proto3" json:"snap_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	SnapToken string `protobuf:"bytes,2,opt,name=snap_token,proto3" json:"snap_token,omitempty"`
+	// Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+	SharedSchemaId string `protobuf:"bytes,3,opt,name=shared_schema_id,proto3" json:"shared_schema_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *PermissionExpandRequestMetadata) Reset() {
@@ -623,6 +634,13 @@ func (x *PermissionExpandRequestMetadata) GetSchemaVersion() string {
 func (x *PermissionExpandRequestMetadata) GetSnapToken() string {
 	if x != nil {
 		return x.SnapToken
+	}
+	return ""
+}
+
+func (x *PermissionExpandRequestMetadata) GetSharedSchemaId() string {
+	if x != nil {
+		return x.SharedSchemaId
 	}
 	return ""
 }
@@ -802,9 +820,11 @@ type PermissionLookupEntityRequestMetadata struct {
 	// Token associated with the snap.
 	SnapToken string `protobuf:"bytes,2,opt,name=snap_token,proto3" json:"snap_token,omitempty"`
 	// Depth of lookup, required, must be greater or equal to 3.
-	Depth         int32 `protobuf:"varint,3,opt,name=depth,proto3" json:"depth,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Depth int32 `protobuf:"varint,3,opt,name=depth,proto3" json:"depth,omitempty"`
+	// Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+	SharedSchemaId string `protobuf:"bytes,4,opt,name=shared_schema_id,proto3" json:"shared_schema_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *PermissionLookupEntityRequestMetadata) Reset() {
@@ -856,6 +876,13 @@ func (x *PermissionLookupEntityRequestMetadata) GetDepth() int32 {
 		return x.Depth
 	}
 	return 0
+}
+
+func (x *PermissionLookupEntityRequestMetadata) GetSharedSchemaId() string {
+	if x != nil {
+		return x.SharedSchemaId
+	}
+	return ""
 }
 
 // PermissionLookupEntityResponse is the response message for the LookupEntity method in the Permission service.
@@ -1078,9 +1105,11 @@ type PermissionEntityFilterRequestMetadata struct {
 	// Token associated with the snap.
 	SnapToken string `protobuf:"bytes,2,opt,name=snap_token,proto3" json:"snap_token,omitempty"`
 	// Depth of lookup, required, must be greater or equal to 3.
-	Depth         int32 `protobuf:"varint,3,opt,name=depth,proto3" json:"depth,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Depth int32 `protobuf:"varint,3,opt,name=depth,proto3" json:"depth,omitempty"`
+	// Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+	SharedSchemaId string `protobuf:"bytes,4,opt,name=shared_schema_id,proto3" json:"shared_schema_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *PermissionEntityFilterRequestMetadata) Reset() {
@@ -1132,6 +1161,13 @@ func (x *PermissionEntityFilterRequestMetadata) GetDepth() int32 {
 		return x.Depth
 	}
 	return 0
+}
+
+func (x *PermissionEntityFilterRequestMetadata) GetSharedSchemaId() string {
+	if x != nil {
+		return x.SharedSchemaId
+	}
+	return ""
 }
 
 // PermissionLookupSubjectRequest is the request message for the LookupSubject method in the Permission service.
@@ -1262,9 +1298,11 @@ type PermissionLookupSubjectRequestMetadata struct {
 	// Token associated with the snap.
 	SnapToken string `protobuf:"bytes,2,opt,name=snap_token,proto3" json:"snap_token,omitempty"`
 	// Depth of the check, must be greater than or equal to 3.
-	Depth         int32 `protobuf:"varint,3,opt,name=depth,proto3" json:"depth,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Depth int32 `protobuf:"varint,3,opt,name=depth,proto3" json:"depth,omitempty"`
+	// Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+	SharedSchemaId string `protobuf:"bytes,4,opt,name=shared_schema_id,proto3" json:"shared_schema_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *PermissionLookupSubjectRequestMetadata) Reset() {
@@ -1316,6 +1354,13 @@ func (x *PermissionLookupSubjectRequestMetadata) GetDepth() int32 {
 		return x.Depth
 	}
 	return 0
+}
+
+func (x *PermissionLookupSubjectRequestMetadata) GetSharedSchemaId() string {
+	if x != nil {
+		return x.SharedSchemaId
+	}
+	return ""
 }
 
 // PermissionLookupSubjectResponse is the response message for the LookupSubject method in the Permission service.
@@ -1465,9 +1510,11 @@ type PermissionSubjectPermissionRequestMetadata struct {
 	// Whether to only check permissions.
 	OnlyPermission bool `protobuf:"varint,3,opt,name=only_permission,proto3" json:"only_permission,omitempty"`
 	// Depth of the check, must be greater than or equal to 3.
-	Depth         int32 `protobuf:"varint,4,opt,name=depth,proto3" json:"depth,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Depth int32 `protobuf:"varint,4,opt,name=depth,proto3" json:"depth,omitempty"`
+	// Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+	SharedSchemaId string `protobuf:"bytes,5,opt,name=shared_schema_id,proto3" json:"shared_schema_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *PermissionSubjectPermissionRequestMetadata) Reset() {
@@ -1526,6 +1573,13 @@ func (x *PermissionSubjectPermissionRequestMetadata) GetDepth() int32 {
 		return x.Depth
 	}
 	return 0
+}
+
+func (x *PermissionSubjectPermissionRequestMetadata) GetSharedSchemaId() string {
+	if x != nil {
+		return x.SharedSchemaId
+	}
+	return ""
 }
 
 // PermissionSubjectPermissionResponse is the response message for the SubjectPermission method in the Permission service.
@@ -2359,8 +2413,10 @@ type DataWriteRequestMetadata struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// schema_version represents the version of the schema for the data being written.
 	SchemaVersion string `protobuf:"bytes,1,opt,name=schema_version,proto3" json:"schema_version,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+	SharedSchemaId string `protobuf:"bytes,2,opt,name=shared_schema_id,proto3" json:"shared_schema_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *DataWriteRequestMetadata) Reset() {
@@ -2396,6 +2452,13 @@ func (*DataWriteRequestMetadata) Descriptor() ([]byte, []int) {
 func (x *DataWriteRequestMetadata) GetSchemaVersion() string {
 	if x != nil {
 		return x.SchemaVersion
+	}
+	return ""
+}
+
+func (x *DataWriteRequestMetadata) GetSharedSchemaId() string {
+	if x != nil {
+		return x.SharedSchemaId
 	}
 	return ""
 }
@@ -2515,8 +2578,10 @@ func (x *RelationshipWriteRequest) GetTuples() []*Tuple {
 type RelationshipWriteRequestMetadata struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SchemaVersion string                 `protobuf:"bytes,1,opt,name=schema_version,proto3" json:"schema_version,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Shared schema ID. Set when the tenant uses a shared schema. Empty for per-tenant schemas.
+	SharedSchemaId string `protobuf:"bytes,2,opt,name=shared_schema_id,proto3" json:"shared_schema_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *RelationshipWriteRequestMetadata) Reset() {
@@ -2552,6 +2617,13 @@ func (*RelationshipWriteRequestMetadata) Descriptor() ([]byte, []int) {
 func (x *RelationshipWriteRequestMetadata) GetSchemaVersion() string {
 	if x != nil {
 		return x.SchemaVersion
+	}
+	return ""
+}
+
+func (x *RelationshipWriteRequestMetadata) GetSharedSchemaId() string {
+	if x != nil {
+		return x.SharedSchemaId
 	}
 	return ""
 }
@@ -3894,6 +3966,529 @@ func (x *TenantListResponse) GetContinuousToken() string {
 	return ""
 }
 
+// SharedSchemaWriteRequest is the request message for writing a shared schema.
+type SharedSchemaWriteRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// shared_schema_id is a user-provided string identifier for the shared schema.
+	SharedSchemaId string `protobuf:"bytes,1,opt,name=shared_schema_id,proto3" json:"shared_schema_id,omitempty"`
+	// schema is the string representation of the schema (Permify DSL).
+	Schema        string `protobuf:"bytes,2,opt,name=schema,proto3" json:"schema,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SharedSchemaWriteRequest) Reset() {
+	*x = SharedSchemaWriteRequest{}
+	mi := &file_base_v1_service_proto_msgTypes[65]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SharedSchemaWriteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SharedSchemaWriteRequest) ProtoMessage() {}
+
+func (x *SharedSchemaWriteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_service_proto_msgTypes[65]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SharedSchemaWriteRequest.ProtoReflect.Descriptor instead.
+func (*SharedSchemaWriteRequest) Descriptor() ([]byte, []int) {
+	return file_base_v1_service_proto_rawDescGZIP(), []int{65}
+}
+
+func (x *SharedSchemaWriteRequest) GetSharedSchemaId() string {
+	if x != nil {
+		return x.SharedSchemaId
+	}
+	return ""
+}
+
+func (x *SharedSchemaWriteRequest) GetSchema() string {
+	if x != nil {
+		return x.Schema
+	}
+	return ""
+}
+
+// SharedSchemaWriteResponse is the response message for writing a shared schema.
+type SharedSchemaWriteResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// schema_version is the version identifier of the written schema.
+	SchemaVersion string `protobuf:"bytes,1,opt,name=schema_version,proto3" json:"schema_version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SharedSchemaWriteResponse) Reset() {
+	*x = SharedSchemaWriteResponse{}
+	mi := &file_base_v1_service_proto_msgTypes[66]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SharedSchemaWriteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SharedSchemaWriteResponse) ProtoMessage() {}
+
+func (x *SharedSchemaWriteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_service_proto_msgTypes[66]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SharedSchemaWriteResponse.ProtoReflect.Descriptor instead.
+func (*SharedSchemaWriteResponse) Descriptor() ([]byte, []int) {
+	return file_base_v1_service_proto_rawDescGZIP(), []int{66}
+}
+
+func (x *SharedSchemaWriteResponse) GetSchemaVersion() string {
+	if x != nil {
+		return x.SchemaVersion
+	}
+	return ""
+}
+
+// SharedSchemaReadRequest is the request message for reading a shared schema.
+type SharedSchemaReadRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// shared_schema_id identifies the shared schema to read.
+	SharedSchemaId string `protobuf:"bytes,1,opt,name=shared_schema_id,proto3" json:"shared_schema_id,omitempty"`
+	// metadata contains optional parameters such as schema_version.
+	Metadata      *SharedSchemaReadRequestMetadata `protobuf:"bytes,2,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SharedSchemaReadRequest) Reset() {
+	*x = SharedSchemaReadRequest{}
+	mi := &file_base_v1_service_proto_msgTypes[67]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SharedSchemaReadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SharedSchemaReadRequest) ProtoMessage() {}
+
+func (x *SharedSchemaReadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_service_proto_msgTypes[67]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SharedSchemaReadRequest.ProtoReflect.Descriptor instead.
+func (*SharedSchemaReadRequest) Descriptor() ([]byte, []int) {
+	return file_base_v1_service_proto_rawDescGZIP(), []int{67}
+}
+
+func (x *SharedSchemaReadRequest) GetSharedSchemaId() string {
+	if x != nil {
+		return x.SharedSchemaId
+	}
+	return ""
+}
+
+func (x *SharedSchemaReadRequest) GetMetadata() *SharedSchemaReadRequestMetadata {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+// SharedSchemaReadRequestMetadata provides additional information for the read request.
+type SharedSchemaReadRequestMetadata struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// schema_version is the version to read. If empty, the latest version is used.
+	SchemaVersion string `protobuf:"bytes,1,opt,name=schema_version,proto3" json:"schema_version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SharedSchemaReadRequestMetadata) Reset() {
+	*x = SharedSchemaReadRequestMetadata{}
+	mi := &file_base_v1_service_proto_msgTypes[68]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SharedSchemaReadRequestMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SharedSchemaReadRequestMetadata) ProtoMessage() {}
+
+func (x *SharedSchemaReadRequestMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_service_proto_msgTypes[68]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SharedSchemaReadRequestMetadata.ProtoReflect.Descriptor instead.
+func (*SharedSchemaReadRequestMetadata) Descriptor() ([]byte, []int) {
+	return file_base_v1_service_proto_rawDescGZIP(), []int{68}
+}
+
+func (x *SharedSchemaReadRequestMetadata) GetSchemaVersion() string {
+	if x != nil {
+		return x.SchemaVersion
+	}
+	return ""
+}
+
+// SharedSchemaReadResponse is the response message for reading a shared schema.
+type SharedSchemaReadResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// schema is the schema definition.
+	Schema        *SchemaDefinition `protobuf:"bytes,1,opt,name=schema,proto3" json:"schema,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SharedSchemaReadResponse) Reset() {
+	*x = SharedSchemaReadResponse{}
+	mi := &file_base_v1_service_proto_msgTypes[69]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SharedSchemaReadResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SharedSchemaReadResponse) ProtoMessage() {}
+
+func (x *SharedSchemaReadResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_service_proto_msgTypes[69]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SharedSchemaReadResponse.ProtoReflect.Descriptor instead.
+func (*SharedSchemaReadResponse) Descriptor() ([]byte, []int) {
+	return file_base_v1_service_proto_rawDescGZIP(), []int{69}
+}
+
+func (x *SharedSchemaReadResponse) GetSchema() *SchemaDefinition {
+	if x != nil {
+		return x.Schema
+	}
+	return nil
+}
+
+// SharedSchemaAssignRequest is the request message for assigning a shared schema to tenants.
+type SharedSchemaAssignRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// shared_schema_id identifies the shared schema to assign.
+	SharedSchemaId string `protobuf:"bytes,1,opt,name=shared_schema_id,proto3" json:"shared_schema_id,omitempty"`
+	// tenant_ids is the list of tenant IDs to assign the shared schema to.
+	TenantIds     []string `protobuf:"bytes,2,rep,name=tenant_ids,proto3" json:"tenant_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SharedSchemaAssignRequest) Reset() {
+	*x = SharedSchemaAssignRequest{}
+	mi := &file_base_v1_service_proto_msgTypes[70]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SharedSchemaAssignRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SharedSchemaAssignRequest) ProtoMessage() {}
+
+func (x *SharedSchemaAssignRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_service_proto_msgTypes[70]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SharedSchemaAssignRequest.ProtoReflect.Descriptor instead.
+func (*SharedSchemaAssignRequest) Descriptor() ([]byte, []int) {
+	return file_base_v1_service_proto_rawDescGZIP(), []int{70}
+}
+
+func (x *SharedSchemaAssignRequest) GetSharedSchemaId() string {
+	if x != nil {
+		return x.SharedSchemaId
+	}
+	return ""
+}
+
+func (x *SharedSchemaAssignRequest) GetTenantIds() []string {
+	if x != nil {
+		return x.TenantIds
+	}
+	return nil
+}
+
+// SharedSchemaAssignResponse is the response message for assigning a shared schema.
+type SharedSchemaAssignResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// tenant_ids is the list of tenant IDs that were assigned.
+	TenantIds     []string `protobuf:"bytes,1,rep,name=tenant_ids,proto3" json:"tenant_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SharedSchemaAssignResponse) Reset() {
+	*x = SharedSchemaAssignResponse{}
+	mi := &file_base_v1_service_proto_msgTypes[71]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SharedSchemaAssignResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SharedSchemaAssignResponse) ProtoMessage() {}
+
+func (x *SharedSchemaAssignResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_service_proto_msgTypes[71]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SharedSchemaAssignResponse.ProtoReflect.Descriptor instead.
+func (*SharedSchemaAssignResponse) Descriptor() ([]byte, []int) {
+	return file_base_v1_service_proto_rawDescGZIP(), []int{71}
+}
+
+func (x *SharedSchemaAssignResponse) GetTenantIds() []string {
+	if x != nil {
+		return x.TenantIds
+	}
+	return nil
+}
+
+// SharedSchemaListRequest is the request message for listing shared schemas.
+type SharedSchemaListRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// page_size is the number of shared schemas to return per page.
+	PageSize uint32 `protobuf:"varint,1,opt,name=page_size,proto3" json:"page_size,omitempty"`
+	// continuous_token is used for pagination.
+	ContinuousToken string `protobuf:"bytes,2,opt,name=continuous_token,proto3" json:"continuous_token,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SharedSchemaListRequest) Reset() {
+	*x = SharedSchemaListRequest{}
+	mi := &file_base_v1_service_proto_msgTypes[72]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SharedSchemaListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SharedSchemaListRequest) ProtoMessage() {}
+
+func (x *SharedSchemaListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_service_proto_msgTypes[72]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SharedSchemaListRequest.ProtoReflect.Descriptor instead.
+func (*SharedSchemaListRequest) Descriptor() ([]byte, []int) {
+	return file_base_v1_service_proto_rawDescGZIP(), []int{72}
+}
+
+func (x *SharedSchemaListRequest) GetPageSize() uint32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *SharedSchemaListRequest) GetContinuousToken() string {
+	if x != nil {
+		return x.ContinuousToken
+	}
+	return ""
+}
+
+// SharedSchemaListResponse is the response message for listing shared schemas.
+type SharedSchemaListResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// schemas is a list of shared schemas.
+	Schemas []*SharedSchemaListItem `protobuf:"bytes,1,rep,name=schemas,proto3" json:"schemas,omitempty"`
+	// continuous_token is used for pagination.
+	ContinuousToken string `protobuf:"bytes,2,opt,name=continuous_token,proto3" json:"continuous_token,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SharedSchemaListResponse) Reset() {
+	*x = SharedSchemaListResponse{}
+	mi := &file_base_v1_service_proto_msgTypes[73]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SharedSchemaListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SharedSchemaListResponse) ProtoMessage() {}
+
+func (x *SharedSchemaListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_service_proto_msgTypes[73]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SharedSchemaListResponse.ProtoReflect.Descriptor instead.
+func (*SharedSchemaListResponse) Descriptor() ([]byte, []int) {
+	return file_base_v1_service_proto_rawDescGZIP(), []int{73}
+}
+
+func (x *SharedSchemaListResponse) GetSchemas() []*SharedSchemaListItem {
+	if x != nil {
+		return x.Schemas
+	}
+	return nil
+}
+
+func (x *SharedSchemaListResponse) GetContinuousToken() string {
+	if x != nil {
+		return x.ContinuousToken
+	}
+	return ""
+}
+
+// SharedSchemaListItem represents a single shared schema in a list response.
+type SharedSchemaListItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// shared_schema_id is the identifier of the shared schema.
+	SharedSchemaId string `protobuf:"bytes,1,opt,name=shared_schema_id,proto3" json:"shared_schema_id,omitempty"`
+	// head_version is the latest version of this shared schema.
+	HeadVersion string `protobuf:"bytes,2,opt,name=head_version,proto3" json:"head_version,omitempty"`
+	// created_at is the creation timestamp of the latest version.
+	CreatedAt     string `protobuf:"bytes,3,opt,name=created_at,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SharedSchemaListItem) Reset() {
+	*x = SharedSchemaListItem{}
+	mi := &file_base_v1_service_proto_msgTypes[74]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SharedSchemaListItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SharedSchemaListItem) ProtoMessage() {}
+
+func (x *SharedSchemaListItem) ProtoReflect() protoreflect.Message {
+	mi := &file_base_v1_service_proto_msgTypes[74]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SharedSchemaListItem.ProtoReflect.Descriptor instead.
+func (*SharedSchemaListItem) Descriptor() ([]byte, []int) {
+	return file_base_v1_service_proto_rawDescGZIP(), []int{74}
+}
+
+func (x *SharedSchemaListItem) GetSharedSchemaId() string {
+	if x != nil {
+		return x.SharedSchemaId
+	}
+	return ""
+}
+
+func (x *SharedSchemaListItem) GetHeadVersion() string {
+	if x != nil {
+		return x.HeadVersion
+	}
+	return ""
+}
+
+func (x *SharedSchemaListItem) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
 var File_base_v1_service_proto protoreflect.FileDescriptor
 
 const file_base_v1_service_proto_rawDesc = "" +
@@ -3908,13 +4503,14 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"permission\x124\n" +
 	"\asubject\x18\x05 \x01(\v2\x10.base.v1.SubjectB\b\xfaB\x05\x8a\x01\x02\x10\x01R\asubject\x12\xc4\x01\n" +
 	"\acontext\x18\x06 \x01(\v2\x10.base.v1.ContextB\x97\x01\x92A\x93\x012\x90\x01Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)R\acontext\x12/\n" +
-	"\targuments\x18\a \x03(\v2\x11.base.v1.ArgumentR\targuments\"\xb2\x02\n" +
+	"\targuments\x18\a \x03(\v2\x11.base.v1.ArgumentR\targuments\"\xde\x02\n" +
 	"\x1ePermissionCheckRequestMetadata\x12&\n" +
 	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\x12\x89\x01\n" +
 	"\n" +
 	"snap_token\x18\x02 \x01(\tBi\x92Af2dThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)R\n" +
 	"snap_token\x12\\\n" +
-	"\x05depth\x18\x03 \x01(\x05BF\x92A<2:Query limit when if recursive database queries got in loop\xfaB\x04\x1a\x02(\x03R\x05depth\"\x87\x01\n" +
+	"\x05depth\x18\x03 \x01(\x05BF\x92A<2:Query limit when if recursive database queries got in loop\xfaB\x04\x1a\x02(\x03R\x05depth\x12*\n" +
+	"\x10shared_schema_id\x18\x04 \x01(\tR\x10shared_schema_id\"\x87\x01\n" +
 	"\x17PermissionCheckResponse\x12&\n" +
 	"\x03can\x18\x01 \x01(\x0e2\x14.base.v1.CheckResultR\x03can\x12D\n" +
 	"\bmetadata\x18\x02 \x01(\v2(.base.v1.PermissionCheckResponseMetadataR\bmetadata\"C\n" +
@@ -3943,12 +4539,13 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"permission\x18\x04 \x01(\tB\x1d\xfaB\x1ar\x18(@2\x11^[a-zA-Z_]{1,64}$\xd0\x01\x01R\n" +
 	"permission\x12*\n" +
 	"\acontext\x18\x05 \x01(\v2\x10.base.v1.ContextR\acontext\x12/\n" +
-	"\targuments\x18\x06 \x03(\v2\x11.base.v1.ArgumentR\targuments\"\xd6\x01\n" +
+	"\targuments\x18\x06 \x03(\v2\x11.base.v1.ArgumentR\targuments\"\x82\x02\n" +
 	"\x1fPermissionExpandRequestMetadata\x12&\n" +
 	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\x12\x8a\x01\n" +
 	"\n" +
 	"snap_token\x18\x02 \x01(\tBj\x92Ag2eThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens).R\n" +
-	"snap_token\"?\n" +
+	"snap_token\x12*\n" +
+	"\x10shared_schema_id\x18\x03 \x01(\tR\x10shared_schema_id\"?\n" +
 	"\x18PermissionExpandResponse\x12#\n" +
 	"\x04tree\x18\x01 \x01(\v2\x0f.base.v1.ExpandR\x04tree\"\x81\a\n" +
 	"\x1dPermissionLookupEntityRequest\x12\xaa\x02\n" +
@@ -3966,13 +4563,14 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\n" +
 	"ScopeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
-	"\x05value\x18\x02 \x01(\v2\x19.base.v1.StringArrayValueR\x05value:\x028\x01\"\xbb\x02\n" +
+	"\x05value\x18\x02 \x01(\v2\x19.base.v1.StringArrayValueR\x05value:\x028\x01\"\xe7\x02\n" +
 	"%PermissionLookupEntityRequestMetadata\x12&\n" +
 	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\x12\x8a\x01\n" +
 	"\n" +
 	"snap_token\x18\x02 \x01(\tBj\x92Ag2eThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens).R\n" +
 	"snap_token\x12]\n" +
-	"\x05depth\x18\x03 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xfaB\x04\x1a\x02(\x03R\x05depth\"l\n" +
+	"\x05depth\x18\x03 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xfaB\x04\x1a\x02(\x03R\x05depth\x12*\n" +
+	"\x10shared_schema_id\x18\x04 \x01(\tR\x10shared_schema_id\"l\n" +
 	"\x1ePermissionLookupEntityResponse\x12\x1e\n" +
 	"\n" +
 	"entity_ids\x18\x01 \x03(\tR\n" +
@@ -3992,13 +4590,14 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\n" +
 	"ScopeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
-	"\x05value\x18\x02 \x01(\v2\x19.base.v1.StringArrayValueR\x05value:\x028\x01\"\xbb\x02\n" +
+	"\x05value\x18\x02 \x01(\v2\x19.base.v1.StringArrayValueR\x05value:\x028\x01\"\xe7\x02\n" +
 	"%PermissionEntityFilterRequestMetadata\x12&\n" +
 	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\x12\x8a\x01\n" +
 	"\n" +
 	"snap_token\x18\x02 \x01(\tBj\x92Ag2eThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens).R\n" +
 	"snap_token\x12]\n" +
-	"\x05depth\x18\x03 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xfaB\x04\x1a\x02(\x03R\x05depth\"\xa6\x06\n" +
+	"\x05depth\x18\x03 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xfaB\x04\x1a\x02(\x03R\x05depth\x12*\n" +
+	"\x10shared_schema_id\x18\x04 \x01(\tR\x10shared_schema_id\"\xa6\x06\n" +
 	"\x1ePermissionLookupSubjectRequest\x12\xaa\x02\n" +
 	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12U\n" +
 	"\bmetadata\x18\x02 \x01(\v2/.base.v1.PermissionLookupSubjectRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x121\n" +
@@ -4010,13 +4609,14 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\acontext\x18\x06 \x01(\v2\x10.base.v1.ContextR\acontext\x12/\n" +
 	"\targuments\x18\a \x03(\v2\x11.base.v1.ArgumentR\targuments\x12'\n" +
 	"\tpage_size\x18\b \x01(\rB\t\xfaB\x06*\x04(\x01@\x01R\tpage_size\x124\n" +
-	"\x10continuous_token\x18\t \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x01R\x10continuous_token\"\xbc\x02\n" +
+	"\x10continuous_token\x18\t \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x01R\x10continuous_token\"\xe8\x02\n" +
 	"&PermissionLookupSubjectRequestMetadata\x12&\n" +
 	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\x12\x8a\x01\n" +
 	"\n" +
 	"snap_token\x18\x02 \x01(\tBj\x92Ag2eThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens).R\n" +
 	"snap_token\x12]\n" +
-	"\x05depth\x18\x03 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xfaB\x04\x1a\x02(\x03R\x05depth\"o\n" +
+	"\x05depth\x18\x03 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xfaB\x04\x1a\x02(\x03R\x05depth\x12*\n" +
+	"\x10shared_schema_id\x18\x04 \x01(\tR\x10shared_schema_id\"o\n" +
 	"\x1fPermissionLookupSubjectResponse\x12 \n" +
 	"\vsubject_ids\x18\x01 \x03(\tR\vsubject_ids\x12*\n" +
 	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token\"\xc1\x04\n" +
@@ -4025,14 +4625,15 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\bmetadata\x18\x02 \x01(\v23.base.v1.PermissionSubjectPermissionRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x121\n" +
 	"\x06entity\x18\x03 \x01(\v2\x0f.base.v1.EntityB\b\xfaB\x05\x8a\x01\x02\x10\x01R\x06entity\x124\n" +
 	"\asubject\x18\x04 \x01(\v2\x10.base.v1.SubjectB\b\xfaB\x05\x8a\x01\x02\x10\x01R\asubject\x12*\n" +
-	"\acontext\x18\x05 \x01(\v2\x10.base.v1.ContextR\acontext\"\xea\x02\n" +
+	"\acontext\x18\x05 \x01(\v2\x10.base.v1.ContextR\acontext\"\x96\x03\n" +
 	"*PermissionSubjectPermissionRequestMetadata\x12&\n" +
 	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\x12\x8a\x01\n" +
 	"\n" +
 	"snap_token\x18\x02 \x01(\tBj\x92Ag2eThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens).R\n" +
 	"snap_token\x12(\n" +
 	"\x0fonly_permission\x18\x03 \x01(\bR\x0fonly_permission\x12]\n" +
-	"\x05depth\x18\x04 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xfaB\x04\x1a\x02(\x03R\x05depth\"\xcc\x01\n" +
+	"\x05depth\x18\x04 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xfaB\x04\x1a\x02(\x03R\x05depth\x12*\n" +
+	"\x10shared_schema_id\x18\x05 \x01(\tR\x10shared_schema_id\"\xcc\x01\n" +
 	"#PermissionSubjectPermissionResponse\x12S\n" +
 	"\aresults\x18\x01 \x03(\v29.base.v1.PermissionSubjectPermissionResponse.ResultsEntryR\aresults\x1aP\n" +
 	"\fResultsEntry\x12\x10\n" +
@@ -4088,9 +4689,10 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\x06tuples\x18\x03 \x03(\v2\x0e.base.v1.TupleB\x0f\xfaB\f\x92\x01\t\b\x00\"\x05\x8a\x01\x02\x10\x01R\x06tuples\x12C\n" +
 	"\n" +
 	"attributes\x18\x04 \x03(\v2\x12.base.v1.AttributeB\x0f\xfaB\f\x92\x01\t\b\x00\"\x05\x8a\x01\x02\x10\x01R\n" +
-	"attributes\"B\n" +
+	"attributes\"n\n" +
 	"\x18DataWriteRequestMetadata\x12&\n" +
-	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\"\xa0\x01\n" +
+	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\x12*\n" +
+	"\x10shared_schema_id\x18\x02 \x01(\tR\x10shared_schema_id\"\xa0\x01\n" +
 	"\x11DataWriteResponse\x12\x8a\x01\n" +
 	"\n" +
 	"snap_token\x18\x01 \x01(\tBj\x92Ag2eThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens).R\n" +
@@ -4098,9 +4700,10 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\x18RelationshipWriteRequest\x12\xaa\x02\n" +
 	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12O\n" +
 	"\bmetadata\x18\x02 \x01(\v2).base.v1.RelationshipWriteRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x127\n" +
-	"\x06tuples\x18\x03 \x03(\v2\x0e.base.v1.TupleB\x0f\xfaB\f\x92\x01\t\b\x01\"\x05\x8a\x01\x02\x10\x01R\x06tuples\"J\n" +
+	"\x06tuples\x18\x03 \x03(\v2\x0e.base.v1.TupleB\x0f\xfaB\f\x92\x01\t\b\x01\"\x05\x8a\x01\x02\x10\x01R\x06tuples\"v\n" +
 	" RelationshipWriteRequestMetadata\x12&\n" +
-	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\"\xa7\x01\n" +
+	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\x12*\n" +
+	"\x10shared_schema_id\x18\x02 \x01(\tR\x10shared_schema_id\"\xa7\x01\n" +
 	"\x19RelationshipWriteResponse\x12\x89\x01\n" +
 	"\n" +
 	"snap_token\x18\x01 \x01(\tBi\x92Af2dThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)R\n" +
@@ -4189,7 +4792,40 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\x10continuous_token\x18\x02 \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x01R\x10continuous_token\"k\n" +
 	"\x12TenantListResponse\x12)\n" +
 	"\atenants\x18\x01 \x03(\v2\x0f.base.v1.TenantR\atenants\x12*\n" +
-	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token2\xafN\n" +
+	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token\"\x89\x01\n" +
+	"\x18SharedSchemaWriteRequest\x12U\n" +
+	"\x10shared_schema_id\x18\x01 \x01(\tB)\xfaB&r$(\x80\x012\x1c^[a-zA-Z0-9_\\-@\\.:+]{1,128}$\xd0\x01\x00R\x10shared_schema_id\x12\x16\n" +
+	"\x06schema\x18\x02 \x01(\tR\x06schema\"C\n" +
+	"\x19SharedSchemaWriteResponse\x12&\n" +
+	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\"\xb6\x01\n" +
+	"\x17SharedSchemaReadRequest\x12U\n" +
+	"\x10shared_schema_id\x18\x01 \x01(\tB)\xfaB&r$(\x80\x012\x1c^[a-zA-Z0-9_\\-@\\.:+]{1,128}$\xd0\x01\x00R\x10shared_schema_id\x12D\n" +
+	"\bmetadata\x18\x02 \x01(\v2(.base.v1.SharedSchemaReadRequestMetadataR\bmetadata\"I\n" +
+	"\x1fSharedSchemaReadRequestMetadata\x12&\n" +
+	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\"M\n" +
+	"\x18SharedSchemaReadResponse\x121\n" +
+	"\x06schema\x18\x01 \x01(\v2\x19.base.v1.SchemaDefinitionR\x06schema\"\x92\x01\n" +
+	"\x19SharedSchemaAssignRequest\x12U\n" +
+	"\x10shared_schema_id\x18\x01 \x01(\tB)\xfaB&r$(\x80\x012\x1c^[a-zA-Z0-9_\\-@\\.:+]{1,128}$\xd0\x01\x00R\x10shared_schema_id\x12\x1e\n" +
+	"\n" +
+	"tenant_ids\x18\x02 \x03(\tR\n" +
+	"tenant_ids\"<\n" +
+	"\x1aSharedSchemaAssignResponse\x12\x1e\n" +
+	"\n" +
+	"tenant_ids\x18\x01 \x03(\tR\n" +
+	"tenant_ids\"x\n" +
+	"\x17SharedSchemaListRequest\x12'\n" +
+	"\tpage_size\x18\x01 \x01(\rB\t\xfaB\x06*\x04(\x01@\x01R\tpage_size\x124\n" +
+	"\x10continuous_token\x18\x02 \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x01R\x10continuous_token\"\x7f\n" +
+	"\x18SharedSchemaListResponse\x127\n" +
+	"\aschemas\x18\x01 \x03(\v2\x1d.base.v1.SharedSchemaListItemR\aschemas\x12*\n" +
+	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token\"\x86\x01\n" +
+	"\x14SharedSchemaListItem\x12*\n" +
+	"\x10shared_schema_id\x18\x01 \x01(\tR\x10shared_schema_id\x12\"\n" +
+	"\fhead_version\x18\x02 \x01(\tR\fhead_version\x12\x1e\n" +
+	"\n" +
+	"created_at\x18\x03 \x01(\tR\n" +
+	"created_at2\xafN\n" +
 	"\n" +
 	"Permission\x12\xe8\r\n" +
 	"\x05Check\x12\x1f.base.v1.PermissionCheckRequest\x1a .base.v1.PermissionCheckResponse\"\x9b\r\x92A\xe3\f\n" +
@@ -5574,7 +6210,16 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"--data-raw '{\n" +
 	"    \"page_size\": 20,\n" +
 	"    \"continuous_token\": \"\"\n" +
-	"}'\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/tenants/listB\x8a\x01\n" +
+	"}'\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/tenants/list2\x96\x06\n" +
+	"\fSharedSchema\x12\xc2\x01\n" +
+	"\x05Write\x12!.base.v1.SharedSchemaWriteRequest\x1a\".base.v1.SharedSchemaWriteResponse\"r\x92A9\n" +
+	"\fSharedSchema\x12\x13write shared schema*\x14shared-schemas.write\x82\xd3\xe4\x93\x020:\x01*\"+/v1/shared-schemas/{shared_schema_id}/write\x12\xbc\x01\n" +
+	"\x04Read\x12 .base.v1.SharedSchemaReadRequest\x1a!.base.v1.SharedSchemaReadResponse\"o\x92A7\n" +
+	"\fSharedSchema\x12\x12read shared schema*\x13shared-schemas.read\x82\xd3\xe4\x93\x02/:\x01*\"*/v1/shared-schemas/{shared_schema_id}/read\x12\xd4\x01\n" +
+	"\x06Assign\x12\".base.v1.SharedSchemaAssignRequest\x1a#.base.v1.SharedSchemaAssignResponse\"\x80\x01\x92AF\n" +
+	"\fSharedSchema\x12\x1fassign shared schema to tenants*\x15shared-schemas.assign\x82\xd3\xe4\x93\x021:\x01*\",/v1/shared-schemas/{shared_schema_id}/assign\x12\xaa\x01\n" +
+	"\x04List\x12 .base.v1.SharedSchemaListRequest\x1a!.base.v1.SharedSchemaListResponse\"]\x92A8\n" +
+	"\fSharedSchema\x12\x13list shared schemas*\x13shared-schemas.list\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/v1/shared-schemas/listB\x8a\x01\n" +
 	"\vcom.base.v1B\fServiceProtoP\x01Z0github.com/Permify/permify/pkg/pb/base/v1;basev1\xa2\x02\x03BXX\xaa\x02\aBase.V1\xca\x02\aBase\\V1\xe2\x02\x13Base\\V1\\GPBMetadata\xea\x02\bBase::V1b\x06proto3"
 
 var (
@@ -5589,7 +6234,7 @@ func file_base_v1_service_proto_rawDescGZIP() []byte {
 	return file_base_v1_service_proto_rawDescData
 }
 
-var file_base_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 70)
+var file_base_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 80)
 var file_base_v1_service_proto_goTypes = []any{
 	(*PermissionCheckRequest)(nil),                     // 0: base.v1.PermissionCheckRequest
 	(*PermissionCheckRequestMetadata)(nil),             // 1: base.v1.PermissionCheckRequestMetadata
@@ -5656,153 +6301,174 @@ var file_base_v1_service_proto_goTypes = []any{
 	(*TenantDeleteResponse)(nil),                       // 62: base.v1.TenantDeleteResponse
 	(*TenantListRequest)(nil),                          // 63: base.v1.TenantListRequest
 	(*TenantListResponse)(nil),                         // 64: base.v1.TenantListResponse
-	nil,                                                // 65: base.v1.PermissionLookupEntityRequest.ScopeEntry
-	nil,                                                // 66: base.v1.PermissionEntityFilterRequest.ScopeEntry
-	nil,                                                // 67: base.v1.PermissionSubjectPermissionResponse.ResultsEntry
-	nil,                                                // 68: base.v1.SchemaPartialWriteRequest.PartialsEntry
-	nil,                                                // 69: base.v1.BundleRunRequest.ArgumentsEntry
-	(*Entity)(nil),                                     // 70: base.v1.Entity
-	(*Subject)(nil),                                    // 71: base.v1.Subject
-	(*Context)(nil),                                    // 72: base.v1.Context
-	(*Argument)(nil),                                   // 73: base.v1.Argument
-	(CheckResult)(0),                                   // 74: base.v1.CheckResult
-	(*Expand)(nil),                                     // 75: base.v1.Expand
-	(*Entrance)(nil),                                   // 76: base.v1.Entrance
-	(*RelationReference)(nil),                          // 77: base.v1.RelationReference
-	(*DataChanges)(nil),                                // 78: base.v1.DataChanges
-	(*SchemaDefinition)(nil),                           // 79: base.v1.SchemaDefinition
-	(*Tuple)(nil),                                      // 80: base.v1.Tuple
-	(*Attribute)(nil),                                  // 81: base.v1.Attribute
-	(*TupleFilter)(nil),                                // 82: base.v1.TupleFilter
-	(*AttributeFilter)(nil),                            // 83: base.v1.AttributeFilter
-	(*DataBundle)(nil),                                 // 84: base.v1.DataBundle
-	(*Tenant)(nil),                                     // 85: base.v1.Tenant
-	(*StringArrayValue)(nil),                           // 86: base.v1.StringArrayValue
-	(*Partials)(nil),                                   // 87: base.v1.Partials
+	(*SharedSchemaWriteRequest)(nil),                   // 65: base.v1.SharedSchemaWriteRequest
+	(*SharedSchemaWriteResponse)(nil),                  // 66: base.v1.SharedSchemaWriteResponse
+	(*SharedSchemaReadRequest)(nil),                    // 67: base.v1.SharedSchemaReadRequest
+	(*SharedSchemaReadRequestMetadata)(nil),            // 68: base.v1.SharedSchemaReadRequestMetadata
+	(*SharedSchemaReadResponse)(nil),                   // 69: base.v1.SharedSchemaReadResponse
+	(*SharedSchemaAssignRequest)(nil),                  // 70: base.v1.SharedSchemaAssignRequest
+	(*SharedSchemaAssignResponse)(nil),                 // 71: base.v1.SharedSchemaAssignResponse
+	(*SharedSchemaListRequest)(nil),                    // 72: base.v1.SharedSchemaListRequest
+	(*SharedSchemaListResponse)(nil),                   // 73: base.v1.SharedSchemaListResponse
+	(*SharedSchemaListItem)(nil),                       // 74: base.v1.SharedSchemaListItem
+	nil,                                                // 75: base.v1.PermissionLookupEntityRequest.ScopeEntry
+	nil,                                                // 76: base.v1.PermissionEntityFilterRequest.ScopeEntry
+	nil,                                                // 77: base.v1.PermissionSubjectPermissionResponse.ResultsEntry
+	nil,                                                // 78: base.v1.SchemaPartialWriteRequest.PartialsEntry
+	nil,                                                // 79: base.v1.BundleRunRequest.ArgumentsEntry
+	(*Entity)(nil),                                     // 80: base.v1.Entity
+	(*Subject)(nil),                                    // 81: base.v1.Subject
+	(*Context)(nil),                                    // 82: base.v1.Context
+	(*Argument)(nil),                                   // 83: base.v1.Argument
+	(CheckResult)(0),                                   // 84: base.v1.CheckResult
+	(*Expand)(nil),                                     // 85: base.v1.Expand
+	(*Entrance)(nil),                                   // 86: base.v1.Entrance
+	(*RelationReference)(nil),                          // 87: base.v1.RelationReference
+	(*DataChanges)(nil),                                // 88: base.v1.DataChanges
+	(*SchemaDefinition)(nil),                           // 89: base.v1.SchemaDefinition
+	(*Tuple)(nil),                                      // 90: base.v1.Tuple
+	(*Attribute)(nil),                                  // 91: base.v1.Attribute
+	(*TupleFilter)(nil),                                // 92: base.v1.TupleFilter
+	(*AttributeFilter)(nil),                            // 93: base.v1.AttributeFilter
+	(*DataBundle)(nil),                                 // 94: base.v1.DataBundle
+	(*Tenant)(nil),                                     // 95: base.v1.Tenant
+	(*StringArrayValue)(nil),                           // 96: base.v1.StringArrayValue
+	(*Partials)(nil),                                   // 97: base.v1.Partials
 }
 var file_base_v1_service_proto_depIdxs = []int32{
 	1,  // 0: base.v1.PermissionCheckRequest.metadata:type_name -> base.v1.PermissionCheckRequestMetadata
-	70, // 1: base.v1.PermissionCheckRequest.entity:type_name -> base.v1.Entity
-	71, // 2: base.v1.PermissionCheckRequest.subject:type_name -> base.v1.Subject
-	72, // 3: base.v1.PermissionCheckRequest.context:type_name -> base.v1.Context
-	73, // 4: base.v1.PermissionCheckRequest.arguments:type_name -> base.v1.Argument
-	74, // 5: base.v1.PermissionCheckResponse.can:type_name -> base.v1.CheckResult
+	80, // 1: base.v1.PermissionCheckRequest.entity:type_name -> base.v1.Entity
+	81, // 2: base.v1.PermissionCheckRequest.subject:type_name -> base.v1.Subject
+	82, // 3: base.v1.PermissionCheckRequest.context:type_name -> base.v1.Context
+	83, // 4: base.v1.PermissionCheckRequest.arguments:type_name -> base.v1.Argument
+	84, // 5: base.v1.PermissionCheckResponse.can:type_name -> base.v1.CheckResult
 	3,  // 6: base.v1.PermissionCheckResponse.metadata:type_name -> base.v1.PermissionCheckResponseMetadata
-	70, // 7: base.v1.PermissionBulkCheckRequestItem.entity:type_name -> base.v1.Entity
-	71, // 8: base.v1.PermissionBulkCheckRequestItem.subject:type_name -> base.v1.Subject
+	80, // 7: base.v1.PermissionBulkCheckRequestItem.entity:type_name -> base.v1.Entity
+	81, // 8: base.v1.PermissionBulkCheckRequestItem.subject:type_name -> base.v1.Subject
 	1,  // 9: base.v1.PermissionBulkCheckRequest.metadata:type_name -> base.v1.PermissionCheckRequestMetadata
 	4,  // 10: base.v1.PermissionBulkCheckRequest.items:type_name -> base.v1.PermissionBulkCheckRequestItem
-	72, // 11: base.v1.PermissionBulkCheckRequest.context:type_name -> base.v1.Context
-	73, // 12: base.v1.PermissionBulkCheckRequest.arguments:type_name -> base.v1.Argument
+	82, // 11: base.v1.PermissionBulkCheckRequest.context:type_name -> base.v1.Context
+	83, // 12: base.v1.PermissionBulkCheckRequest.arguments:type_name -> base.v1.Argument
 	2,  // 13: base.v1.PermissionBulkCheckResponse.results:type_name -> base.v1.PermissionCheckResponse
 	8,  // 14: base.v1.PermissionExpandRequest.metadata:type_name -> base.v1.PermissionExpandRequestMetadata
-	70, // 15: base.v1.PermissionExpandRequest.entity:type_name -> base.v1.Entity
-	72, // 16: base.v1.PermissionExpandRequest.context:type_name -> base.v1.Context
-	73, // 17: base.v1.PermissionExpandRequest.arguments:type_name -> base.v1.Argument
-	75, // 18: base.v1.PermissionExpandResponse.tree:type_name -> base.v1.Expand
+	80, // 15: base.v1.PermissionExpandRequest.entity:type_name -> base.v1.Entity
+	82, // 16: base.v1.PermissionExpandRequest.context:type_name -> base.v1.Context
+	83, // 17: base.v1.PermissionExpandRequest.arguments:type_name -> base.v1.Argument
+	85, // 18: base.v1.PermissionExpandResponse.tree:type_name -> base.v1.Expand
 	11, // 19: base.v1.PermissionLookupEntityRequest.metadata:type_name -> base.v1.PermissionLookupEntityRequestMetadata
-	71, // 20: base.v1.PermissionLookupEntityRequest.subject:type_name -> base.v1.Subject
-	72, // 21: base.v1.PermissionLookupEntityRequest.context:type_name -> base.v1.Context
-	65, // 22: base.v1.PermissionLookupEntityRequest.scope:type_name -> base.v1.PermissionLookupEntityRequest.ScopeEntry
+	81, // 20: base.v1.PermissionLookupEntityRequest.subject:type_name -> base.v1.Subject
+	82, // 21: base.v1.PermissionLookupEntityRequest.context:type_name -> base.v1.Context
+	75, // 22: base.v1.PermissionLookupEntityRequest.scope:type_name -> base.v1.PermissionLookupEntityRequest.ScopeEntry
 	15, // 23: base.v1.PermissionEntityFilterRequest.metadata:type_name -> base.v1.PermissionEntityFilterRequestMetadata
-	76, // 24: base.v1.PermissionEntityFilterRequest.entrance:type_name -> base.v1.Entrance
-	71, // 25: base.v1.PermissionEntityFilterRequest.subject:type_name -> base.v1.Subject
-	72, // 26: base.v1.PermissionEntityFilterRequest.context:type_name -> base.v1.Context
-	66, // 27: base.v1.PermissionEntityFilterRequest.scope:type_name -> base.v1.PermissionEntityFilterRequest.ScopeEntry
+	86, // 24: base.v1.PermissionEntityFilterRequest.entrance:type_name -> base.v1.Entrance
+	81, // 25: base.v1.PermissionEntityFilterRequest.subject:type_name -> base.v1.Subject
+	82, // 26: base.v1.PermissionEntityFilterRequest.context:type_name -> base.v1.Context
+	76, // 27: base.v1.PermissionEntityFilterRequest.scope:type_name -> base.v1.PermissionEntityFilterRequest.ScopeEntry
 	17, // 28: base.v1.PermissionLookupSubjectRequest.metadata:type_name -> base.v1.PermissionLookupSubjectRequestMetadata
-	70, // 29: base.v1.PermissionLookupSubjectRequest.entity:type_name -> base.v1.Entity
-	77, // 30: base.v1.PermissionLookupSubjectRequest.subject_reference:type_name -> base.v1.RelationReference
-	72, // 31: base.v1.PermissionLookupSubjectRequest.context:type_name -> base.v1.Context
-	73, // 32: base.v1.PermissionLookupSubjectRequest.arguments:type_name -> base.v1.Argument
+	80, // 29: base.v1.PermissionLookupSubjectRequest.entity:type_name -> base.v1.Entity
+	87, // 30: base.v1.PermissionLookupSubjectRequest.subject_reference:type_name -> base.v1.RelationReference
+	82, // 31: base.v1.PermissionLookupSubjectRequest.context:type_name -> base.v1.Context
+	83, // 32: base.v1.PermissionLookupSubjectRequest.arguments:type_name -> base.v1.Argument
 	20, // 33: base.v1.PermissionSubjectPermissionRequest.metadata:type_name -> base.v1.PermissionSubjectPermissionRequestMetadata
-	70, // 34: base.v1.PermissionSubjectPermissionRequest.entity:type_name -> base.v1.Entity
-	71, // 35: base.v1.PermissionSubjectPermissionRequest.subject:type_name -> base.v1.Subject
-	72, // 36: base.v1.PermissionSubjectPermissionRequest.context:type_name -> base.v1.Context
-	67, // 37: base.v1.PermissionSubjectPermissionResponse.results:type_name -> base.v1.PermissionSubjectPermissionResponse.ResultsEntry
-	78, // 38: base.v1.WatchResponse.changes:type_name -> base.v1.DataChanges
+	80, // 34: base.v1.PermissionSubjectPermissionRequest.entity:type_name -> base.v1.Entity
+	81, // 35: base.v1.PermissionSubjectPermissionRequest.subject:type_name -> base.v1.Subject
+	82, // 36: base.v1.PermissionSubjectPermissionRequest.context:type_name -> base.v1.Context
+	77, // 37: base.v1.PermissionSubjectPermissionResponse.results:type_name -> base.v1.PermissionSubjectPermissionResponse.ResultsEntry
+	88, // 38: base.v1.WatchResponse.changes:type_name -> base.v1.DataChanges
 	27, // 39: base.v1.SchemaPartialWriteRequest.metadata:type_name -> base.v1.SchemaPartialWriteRequestMetadata
-	68, // 40: base.v1.SchemaPartialWriteRequest.partials:type_name -> base.v1.SchemaPartialWriteRequest.PartialsEntry
+	78, // 40: base.v1.SchemaPartialWriteRequest.partials:type_name -> base.v1.SchemaPartialWriteRequest.PartialsEntry
 	30, // 41: base.v1.SchemaReadRequest.metadata:type_name -> base.v1.SchemaReadRequestMetadata
-	79, // 42: base.v1.SchemaReadResponse.schema:type_name -> base.v1.SchemaDefinition
+	89, // 42: base.v1.SchemaReadResponse.schema:type_name -> base.v1.SchemaDefinition
 	34, // 43: base.v1.SchemaListResponse.schemas:type_name -> base.v1.SchemaList
 	36, // 44: base.v1.DataWriteRequest.metadata:type_name -> base.v1.DataWriteRequestMetadata
-	80, // 45: base.v1.DataWriteRequest.tuples:type_name -> base.v1.Tuple
-	81, // 46: base.v1.DataWriteRequest.attributes:type_name -> base.v1.Attribute
+	90, // 45: base.v1.DataWriteRequest.tuples:type_name -> base.v1.Tuple
+	91, // 46: base.v1.DataWriteRequest.attributes:type_name -> base.v1.Attribute
 	39, // 47: base.v1.RelationshipWriteRequest.metadata:type_name -> base.v1.RelationshipWriteRequestMetadata
-	80, // 48: base.v1.RelationshipWriteRequest.tuples:type_name -> base.v1.Tuple
+	90, // 48: base.v1.RelationshipWriteRequest.tuples:type_name -> base.v1.Tuple
 	42, // 49: base.v1.RelationshipReadRequest.metadata:type_name -> base.v1.RelationshipReadRequestMetadata
-	82, // 50: base.v1.RelationshipReadRequest.filter:type_name -> base.v1.TupleFilter
-	80, // 51: base.v1.RelationshipReadResponse.tuples:type_name -> base.v1.Tuple
+	92, // 50: base.v1.RelationshipReadRequest.filter:type_name -> base.v1.TupleFilter
+	90, // 51: base.v1.RelationshipReadResponse.tuples:type_name -> base.v1.Tuple
 	45, // 52: base.v1.AttributeReadRequest.metadata:type_name -> base.v1.AttributeReadRequestMetadata
-	83, // 53: base.v1.AttributeReadRequest.filter:type_name -> base.v1.AttributeFilter
-	81, // 54: base.v1.AttributeReadResponse.attributes:type_name -> base.v1.Attribute
-	82, // 55: base.v1.DataDeleteRequest.tuple_filter:type_name -> base.v1.TupleFilter
-	83, // 56: base.v1.DataDeleteRequest.attribute_filter:type_name -> base.v1.AttributeFilter
-	82, // 57: base.v1.RelationshipDeleteRequest.filter:type_name -> base.v1.TupleFilter
-	69, // 58: base.v1.BundleRunRequest.arguments:type_name -> base.v1.BundleRunRequest.ArgumentsEntry
-	84, // 59: base.v1.BundleWriteRequest.bundles:type_name -> base.v1.DataBundle
-	84, // 60: base.v1.BundleReadResponse.bundle:type_name -> base.v1.DataBundle
-	85, // 61: base.v1.TenantCreateResponse.tenant:type_name -> base.v1.Tenant
-	85, // 62: base.v1.TenantListResponse.tenants:type_name -> base.v1.Tenant
-	86, // 63: base.v1.PermissionLookupEntityRequest.ScopeEntry.value:type_name -> base.v1.StringArrayValue
-	86, // 64: base.v1.PermissionEntityFilterRequest.ScopeEntry.value:type_name -> base.v1.StringArrayValue
-	74, // 65: base.v1.PermissionSubjectPermissionResponse.ResultsEntry.value:type_name -> base.v1.CheckResult
-	87, // 66: base.v1.SchemaPartialWriteRequest.PartialsEntry.value:type_name -> base.v1.Partials
-	0,  // 67: base.v1.Permission.Check:input_type -> base.v1.PermissionCheckRequest
-	5,  // 68: base.v1.Permission.BulkCheck:input_type -> base.v1.PermissionBulkCheckRequest
-	7,  // 69: base.v1.Permission.Expand:input_type -> base.v1.PermissionExpandRequest
-	10, // 70: base.v1.Permission.LookupEntity:input_type -> base.v1.PermissionLookupEntityRequest
-	10, // 71: base.v1.Permission.LookupEntityStream:input_type -> base.v1.PermissionLookupEntityRequest
-	16, // 72: base.v1.Permission.LookupSubject:input_type -> base.v1.PermissionLookupSubjectRequest
-	19, // 73: base.v1.Permission.SubjectPermission:input_type -> base.v1.PermissionSubjectPermissionRequest
-	22, // 74: base.v1.Watch.Watch:input_type -> base.v1.WatchRequest
-	24, // 75: base.v1.Schema.Write:input_type -> base.v1.SchemaWriteRequest
-	26, // 76: base.v1.Schema.PartialWrite:input_type -> base.v1.SchemaPartialWriteRequest
-	29, // 77: base.v1.Schema.Read:input_type -> base.v1.SchemaReadRequest
-	32, // 78: base.v1.Schema.List:input_type -> base.v1.SchemaListRequest
-	35, // 79: base.v1.Data.Write:input_type -> base.v1.DataWriteRequest
-	38, // 80: base.v1.Data.WriteRelationships:input_type -> base.v1.RelationshipWriteRequest
-	41, // 81: base.v1.Data.ReadRelationships:input_type -> base.v1.RelationshipReadRequest
-	44, // 82: base.v1.Data.ReadAttributes:input_type -> base.v1.AttributeReadRequest
-	47, // 83: base.v1.Data.Delete:input_type -> base.v1.DataDeleteRequest
-	49, // 84: base.v1.Data.DeleteRelationships:input_type -> base.v1.RelationshipDeleteRequest
-	51, // 85: base.v1.Data.RunBundle:input_type -> base.v1.BundleRunRequest
-	53, // 86: base.v1.Bundle.Write:input_type -> base.v1.BundleWriteRequest
-	55, // 87: base.v1.Bundle.Read:input_type -> base.v1.BundleReadRequest
-	57, // 88: base.v1.Bundle.Delete:input_type -> base.v1.BundleDeleteRequest
-	59, // 89: base.v1.Tenancy.Create:input_type -> base.v1.TenantCreateRequest
-	61, // 90: base.v1.Tenancy.Delete:input_type -> base.v1.TenantDeleteRequest
-	63, // 91: base.v1.Tenancy.List:input_type -> base.v1.TenantListRequest
-	2,  // 92: base.v1.Permission.Check:output_type -> base.v1.PermissionCheckResponse
-	6,  // 93: base.v1.Permission.BulkCheck:output_type -> base.v1.PermissionBulkCheckResponse
-	9,  // 94: base.v1.Permission.Expand:output_type -> base.v1.PermissionExpandResponse
-	12, // 95: base.v1.Permission.LookupEntity:output_type -> base.v1.PermissionLookupEntityResponse
-	13, // 96: base.v1.Permission.LookupEntityStream:output_type -> base.v1.PermissionLookupEntityStreamResponse
-	18, // 97: base.v1.Permission.LookupSubject:output_type -> base.v1.PermissionLookupSubjectResponse
-	21, // 98: base.v1.Permission.SubjectPermission:output_type -> base.v1.PermissionSubjectPermissionResponse
-	23, // 99: base.v1.Watch.Watch:output_type -> base.v1.WatchResponse
-	25, // 100: base.v1.Schema.Write:output_type -> base.v1.SchemaWriteResponse
-	28, // 101: base.v1.Schema.PartialWrite:output_type -> base.v1.SchemaPartialWriteResponse
-	31, // 102: base.v1.Schema.Read:output_type -> base.v1.SchemaReadResponse
-	33, // 103: base.v1.Schema.List:output_type -> base.v1.SchemaListResponse
-	37, // 104: base.v1.Data.Write:output_type -> base.v1.DataWriteResponse
-	40, // 105: base.v1.Data.WriteRelationships:output_type -> base.v1.RelationshipWriteResponse
-	43, // 106: base.v1.Data.ReadRelationships:output_type -> base.v1.RelationshipReadResponse
-	46, // 107: base.v1.Data.ReadAttributes:output_type -> base.v1.AttributeReadResponse
-	48, // 108: base.v1.Data.Delete:output_type -> base.v1.DataDeleteResponse
-	50, // 109: base.v1.Data.DeleteRelationships:output_type -> base.v1.RelationshipDeleteResponse
-	52, // 110: base.v1.Data.RunBundle:output_type -> base.v1.BundleRunResponse
-	54, // 111: base.v1.Bundle.Write:output_type -> base.v1.BundleWriteResponse
-	56, // 112: base.v1.Bundle.Read:output_type -> base.v1.BundleReadResponse
-	58, // 113: base.v1.Bundle.Delete:output_type -> base.v1.BundleDeleteResponse
-	60, // 114: base.v1.Tenancy.Create:output_type -> base.v1.TenantCreateResponse
-	62, // 115: base.v1.Tenancy.Delete:output_type -> base.v1.TenantDeleteResponse
-	64, // 116: base.v1.Tenancy.List:output_type -> base.v1.TenantListResponse
-	92, // [92:117] is the sub-list for method output_type
-	67, // [67:92] is the sub-list for method input_type
-	67, // [67:67] is the sub-list for extension type_name
-	67, // [67:67] is the sub-list for extension extendee
-	0,  // [0:67] is the sub-list for field type_name
+	93, // 53: base.v1.AttributeReadRequest.filter:type_name -> base.v1.AttributeFilter
+	91, // 54: base.v1.AttributeReadResponse.attributes:type_name -> base.v1.Attribute
+	92, // 55: base.v1.DataDeleteRequest.tuple_filter:type_name -> base.v1.TupleFilter
+	93, // 56: base.v1.DataDeleteRequest.attribute_filter:type_name -> base.v1.AttributeFilter
+	92, // 57: base.v1.RelationshipDeleteRequest.filter:type_name -> base.v1.TupleFilter
+	79, // 58: base.v1.BundleRunRequest.arguments:type_name -> base.v1.BundleRunRequest.ArgumentsEntry
+	94, // 59: base.v1.BundleWriteRequest.bundles:type_name -> base.v1.DataBundle
+	94, // 60: base.v1.BundleReadResponse.bundle:type_name -> base.v1.DataBundle
+	95, // 61: base.v1.TenantCreateResponse.tenant:type_name -> base.v1.Tenant
+	95, // 62: base.v1.TenantListResponse.tenants:type_name -> base.v1.Tenant
+	68, // 63: base.v1.SharedSchemaReadRequest.metadata:type_name -> base.v1.SharedSchemaReadRequestMetadata
+	89, // 64: base.v1.SharedSchemaReadResponse.schema:type_name -> base.v1.SchemaDefinition
+	74, // 65: base.v1.SharedSchemaListResponse.schemas:type_name -> base.v1.SharedSchemaListItem
+	96, // 66: base.v1.PermissionLookupEntityRequest.ScopeEntry.value:type_name -> base.v1.StringArrayValue
+	96, // 67: base.v1.PermissionEntityFilterRequest.ScopeEntry.value:type_name -> base.v1.StringArrayValue
+	84, // 68: base.v1.PermissionSubjectPermissionResponse.ResultsEntry.value:type_name -> base.v1.CheckResult
+	97, // 69: base.v1.SchemaPartialWriteRequest.PartialsEntry.value:type_name -> base.v1.Partials
+	0,  // 70: base.v1.Permission.Check:input_type -> base.v1.PermissionCheckRequest
+	5,  // 71: base.v1.Permission.BulkCheck:input_type -> base.v1.PermissionBulkCheckRequest
+	7,  // 72: base.v1.Permission.Expand:input_type -> base.v1.PermissionExpandRequest
+	10, // 73: base.v1.Permission.LookupEntity:input_type -> base.v1.PermissionLookupEntityRequest
+	10, // 74: base.v1.Permission.LookupEntityStream:input_type -> base.v1.PermissionLookupEntityRequest
+	16, // 75: base.v1.Permission.LookupSubject:input_type -> base.v1.PermissionLookupSubjectRequest
+	19, // 76: base.v1.Permission.SubjectPermission:input_type -> base.v1.PermissionSubjectPermissionRequest
+	22, // 77: base.v1.Watch.Watch:input_type -> base.v1.WatchRequest
+	24, // 78: base.v1.Schema.Write:input_type -> base.v1.SchemaWriteRequest
+	26, // 79: base.v1.Schema.PartialWrite:input_type -> base.v1.SchemaPartialWriteRequest
+	29, // 80: base.v1.Schema.Read:input_type -> base.v1.SchemaReadRequest
+	32, // 81: base.v1.Schema.List:input_type -> base.v1.SchemaListRequest
+	35, // 82: base.v1.Data.Write:input_type -> base.v1.DataWriteRequest
+	38, // 83: base.v1.Data.WriteRelationships:input_type -> base.v1.RelationshipWriteRequest
+	41, // 84: base.v1.Data.ReadRelationships:input_type -> base.v1.RelationshipReadRequest
+	44, // 85: base.v1.Data.ReadAttributes:input_type -> base.v1.AttributeReadRequest
+	47, // 86: base.v1.Data.Delete:input_type -> base.v1.DataDeleteRequest
+	49, // 87: base.v1.Data.DeleteRelationships:input_type -> base.v1.RelationshipDeleteRequest
+	51, // 88: base.v1.Data.RunBundle:input_type -> base.v1.BundleRunRequest
+	53, // 89: base.v1.Bundle.Write:input_type -> base.v1.BundleWriteRequest
+	55, // 90: base.v1.Bundle.Read:input_type -> base.v1.BundleReadRequest
+	57, // 91: base.v1.Bundle.Delete:input_type -> base.v1.BundleDeleteRequest
+	59, // 92: base.v1.Tenancy.Create:input_type -> base.v1.TenantCreateRequest
+	61, // 93: base.v1.Tenancy.Delete:input_type -> base.v1.TenantDeleteRequest
+	63, // 94: base.v1.Tenancy.List:input_type -> base.v1.TenantListRequest
+	65, // 95: base.v1.SharedSchema.Write:input_type -> base.v1.SharedSchemaWriteRequest
+	67, // 96: base.v1.SharedSchema.Read:input_type -> base.v1.SharedSchemaReadRequest
+	70, // 97: base.v1.SharedSchema.Assign:input_type -> base.v1.SharedSchemaAssignRequest
+	72, // 98: base.v1.SharedSchema.List:input_type -> base.v1.SharedSchemaListRequest
+	2,  // 99: base.v1.Permission.Check:output_type -> base.v1.PermissionCheckResponse
+	6,  // 100: base.v1.Permission.BulkCheck:output_type -> base.v1.PermissionBulkCheckResponse
+	9,  // 101: base.v1.Permission.Expand:output_type -> base.v1.PermissionExpandResponse
+	12, // 102: base.v1.Permission.LookupEntity:output_type -> base.v1.PermissionLookupEntityResponse
+	13, // 103: base.v1.Permission.LookupEntityStream:output_type -> base.v1.PermissionLookupEntityStreamResponse
+	18, // 104: base.v1.Permission.LookupSubject:output_type -> base.v1.PermissionLookupSubjectResponse
+	21, // 105: base.v1.Permission.SubjectPermission:output_type -> base.v1.PermissionSubjectPermissionResponse
+	23, // 106: base.v1.Watch.Watch:output_type -> base.v1.WatchResponse
+	25, // 107: base.v1.Schema.Write:output_type -> base.v1.SchemaWriteResponse
+	28, // 108: base.v1.Schema.PartialWrite:output_type -> base.v1.SchemaPartialWriteResponse
+	31, // 109: base.v1.Schema.Read:output_type -> base.v1.SchemaReadResponse
+	33, // 110: base.v1.Schema.List:output_type -> base.v1.SchemaListResponse
+	37, // 111: base.v1.Data.Write:output_type -> base.v1.DataWriteResponse
+	40, // 112: base.v1.Data.WriteRelationships:output_type -> base.v1.RelationshipWriteResponse
+	43, // 113: base.v1.Data.ReadRelationships:output_type -> base.v1.RelationshipReadResponse
+	46, // 114: base.v1.Data.ReadAttributes:output_type -> base.v1.AttributeReadResponse
+	48, // 115: base.v1.Data.Delete:output_type -> base.v1.DataDeleteResponse
+	50, // 116: base.v1.Data.DeleteRelationships:output_type -> base.v1.RelationshipDeleteResponse
+	52, // 117: base.v1.Data.RunBundle:output_type -> base.v1.BundleRunResponse
+	54, // 118: base.v1.Bundle.Write:output_type -> base.v1.BundleWriteResponse
+	56, // 119: base.v1.Bundle.Read:output_type -> base.v1.BundleReadResponse
+	58, // 120: base.v1.Bundle.Delete:output_type -> base.v1.BundleDeleteResponse
+	60, // 121: base.v1.Tenancy.Create:output_type -> base.v1.TenantCreateResponse
+	62, // 122: base.v1.Tenancy.Delete:output_type -> base.v1.TenantDeleteResponse
+	64, // 123: base.v1.Tenancy.List:output_type -> base.v1.TenantListResponse
+	66, // 124: base.v1.SharedSchema.Write:output_type -> base.v1.SharedSchemaWriteResponse
+	69, // 125: base.v1.SharedSchema.Read:output_type -> base.v1.SharedSchemaReadResponse
+	71, // 126: base.v1.SharedSchema.Assign:output_type -> base.v1.SharedSchemaAssignResponse
+	73, // 127: base.v1.SharedSchema.List:output_type -> base.v1.SharedSchemaListResponse
+	99, // [99:128] is the sub-list for method output_type
+	70, // [70:99] is the sub-list for method input_type
+	70, // [70:70] is the sub-list for extension type_name
+	70, // [70:70] is the sub-list for extension extendee
+	0,  // [0:70] is the sub-list for field type_name
 }
 
 func init() { file_base_v1_service_proto_init() }
@@ -5817,9 +6483,9 @@ func file_base_v1_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_base_v1_service_proto_rawDesc), len(file_base_v1_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   70,
+			NumMessages:   80,
 			NumExtensions: 0,
-			NumServices:   6,
+			NumServices:   7,
 		},
 		GoTypes:           file_base_v1_service_proto_goTypes,
 		DependencyIndexes: file_base_v1_service_proto_depIdxs,

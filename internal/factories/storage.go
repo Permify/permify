@@ -114,6 +114,30 @@ func TenantWriterFactory(db database.Database) (repo storage.TenantWriter) {
 	}
 }
 
+// SharedSchemaReaderFactory creates and returns a SharedSchemaReader based on the database engine type.
+func SharedSchemaReaderFactory(db database.Database) (repo storage.SharedSchemaReader) {
+	switch db.GetEngineType() {
+	case "postgres":
+		return PQRepository.NewSharedSchemaReader(db.(*PQDatabase.Postgres))
+	case "memory":
+		return MMRepository.NewSharedSchemaReader(db.(*MMDatabase.Memory))
+	default:
+		return MMRepository.NewSharedSchemaReader(db.(*MMDatabase.Memory))
+	}
+}
+
+// SharedSchemaWriterFactory creates and returns a SharedSchemaWriter based on the database engine type.
+func SharedSchemaWriterFactory(db database.Database) (repo storage.SharedSchemaWriter) {
+	switch db.GetEngineType() {
+	case "postgres":
+		return PQRepository.NewSharedSchemaWriter(db.(*PQDatabase.Postgres))
+	case "memory":
+		return MMRepository.NewSharedSchemaWriter(db.(*MMDatabase.Memory))
+	default:
+		return MMRepository.NewSharedSchemaWriter(db.(*MMDatabase.Memory))
+	}
+}
+
 // BundleReaderFactory is a factory function that creates and returns a BundleReader
 // based on the type of database engine being used.
 func BundleReaderFactory(db database.Database) (repo storage.BundleReader) {

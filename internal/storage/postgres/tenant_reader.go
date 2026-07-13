@@ -2,12 +2,11 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
-
-	// Structured logging
 
 	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
@@ -38,7 +37,7 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 
 	slog.DebugContext(ctx, "listing tenants with pagination", slog.Any("pagination", pagination))
 	// Build SQL query
-	builder := r.database.Builder.Select("id, name, created_at").From(TenantsTable)
+	builder := r.database.Builder.Select("id, name, created_at, shared_schema_id").From(TenantsTable)
 	if pagination.Token() != "" {
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()
@@ -71,9 +70,13 @@ func (r *TenantReader) ListTenants(ctx context.Context, pagination database.Pagi
 	tenants = make([]*base.Tenant, 0, pagination.PageSize()+1)
 	for rows.Next() {
 		sd := storage.Tenant{}
-		err = rows.Scan(&sd.ID, &sd.Name, &sd.CreatedAt)
+		var nullableSharedSchemaID sql.NullString
+		err = rows.Scan(&sd.ID, &sd.Name, &sd.CreatedAt, &nullableSharedSchemaID)
 		if err != nil {
 			return nil, nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		}
+		if nullableSharedSchemaID.Valid {
+			sd.SharedSchemaID = nullableSharedSchemaID.String
 		}
 		lastID = sd.ID
 		tenants = append(tenants, sd.ToTenant())

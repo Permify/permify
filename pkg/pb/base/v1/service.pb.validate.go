@@ -405,6 +405,8 @@ func (m *PermissionCheckRequestMetadata) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	// no validation rules for SharedSchemaId
+
 	if len(errors) > 0 {
 		return PermissionCheckRequestMetadataMultiError(errors)
 	}
@@ -1665,6 +1667,8 @@ func (m *PermissionExpandRequestMetadata) validate(all bool) error {
 
 	// no validation rules for SnapToken
 
+	// no validation rules for SharedSchemaId
+
 	if len(errors) > 0 {
 		return PermissionExpandRequestMetadataMultiError(errors)
 	}
@@ -2263,6 +2267,8 @@ func (m *PermissionLookupEntityRequestMetadata) validate(all bool) error {
 		}
 		errors = append(errors, err)
 	}
+
+	// no validation rules for SharedSchemaId
 
 	if len(errors) > 0 {
 		return PermissionLookupEntityRequestMetadataMultiError(errors)
@@ -2902,6 +2908,8 @@ func (m *PermissionEntityFilterRequestMetadata) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	// no validation rules for SharedSchemaId
+
 	if len(errors) > 0 {
 		return PermissionEntityFilterRequestMetadataMultiError(errors)
 	}
@@ -3375,6 +3383,8 @@ func (m *PermissionLookupSubjectRequestMetadata) validate(all bool) error {
 		}
 		errors = append(errors, err)
 	}
+
+	// no validation rules for SharedSchemaId
 
 	if len(errors) > 0 {
 		return PermissionLookupSubjectRequestMetadataMultiError(errors)
@@ -3881,6 +3891,8 @@ func (m *PermissionSubjectPermissionRequestMetadata) validate(all bool) error {
 		}
 		errors = append(errors, err)
 	}
+
+	// no validation rules for SharedSchemaId
 
 	if len(errors) > 0 {
 		return PermissionSubjectPermissionRequestMetadataMultiError(errors)
@@ -6047,6 +6059,8 @@ func (m *DataWriteRequestMetadata) validate(all bool) error {
 
 	// no validation rules for SchemaVersion
 
+	// no validation rules for SharedSchemaId
+
 	if len(errors) > 0 {
 		return DataWriteRequestMetadataMultiError(errors)
 	}
@@ -6477,6 +6491,8 @@ func (m *RelationshipWriteRequestMetadata) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for SchemaVersion
+
+	// no validation rules for SharedSchemaId
 
 	if len(errors) > 0 {
 		return RelationshipWriteRequestMetadataMultiError(errors)
@@ -9886,3 +9902,1221 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = TenantListResponseValidationError{}
+
+// Validate checks the field values on SharedSchemaWriteRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SharedSchemaWriteRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SharedSchemaWriteRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SharedSchemaWriteRequestMultiError, or nil if none found.
+func (m *SharedSchemaWriteRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SharedSchemaWriteRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetSharedSchemaId()) > 128 {
+		err := SharedSchemaWriteRequestValidationError{
+			field:  "SharedSchemaId",
+			reason: "value length must be at most 128 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_SharedSchemaWriteRequest_SharedSchemaId_Pattern.MatchString(m.GetSharedSchemaId()) {
+		err := SharedSchemaWriteRequestValidationError{
+			field:  "SharedSchemaId",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9_\\\\-@\\\\.:+]{1,128}$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Schema
+
+	if len(errors) > 0 {
+		return SharedSchemaWriteRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SharedSchemaWriteRequestMultiError is an error wrapping multiple validation
+// errors returned by SharedSchemaWriteRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SharedSchemaWriteRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SharedSchemaWriteRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SharedSchemaWriteRequestMultiError) AllErrors() []error { return m }
+
+// SharedSchemaWriteRequestValidationError is the validation error returned by
+// SharedSchemaWriteRequest.Validate if the designated constraints aren't met.
+type SharedSchemaWriteRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SharedSchemaWriteRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SharedSchemaWriteRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SharedSchemaWriteRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SharedSchemaWriteRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SharedSchemaWriteRequestValidationError) ErrorName() string {
+	return "SharedSchemaWriteRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SharedSchemaWriteRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSharedSchemaWriteRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SharedSchemaWriteRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SharedSchemaWriteRequestValidationError{}
+
+var _SharedSchemaWriteRequest_SharedSchemaId_Pattern = regexp.MustCompile("^[a-zA-Z0-9_\\-@\\.:+]{1,128}$")
+
+// Validate checks the field values on SharedSchemaWriteResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SharedSchemaWriteResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SharedSchemaWriteResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SharedSchemaWriteResponseMultiError, or nil if none found.
+func (m *SharedSchemaWriteResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SharedSchemaWriteResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SchemaVersion
+
+	if len(errors) > 0 {
+		return SharedSchemaWriteResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SharedSchemaWriteResponseMultiError is an error wrapping multiple validation
+// errors returned by SharedSchemaWriteResponse.ValidateAll() if the
+// designated constraints aren't met.
+type SharedSchemaWriteResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SharedSchemaWriteResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SharedSchemaWriteResponseMultiError) AllErrors() []error { return m }
+
+// SharedSchemaWriteResponseValidationError is the validation error returned by
+// SharedSchemaWriteResponse.Validate if the designated constraints aren't met.
+type SharedSchemaWriteResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SharedSchemaWriteResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SharedSchemaWriteResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SharedSchemaWriteResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SharedSchemaWriteResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SharedSchemaWriteResponseValidationError) ErrorName() string {
+	return "SharedSchemaWriteResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SharedSchemaWriteResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSharedSchemaWriteResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SharedSchemaWriteResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SharedSchemaWriteResponseValidationError{}
+
+// Validate checks the field values on SharedSchemaReadRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SharedSchemaReadRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SharedSchemaReadRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SharedSchemaReadRequestMultiError, or nil if none found.
+func (m *SharedSchemaReadRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SharedSchemaReadRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetSharedSchemaId()) > 128 {
+		err := SharedSchemaReadRequestValidationError{
+			field:  "SharedSchemaId",
+			reason: "value length must be at most 128 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_SharedSchemaReadRequest_SharedSchemaId_Pattern.MatchString(m.GetSharedSchemaId()) {
+		err := SharedSchemaReadRequestValidationError{
+			field:  "SharedSchemaId",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9_\\\\-@\\\\.:+]{1,128}$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SharedSchemaReadRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SharedSchemaReadRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SharedSchemaReadRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SharedSchemaReadRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SharedSchemaReadRequestMultiError is an error wrapping multiple validation
+// errors returned by SharedSchemaReadRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SharedSchemaReadRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SharedSchemaReadRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SharedSchemaReadRequestMultiError) AllErrors() []error { return m }
+
+// SharedSchemaReadRequestValidationError is the validation error returned by
+// SharedSchemaReadRequest.Validate if the designated constraints aren't met.
+type SharedSchemaReadRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SharedSchemaReadRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SharedSchemaReadRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SharedSchemaReadRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SharedSchemaReadRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SharedSchemaReadRequestValidationError) ErrorName() string {
+	return "SharedSchemaReadRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SharedSchemaReadRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSharedSchemaReadRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SharedSchemaReadRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SharedSchemaReadRequestValidationError{}
+
+var _SharedSchemaReadRequest_SharedSchemaId_Pattern = regexp.MustCompile("^[a-zA-Z0-9_\\-@\\.:+]{1,128}$")
+
+// Validate checks the field values on SharedSchemaReadRequestMetadata with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SharedSchemaReadRequestMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SharedSchemaReadRequestMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// SharedSchemaReadRequestMetadataMultiError, or nil if none found.
+func (m *SharedSchemaReadRequestMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SharedSchemaReadRequestMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SchemaVersion
+
+	if len(errors) > 0 {
+		return SharedSchemaReadRequestMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// SharedSchemaReadRequestMetadataMultiError is an error wrapping multiple
+// validation errors returned by SharedSchemaReadRequestMetadata.ValidateAll()
+// if the designated constraints aren't met.
+type SharedSchemaReadRequestMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SharedSchemaReadRequestMetadataMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SharedSchemaReadRequestMetadataMultiError) AllErrors() []error { return m }
+
+// SharedSchemaReadRequestMetadataValidationError is the validation error
+// returned by SharedSchemaReadRequestMetadata.Validate if the designated
+// constraints aren't met.
+type SharedSchemaReadRequestMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SharedSchemaReadRequestMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SharedSchemaReadRequestMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SharedSchemaReadRequestMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SharedSchemaReadRequestMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SharedSchemaReadRequestMetadataValidationError) ErrorName() string {
+	return "SharedSchemaReadRequestMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SharedSchemaReadRequestMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSharedSchemaReadRequestMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SharedSchemaReadRequestMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SharedSchemaReadRequestMetadataValidationError{}
+
+// Validate checks the field values on SharedSchemaReadResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SharedSchemaReadResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SharedSchemaReadResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SharedSchemaReadResponseMultiError, or nil if none found.
+func (m *SharedSchemaReadResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SharedSchemaReadResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetSchema()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SharedSchemaReadResponseValidationError{
+					field:  "Schema",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SharedSchemaReadResponseValidationError{
+					field:  "Schema",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSchema()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SharedSchemaReadResponseValidationError{
+				field:  "Schema",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SharedSchemaReadResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SharedSchemaReadResponseMultiError is an error wrapping multiple validation
+// errors returned by SharedSchemaReadResponse.ValidateAll() if the designated
+// constraints aren't met.
+type SharedSchemaReadResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SharedSchemaReadResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SharedSchemaReadResponseMultiError) AllErrors() []error { return m }
+
+// SharedSchemaReadResponseValidationError is the validation error returned by
+// SharedSchemaReadResponse.Validate if the designated constraints aren't met.
+type SharedSchemaReadResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SharedSchemaReadResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SharedSchemaReadResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SharedSchemaReadResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SharedSchemaReadResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SharedSchemaReadResponseValidationError) ErrorName() string {
+	return "SharedSchemaReadResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SharedSchemaReadResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSharedSchemaReadResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SharedSchemaReadResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SharedSchemaReadResponseValidationError{}
+
+// Validate checks the field values on SharedSchemaAssignRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SharedSchemaAssignRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SharedSchemaAssignRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SharedSchemaAssignRequestMultiError, or nil if none found.
+func (m *SharedSchemaAssignRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SharedSchemaAssignRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetSharedSchemaId()) > 128 {
+		err := SharedSchemaAssignRequestValidationError{
+			field:  "SharedSchemaId",
+			reason: "value length must be at most 128 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_SharedSchemaAssignRequest_SharedSchemaId_Pattern.MatchString(m.GetSharedSchemaId()) {
+		err := SharedSchemaAssignRequestValidationError{
+			field:  "SharedSchemaId",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9_\\\\-@\\\\.:+]{1,128}$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return SharedSchemaAssignRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SharedSchemaAssignRequestMultiError is an error wrapping multiple validation
+// errors returned by SharedSchemaAssignRequest.ValidateAll() if the
+// designated constraints aren't met.
+type SharedSchemaAssignRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SharedSchemaAssignRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SharedSchemaAssignRequestMultiError) AllErrors() []error { return m }
+
+// SharedSchemaAssignRequestValidationError is the validation error returned by
+// SharedSchemaAssignRequest.Validate if the designated constraints aren't met.
+type SharedSchemaAssignRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SharedSchemaAssignRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SharedSchemaAssignRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SharedSchemaAssignRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SharedSchemaAssignRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SharedSchemaAssignRequestValidationError) ErrorName() string {
+	return "SharedSchemaAssignRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SharedSchemaAssignRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSharedSchemaAssignRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SharedSchemaAssignRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SharedSchemaAssignRequestValidationError{}
+
+var _SharedSchemaAssignRequest_SharedSchemaId_Pattern = regexp.MustCompile("^[a-zA-Z0-9_\\-@\\.:+]{1,128}$")
+
+// Validate checks the field values on SharedSchemaAssignResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SharedSchemaAssignResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SharedSchemaAssignResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SharedSchemaAssignResponseMultiError, or nil if none found.
+func (m *SharedSchemaAssignResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SharedSchemaAssignResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return SharedSchemaAssignResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SharedSchemaAssignResponseMultiError is an error wrapping multiple
+// validation errors returned by SharedSchemaAssignResponse.ValidateAll() if
+// the designated constraints aren't met.
+type SharedSchemaAssignResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SharedSchemaAssignResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SharedSchemaAssignResponseMultiError) AllErrors() []error { return m }
+
+// SharedSchemaAssignResponseValidationError is the validation error returned
+// by SharedSchemaAssignResponse.Validate if the designated constraints aren't met.
+type SharedSchemaAssignResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SharedSchemaAssignResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SharedSchemaAssignResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SharedSchemaAssignResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SharedSchemaAssignResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SharedSchemaAssignResponseValidationError) ErrorName() string {
+	return "SharedSchemaAssignResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SharedSchemaAssignResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSharedSchemaAssignResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SharedSchemaAssignResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SharedSchemaAssignResponseValidationError{}
+
+// Validate checks the field values on SharedSchemaListRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SharedSchemaListRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SharedSchemaListRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SharedSchemaListRequestMultiError, or nil if none found.
+func (m *SharedSchemaListRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SharedSchemaListRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetPageSize() != 0 {
+
+		if m.GetPageSize() < 1 {
+			err := SharedSchemaListRequestValidationError{
+				field:  "PageSize",
+				reason: "value must be greater than or equal to 1",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if m.GetContinuousToken() != "" {
+
+	}
+
+	if len(errors) > 0 {
+		return SharedSchemaListRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SharedSchemaListRequestMultiError is an error wrapping multiple validation
+// errors returned by SharedSchemaListRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SharedSchemaListRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SharedSchemaListRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SharedSchemaListRequestMultiError) AllErrors() []error { return m }
+
+// SharedSchemaListRequestValidationError is the validation error returned by
+// SharedSchemaListRequest.Validate if the designated constraints aren't met.
+type SharedSchemaListRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SharedSchemaListRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SharedSchemaListRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SharedSchemaListRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SharedSchemaListRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SharedSchemaListRequestValidationError) ErrorName() string {
+	return "SharedSchemaListRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SharedSchemaListRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSharedSchemaListRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SharedSchemaListRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SharedSchemaListRequestValidationError{}
+
+// Validate checks the field values on SharedSchemaListResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SharedSchemaListResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SharedSchemaListResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SharedSchemaListResponseMultiError, or nil if none found.
+func (m *SharedSchemaListResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SharedSchemaListResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetSchemas() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SharedSchemaListResponseValidationError{
+						field:  fmt.Sprintf("Schemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SharedSchemaListResponseValidationError{
+						field:  fmt.Sprintf("Schemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SharedSchemaListResponseValidationError{
+					field:  fmt.Sprintf("Schemas[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for ContinuousToken
+
+	if len(errors) > 0 {
+		return SharedSchemaListResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SharedSchemaListResponseMultiError is an error wrapping multiple validation
+// errors returned by SharedSchemaListResponse.ValidateAll() if the designated
+// constraints aren't met.
+type SharedSchemaListResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SharedSchemaListResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SharedSchemaListResponseMultiError) AllErrors() []error { return m }
+
+// SharedSchemaListResponseValidationError is the validation error returned by
+// SharedSchemaListResponse.Validate if the designated constraints aren't met.
+type SharedSchemaListResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SharedSchemaListResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SharedSchemaListResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SharedSchemaListResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SharedSchemaListResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SharedSchemaListResponseValidationError) ErrorName() string {
+	return "SharedSchemaListResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SharedSchemaListResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSharedSchemaListResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SharedSchemaListResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SharedSchemaListResponseValidationError{}
+
+// Validate checks the field values on SharedSchemaListItem with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SharedSchemaListItem) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SharedSchemaListItem with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SharedSchemaListItemMultiError, or nil if none found.
+func (m *SharedSchemaListItem) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SharedSchemaListItem) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SharedSchemaId
+
+	// no validation rules for HeadVersion
+
+	// no validation rules for CreatedAt
+
+	if len(errors) > 0 {
+		return SharedSchemaListItemMultiError(errors)
+	}
+
+	return nil
+}
+
+// SharedSchemaListItemMultiError is an error wrapping multiple validation
+// errors returned by SharedSchemaListItem.ValidateAll() if the designated
+// constraints aren't met.
+type SharedSchemaListItemMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SharedSchemaListItemMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SharedSchemaListItemMultiError) AllErrors() []error { return m }
+
+// SharedSchemaListItemValidationError is the validation error returned by
+// SharedSchemaListItem.Validate if the designated constraints aren't met.
+type SharedSchemaListItemValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SharedSchemaListItemValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SharedSchemaListItemValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SharedSchemaListItemValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SharedSchemaListItemValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SharedSchemaListItemValidationError) ErrorName() string {
+	return "SharedSchemaListItemValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SharedSchemaListItemValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSharedSchemaListItem.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SharedSchemaListItemValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SharedSchemaListItemValidationError{}

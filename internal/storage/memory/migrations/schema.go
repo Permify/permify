@@ -148,6 +148,41 @@ var Schema = &memdb.DBSchema{
 				},
 			},
 		},
+		constants.SharedSchemaDefinitionsTable: {
+			Name: constants.SharedSchemaDefinitionsTable,
+			Indexes: map[string]*memdb.IndexSchema{
+				"id": {
+					Name:   "id",
+					Unique: true,
+					Indexer: &memdb.CompoundIndex{
+						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "SharedSchemaID"},
+							&memdb.StringFieldIndex{Field: "Name"},
+							&memdb.StringFieldIndex{Field: "Version"},
+						},
+					},
+				},
+				"version": {
+					Name:   "version",
+					Unique: false,
+					Indexer: &memdb.CompoundIndex{
+						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "SharedSchemaID"},
+							&memdb.StringFieldIndex{Field: "Version"},
+						},
+					},
+				},
+				"shared_schema_id": {
+					Name:   "shared_schema_id",
+					Unique: false,
+					Indexer: &memdb.CompoundIndex{
+						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "SharedSchemaID"},
+						},
+					},
+				},
+			},
+		},
 		constants.TenantsTable: {
 			Name: constants.TenantsTable,
 			Indexes: map[string]*memdb.IndexSchema{

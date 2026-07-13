@@ -2,8 +2,9 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
-	"log/slog" // structured logging
+	"log/slog"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
@@ -34,11 +35,16 @@ func NewSchemaReader(database *db.Postgres) *SchemaReader {
 }
 
 // ReadSchema returns the schema definition for a specific tenant and version as a structured object.
-func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string) (sch *base.SchemaDefinition, err error) {
+func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, sharedSchemaID, version string) (sch *base.SchemaDefinition, err error) {
 	ctx, span := internal.Tracer.Start(ctx, "schema-reader.read-schema")
 	defer span.End()
-	slog.DebugContext(ctx, "reading schema", slog.Any("tenant_id", tenantID), slog.Any("version", version))
-	builder := r.database.Builder.Select("name, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version, "tenant_id": tenantID})
+	slog.DebugContext(ctx, "reading schema", slog.Any("tenant_id", tenantID), slog.Any("shared_schema_id", sharedSchemaID), slog.Any("version", version))
+	var builder squirrel.SelectBuilder
+	if sharedSchemaID != "" {
+		builder = r.database.Builder.Select("name, serialized_definition, version").From(SharedSchemaDefinitionTable).Where(squirrel.Eq{"version": version, "shared_schema_id": sharedSchemaID})
+	} else {
+		builder = r.database.Builder.Select("name, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version, "tenant_id": tenantID})
+	}
 
 	var query string
 	var args []interface{}
@@ -79,11 +85,16 @@ func (r *SchemaReader) ReadSchema(ctx context.Context, tenantID, version string)
 }
 
 // ReadSchemaString returns the schema definition for a specific tenant and version as a string.
-func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, version string) (definitions []string, err error) {
+func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, sharedSchemaID, version string) (definitions []string, err error) {
 	ctx, span := internal.Tracer.Start(ctx, "schema-reader.read-schema-string")
 	defer span.End()
-	slog.DebugContext(ctx, "reading schema", slog.Any("tenant_id", tenantID), slog.Any("version", version))
-	builder := r.database.Builder.Select("name, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version, "tenant_id": tenantID})
+	slog.DebugContext(ctx, "reading schema", slog.Any("tenant_id", tenantID), slog.Any("shared_schema_id", sharedSchemaID), slog.Any("version", version))
+	var builder squirrel.SelectBuilder
+	if sharedSchemaID != "" {
+		builder = r.database.Builder.Select("name, serialized_definition, version").From(SharedSchemaDefinitionTable).Where(squirrel.Eq{"version": version, "shared_schema_id": sharedSchemaID})
+	} else {
+		builder = r.database.Builder.Select("name, serialized_definition, version").From(SchemaDefinitionTable).Where(squirrel.Eq{"version": version, "tenant_id": tenantID})
+	}
 
 	var query string
 	var args []interface{}
@@ -118,11 +129,16 @@ func (r *SchemaReader) ReadSchemaString(ctx context.Context, tenantID, version s
 }
 
 // ReadEntityDefinition - Reads entity config from the repository.
-func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, name, version string) (definition *base.EntityDefinition, v string, err error) {
+func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, sharedSchemaID, name, version string) (definition *base.EntityDefinition, v string, err error) {
 	ctx, span := internal.Tracer.Start(ctx, "schema-reader.read-entity-definition")
-	defer span.End() // close span
-	slog.DebugContext(ctx, "reading entity definition", slog.Any("tenant_id", tenantID), slog.Any("version", version))
-	builder := r.database.Builder.Select("name, serialized_definition, version").Where(squirrel.Eq{"name": name, "version": version, "tenant_id": tenantID}).From(SchemaDefinitionTable).Limit(1)
+	defer span.End()
+	slog.DebugContext(ctx, "reading entity definition", slog.Any("tenant_id", tenantID), slog.Any("shared_schema_id", sharedSchemaID), slog.Any("version", version))
+	var builder squirrel.SelectBuilder
+	if sharedSchemaID != "" {
+		builder = r.database.Builder.Select("name, serialized_definition, version").Where(squirrel.Eq{"name": name, "version": version, "shared_schema_id": sharedSchemaID}).From(SharedSchemaDefinitionTable).Limit(1)
+	} else {
+		builder = r.database.Builder.Select("name, serialized_definition, version").Where(squirrel.Eq{"name": name, "version": version, "tenant_id": tenantID}).From(SchemaDefinitionTable).Limit(1)
+	}
 
 	var query string
 	var args []interface{}
@@ -154,11 +170,16 @@ func (r *SchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, name,
 }
 
 // ReadRuleDefinition - Reads rule config from the repository.
-func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, name, version string) (definition *base.RuleDefinition, v string, err error) {
+func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, sharedSchemaID, name, version string) (definition *base.RuleDefinition, v string, err error) {
 	ctx, span := internal.Tracer.Start(ctx, "schema-reader.read-rule-definition")
-	defer span.End() // close span
-	slog.DebugContext(ctx, "reading rule definition", slog.Any("tenant_id", tenantID), slog.Any("name", name), slog.Any("version", version))
-	builder := r.database.Builder.Select("name, serialized_definition, version").Where(squirrel.Eq{"name": name, "version": version, "tenant_id": tenantID}).From(SchemaDefinitionTable).Limit(1)
+	defer span.End()
+	slog.DebugContext(ctx, "reading rule definition", slog.Any("tenant_id", tenantID), slog.Any("shared_schema_id", sharedSchemaID), slog.Any("name", name), slog.Any("version", version))
+	var builder squirrel.SelectBuilder
+	if sharedSchemaID != "" {
+		builder = r.database.Builder.Select("name, serialized_definition, version").Where(squirrel.Eq{"name": name, "version": version, "shared_schema_id": sharedSchemaID}).From(SharedSchemaDefinitionTable).Limit(1)
+	} else {
+		builder = r.database.Builder.Select("name, serialized_definition, version").Where(squirrel.Eq{"name": name, "version": version, "tenant_id": tenantID}).From(SchemaDefinitionTable).Limit(1)
+	}
 
 	var query string
 	var args []interface{}
@@ -191,40 +212,79 @@ func (r *SchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, name, v
 }
 
 // HeadVersion - Finds the latest version of the schema.
-func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (version string, err error) {
+// Checks if the tenant has a shared schema assigned. If so, returns the shared schema's head version.
+func (r *SchemaReader) HeadVersion(ctx context.Context, tenantID string) (sharedSchemaID string, version string, err error) {
 	ctx, span := internal.Tracer.Start(ctx, "schema-reader.head-version")
-	defer span.End() // close span
-	slog.DebugContext(ctx, "finding the latest version fo the schema for", slog.String("tenant_id", tenantID))
+	defer span.End()
+	slog.DebugContext(ctx, "finding the latest version of the schema for", slog.String("tenant_id", tenantID))
+
+	// Check if tenant has a shared schema assigned
+	var nullableSharedID sql.NullString
+	err = r.database.ReadPool.QueryRow(ctx,
+		"SELECT shared_schema_id FROM "+TenantsTable+" WHERE id = $1", tenantID,
+	).Scan(&nullableSharedID)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return "", "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+	}
+
+	if nullableSharedID.Valid && nullableSharedID.String != "" {
+		// Tenant uses a shared schema — get head version from shared_schema_definitions
+		sharedSchemaID = nullableSharedID.String
+		var query string
+		var args []interface{}
+		query, args, err = r.database.Builder.
+			Select("version").From(SharedSchemaDefinitionTable).Where(squirrel.Eq{"shared_schema_id": sharedSchemaID}).OrderBy("version DESC").Limit(1).
+			ToSql()
+		if err != nil {
+			return "", "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		}
+		row := r.database.ReadPool.QueryRow(ctx, query, args...)
+		err = row.Scan(&version)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return "", "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND)
+			}
+			return "", "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		}
+		slog.DebugContext(ctx, "found shared schema head version", slog.String("shared_schema_id", sharedSchemaID), slog.String("version", version))
+		return sharedSchemaID, version, nil
+	}
+
+	// Per-tenant schema
 	var query string
 	var args []interface{}
 	query, args, err = r.database.Builder.
 		Select("version").From(SchemaDefinitionTable).Where(squirrel.Eq{"tenant_id": tenantID}).OrderBy("version DESC").Limit(1).
 		ToSql()
 	if err != nil {
-		return "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
+		return "", "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
-	slog.DebugContext(ctx, "executing sql query", slog.Any("query", query), slog.Any("arguments", args))
-	row := r.database.ReadPool.QueryRow(ctx, query, args...) // Execute query
+	row := r.database.ReadPool.QueryRow(ctx, query, args...)
 	err = row.Scan(&version)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND)
+			return "", "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCHEMA_NOT_FOUND)
 		}
-		return "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
+		return "", "", utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
-	slog.DebugContext(ctx, "successfully found the latest schema version", slog.Any("version", version))
-	return version, nil // Return version
+	slog.DebugContext(ctx, "found per-tenant schema head version", slog.String("version", version))
+	return "", version, nil
 }
 
 // ListSchemas - List all Schemas
-func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
-	ctx, span := internal.Tracer.Start(ctx, "tenant-reader.list-tenants")
+func (r *SchemaReader) ListSchemas(ctx context.Context, tenantID, sharedSchemaID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
+	ctx, span := internal.Tracer.Start(ctx, "schema-reader.list-schemas")
 	defer span.End()
 
 	slog.DebugContext(ctx, "listing schemas with pagination", slog.Any("pagination", pagination))
 
-	builder := r.database.Builder.Select("DISTINCT version").From(SchemaDefinitionTable).Where(squirrel.Eq{"tenant_id": tenantID})
+	var builder squirrel.SelectBuilder
+	if sharedSchemaID != "" {
+		builder = r.database.Builder.Select("DISTINCT version").From(SharedSchemaDefinitionTable).Where(squirrel.Eq{"shared_schema_id": sharedSchemaID})
+	} else {
+		builder = r.database.Builder.Select("DISTINCT version").From(SchemaDefinitionTable).Where(squirrel.Eq{"tenant_id": tenantID})
+	}
 	if pagination.Token() != "" {
 		var t database.ContinuousToken
 		t, err = utils.EncodedContinuousToken{Value: pagination.Token()}.Decode()

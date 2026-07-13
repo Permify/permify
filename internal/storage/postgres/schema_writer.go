@@ -51,6 +51,16 @@ func (w *SchemaWriter) WriteSchema(ctx context.Context, schemas []storage.Schema
 		return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
 	}
 
+	// Clear shared_schema_id when writing per-tenant schema
+	if len(schemas) > 0 {
+		_, err = w.database.WritePool.Exec(ctx,
+			"UPDATE "+TenantsTable+" SET shared_schema_id = NULL WHERE id = $1 AND shared_schema_id IS NOT NULL",
+			schemas[0].TenantID)
+		if err != nil {
+			return utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_EXECUTION)
+		}
+	}
+
 	slog.DebugContext(ctx, "successfully wrote schemas to the database", slog.Any("number_of_schemas", len(schemas)))
 	return nil // success
 }

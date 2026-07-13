@@ -90,7 +90,7 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 
 	// Retrieve the schema of the entity based on the tenantId and schema version
 	var sc *base.SchemaDefinition
-	sc, err = engine.readSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
+	sc, err = engine.readSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSharedSchemaId(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +171,7 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 
 	// Retrieve the entity definition schema based on the tenantId and schema version
 	var sc *base.SchemaDefinition
-	sc, err = engine.readSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSchemaVersion())
+	sc, err = engine.readSchema(ctx, request.GetTenantId(), request.GetMetadata().GetSharedSchemaId(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return err
 	}
@@ -286,10 +286,15 @@ func (engine *LookupEngine) LookupSubject(ctx context.Context, request *base.Per
 
 // readSchema retrieves a SchemaDefinition for a given tenantID and schemaVersion.
 // It first checks a cache (schemaMap) for the schema, and if not found, reads it using the schemaReader.
-func (engine *LookupEngine) readSchema(ctx context.Context, tenantID, schemaVersion string) (*base.SchemaDefinition, error) {
-	// Create a unique cache key by combining the tenantID and schemaVersion.
-	// This ensures that different combinations of tenantID and schemaVersion get their own cache entries.
-	cacheKey := tenantID + "|" + schemaVersion
+func (engine *LookupEngine) readSchema(ctx context.Context, tenantID, sharedSchemaID, schemaVersion string) (*base.SchemaDefinition, error) {
+	// Create a unique cache key. When sharedSchemaID is set, use it as prefix
+	// so all tenants sharing the same schema hit the same cache entry.
+	var cacheKey string
+	if sharedSchemaID != "" {
+		cacheKey = "|" + sharedSchemaID + "|" + schemaVersion
+	} else {
+		cacheKey = tenantID + "||" + schemaVersion
+	}
 
 	// Attempt to retrieve the schema from the cache (schemaMap) using the generated cacheKey.
 	if sch, ok := engine.schemaMap.Load(cacheKey); ok {
@@ -298,7 +303,7 @@ func (engine *LookupEngine) readSchema(ctx context.Context, tenantID, schemaVers
 	}
 
 	// If the schema is not present in the cache, use the schemaReader to read it from the source (e.g., a database or file).
-	sch, err := engine.schemaReader.ReadSchema(ctx, tenantID, schemaVersion)
+	sch, err := engine.schemaReader.ReadSchema(ctx, tenantID, sharedSchemaID, schemaVersion)
 	if err != nil {
 		// If there's an error reading the schema (e.g., schema not found or database connection issue), return the error.
 		return nil, err

@@ -47,7 +47,7 @@ func NewCheckEngineWithCache(
 func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
 	// Retrieve entity definition
 	var en *base.EntityDefinition
-	en, _, err = c.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
+	en, _, err = c.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetMetadata().GetSharedSchemaId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		return &base.PermissionCheckResponse{
 			Can: base.CheckResult_CHECK_RESULT_DENIED,

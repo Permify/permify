@@ -62,7 +62,7 @@ func (engine *SubjectFilter) SubjectFilter(ctx context.Context, request *base.Pe
 	// ReadEntityDefinition method of the SchemaReader interface is used to retrieve the entity's schema definition.
 	// GetTenantId, GetType and GetSchemaVersion methods are used to provide necessary arguments to ReadEntityDefinition.
 	var en *base.EntityDefinition
-	en, _, err = engine.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
+	en, _, err = engine.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetMetadata().GetSharedSchemaId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		// If an error is encountered while reading the schema definition, return an empty response and the error.
 		return subjectFilterEmpty(), err
@@ -311,7 +311,7 @@ func (engine *SubjectFilter) subjectFilterDirectCall(
 	return func(ctx context.Context) (ids []string, err error) {
 		// Read the rule definition from the schema. If an error occurs, return the default denied response.
 		var ru *base.RuleDefinition
-		ru, _, err = engine.schemaReader.ReadRuleDefinition(ctx, request.GetTenantId(), request.GetPermission(), request.GetMetadata().GetSchemaVersion())
+		ru, _, err = engine.schemaReader.ReadRuleDefinition(ctx, request.GetTenantId(), request.GetMetadata().GetSharedSchemaId(), request.GetPermission(), request.GetMetadata().GetSchemaVersion())
 		if err != nil {
 			return subjectFilterEmpty(), err
 		}

@@ -103,7 +103,7 @@ func NewCheckEngineWithBalancer(
 // entity definitions, then distributes the request based on a generated key.
 func (c *Balancer) Check(ctx context.Context, request *base.PermissionCheckRequest) (*base.PermissionCheckResponse, error) {
 	// Fetch the EntityDefinition for the given tenant, entity type, and schema version.
-	en, _, err := c.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
+	en, _, err := c.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetMetadata().GetSharedSchemaId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		slog.ErrorContext(ctx, err.Error())
 		// If an error occurs while reading the entity definition, deny permission and return the error.

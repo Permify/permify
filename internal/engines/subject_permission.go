@@ -46,7 +46,7 @@ func (engine *SubjectPermissionEngine) SubjectPermission(ctx context.Context, re
 
 	// The schema definition for the entity is read from the engine's schemaReader.
 	// The tenant ID, entity type, and schema version are all taken from the request.
-	en, _, err := engine.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
+	en, _, err := engine.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetMetadata().GetSharedSchemaId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
 	if err != nil {
 		// If there's an error reading the schema definition, we wrap it and return.
 		return emptyResp, err

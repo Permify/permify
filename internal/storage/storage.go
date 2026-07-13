@@ -107,18 +107,18 @@ func (n *NoopDataWriter) RunBundle(_ context.Context, _ string, _ map[string]str
 
 // SchemaReader - Reads schema definitions from the storage.
 type SchemaReader interface {
-	// ReadSchema returns the schema definition for a specific tenant and version as a structured object.
-	ReadSchema(ctx context.Context, tenantID, version string) (schema *base.SchemaDefinition, err error)
+	// ReadSchema returns the schema definition for a specific tenant and version.
+	ReadSchema(ctx context.Context, tenantID, sharedSchemaID, version string) (schema *base.SchemaDefinition, err error)
 	// ReadSchemaString returns the schema definition for a specific tenant and version as a string.
-	ReadSchemaString(ctx context.Context, tenantID, version string) (definitions []string, err error)
+	ReadSchemaString(ctx context.Context, tenantID, sharedSchemaID, version string) (definitions []string, err error)
 	// ReadEntityDefinition reads entity config from the storage.
-	ReadEntityDefinition(ctx context.Context, tenantID, entityName, version string) (definition *base.EntityDefinition, v string, err error)
+	ReadEntityDefinition(ctx context.Context, tenantID, sharedSchemaID, entityName, version string) (definition *base.EntityDefinition, v string, err error)
 	// ReadRuleDefinition reads rule config from the storage.
-	ReadRuleDefinition(ctx context.Context, tenantID, ruleName, version string) (definition *base.RuleDefinition, v string, err error)
+	ReadRuleDefinition(ctx context.Context, tenantID, sharedSchemaID, ruleName, version string) (definition *base.RuleDefinition, v string, err error)
 	// HeadVersion reads the latest version of the schema from the storage.
-	HeadVersion(ctx context.Context, tenantID string) (version string, err error)
-	// ListSchemas lists all schemas from the storage
-	ListSchemas(ctx context.Context, tenantID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error)
+	HeadVersion(ctx context.Context, tenantID string) (sharedSchemaID string, version string, err error)
+	// ListSchemas lists all schemas from the storage.
+	ListSchemas(ctx context.Context, tenantID, sharedSchemaID string, pagination database.Pagination) (schemas []*base.SchemaList, ct database.EncodedContinuousToken, err error)
 }
 
 type NoopSchemaReader struct{}
@@ -127,27 +127,27 @@ func NewNoopSchemaReader() SchemaReader {
 	return &NoopSchemaReader{}
 }
 
-func (n *NoopSchemaReader) ReadSchema(_ context.Context, _, _ string) (*base.SchemaDefinition, error) {
+func (n *NoopSchemaReader) ReadSchema(_ context.Context, _, _, _ string) (*base.SchemaDefinition, error) {
 	return &base.SchemaDefinition{}, nil
 }
 
-func (n *NoopSchemaReader) ReadSchemaString(_ context.Context, _, _ string) ([]string, error) {
+func (n *NoopSchemaReader) ReadSchemaString(_ context.Context, _, _, _ string) ([]string, error) {
 	return []string{}, nil
 }
 
-func (n *NoopSchemaReader) ReadEntityDefinition(_ context.Context, _, _, _ string) (*base.EntityDefinition, string, error) {
+func (n *NoopSchemaReader) ReadEntityDefinition(ctx context.Context, tenantID, sharedSchemaID, entityName, version string) (*base.EntityDefinition, string, error) {
 	return &base.EntityDefinition{}, "", nil
 }
 
-func (n *NoopSchemaReader) ReadRuleDefinition(_ context.Context, _, _, _ string) (*base.RuleDefinition, string, error) {
+func (n *NoopSchemaReader) ReadRuleDefinition(ctx context.Context, tenantID, sharedSchemaID, ruleName, version string) (*base.RuleDefinition, string, error) {
 	return &base.RuleDefinition{}, "", nil
 }
 
-func (n *NoopSchemaReader) HeadVersion(_ context.Context, _ string) (string, error) {
-	return "", nil
+func (n *NoopSchemaReader) HeadVersion(ctx context.Context, tenantID string) (string, string, error) {
+	return "", "", nil
 }
 
-func (n *NoopSchemaReader) ListSchemas(_ context.Context, _ string, _ database.Pagination) (tenants []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
+func (n *NoopSchemaReader) ListSchemas(_ context.Context, _, _ string, _ database.Pagination) (tenants []*base.SchemaList, ct database.EncodedContinuousToken, err error) {
 	return nil, nil, nil
 }
 
@@ -228,6 +228,80 @@ func (n *NoopWatcher) Watch(_ context.Context, _, _ string) (<-chan *base.DataCh
 	close(errs)
 
 	return aclChanges, errs
+}
+
+// SharedSchemaReader - Reads shared schema definitions from the storage.
+type SharedSchemaReader interface {
+	// ReadSharedSchema returns the shared schema definition for a specific shared_schema_id and version.
+	ReadSharedSchema(ctx context.Context, sharedSchemaID, version string) (schema *base.SchemaDefinition, err error)
+	// ReadSharedSchemaString returns the shared schema definition as string definitions.
+	ReadSharedSchemaString(ctx context.Context, sharedSchemaID, version string) (definitions []string, err error)
+	// ReadSharedEntityDefinition reads a single entity definition from a shared schema.
+	ReadSharedEntityDefinition(ctx context.Context, sharedSchemaID, entityName, version string) (definition *base.EntityDefinition, v string, err error)
+	// ReadSharedRuleDefinition reads a single rule definition from a shared schema.
+	ReadSharedRuleDefinition(ctx context.Context, sharedSchemaID, ruleName, version string) (definition *base.RuleDefinition, v string, err error)
+	// SharedHeadVersion returns the latest version for a shared schema.
+	SharedHeadVersion(ctx context.Context, sharedSchemaID string) (version string, err error)
+	// ListSharedSchemas lists all shared schema IDs with pagination.
+	ListSharedSchemas(ctx context.Context, pagination database.Pagination) (schemas []*base.SharedSchemaListItem, ct database.EncodedContinuousToken, err error)
+	// GetTenantSharedSchemaID returns the shared_schema_id for a tenant, or empty string if none.
+	GetTenantSharedSchemaID(ctx context.Context, tenantID string) (sharedSchemaID string, err error)
+}
+
+type NoopSharedSchemaReader struct{}
+
+func NewNoopSharedSchemaReader() SharedSchemaReader {
+	return &NoopSharedSchemaReader{}
+}
+
+func (n *NoopSharedSchemaReader) ReadSharedSchema(_ context.Context, _, _ string) (*base.SchemaDefinition, error) {
+	return &base.SchemaDefinition{}, nil
+}
+
+func (n *NoopSharedSchemaReader) ReadSharedSchemaString(_ context.Context, _, _ string) ([]string, error) {
+	return []string{}, nil
+}
+
+func (n *NoopSharedSchemaReader) ReadSharedEntityDefinition(_ context.Context, _, _, _ string) (*base.EntityDefinition, string, error) {
+	return &base.EntityDefinition{}, "", nil
+}
+
+func (n *NoopSharedSchemaReader) ReadSharedRuleDefinition(_ context.Context, _, _, _ string) (*base.RuleDefinition, string, error) {
+	return &base.RuleDefinition{}, "", nil
+}
+
+func (n *NoopSharedSchemaReader) SharedHeadVersion(_ context.Context, _ string) (string, error) {
+	return "", nil
+}
+
+func (n *NoopSharedSchemaReader) ListSharedSchemas(_ context.Context, _ database.Pagination) ([]*base.SharedSchemaListItem, database.EncodedContinuousToken, error) {
+	return nil, database.NewNoopContinuousToken().Encode(), nil
+}
+
+func (n *NoopSharedSchemaReader) GetTenantSharedSchemaID(_ context.Context, _ string) (string, error) {
+	return "", nil
+}
+
+// SharedSchemaWriter - Writes shared schema definitions to the storage.
+type SharedSchemaWriter interface {
+	// WriteSharedSchema writes a shared schema (inserts rows into shared_schema_definitions).
+	WriteSharedSchema(ctx context.Context, definitions []SharedSchemaDefinition) error
+	// AssignSharedSchema sets shared_schema_id on the given tenants.
+	AssignSharedSchema(ctx context.Context, sharedSchemaID string, tenantIDs []string) error
+}
+
+type NoopSharedSchemaWriter struct{}
+
+func NewNoopSharedSchemaWriter() SharedSchemaWriter {
+	return &NoopSharedSchemaWriter{}
+}
+
+func (n *NoopSharedSchemaWriter) WriteSharedSchema(_ context.Context, _ []SharedSchemaDefinition) error {
+	return nil
+}
+
+func (n *NoopSharedSchemaWriter) AssignSharedSchema(_ context.Context, _ string, _ []string) error {
+	return nil
 }
 
 // TenantReader - Reads tenants from the storage.
