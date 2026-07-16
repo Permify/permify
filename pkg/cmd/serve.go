@@ -24,6 +24,7 @@ import (
 	cacheproxy "github.com/Permify/permify/internal/storage/proxies/cache"
 	cbproxy "github.com/Permify/permify/internal/storage/proxies/circuitbreaker"
 	sfproxy "github.com/Permify/permify/internal/storage/proxies/singleflight"
+	consistentbalancer "github.com/Permify/permify/pkg/balancer"
 	"github.com/Permify/permify/pkg/cmd/flags"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 
@@ -442,7 +443,10 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Initialize the engines using the key manager, schema reader, and relationship reader
-		checkEngine := engines.NewCheckEngine(schemaReader, dataReader, engines.CheckConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
+		checkEngine := engines.NewCheckEngine(schemaReader, dataReader,
+			engines.CheckConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit),
+			engines.CheckMaxBatchSize(cfg.Service.Permission.BulkLimit),
+		)
 		expandEngine := engines.NewExpandEngine(schemaReader, dataReader)
 
 		// Declare a variable `checker` of type `invoke.Check`.
@@ -464,6 +468,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				ctx,
 				checker,
 				schemaReader,
+				consistentbalancer.GetBuilder(),
 				cfg.Server.NameOverride,
 				&cfg.Distributed,
 				&cfg.Server.GRPC,

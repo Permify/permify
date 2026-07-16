@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync/atomic"
 
 	"google.golang.org/grpc/balancer"
-	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/resolver"
 
@@ -20,8 +20,9 @@ type Balancer struct {
 	// The ClientConn to communicate with the gRPC client.
 	clientConn ClientConnWrapper
 
-	// Current picker used to select SubConns for requests.
-	picker balancer.Picker
+	// picker stores the consistent-hash NodePicker for application code (lock-free reads).
+	// Nil when nodes are unavailable.
+	picker atomic.Pointer[picker]
 
 	// Evaluates connectivity state transitions for SubConns.
 	connectivityEvaluator *balancer.ConnectivityStateEvaluator
@@ -52,18 +53,14 @@ func (b *Balancer) ResolverError(err error) {
 	b.lastResolverError = err
 	if b.addressSubConns.Len() == 0 {
 		b.state = connectivity.TransientFailure
-		b.picker = base.NewErrPicker(errors.Join(b.lastConnectionError, b.lastResolverError))
+		b.picker.Store(nil)
 	}
 
 	if b.state != connectivity.TransientFailure {
 		return
 	}
 
-	// Update the balancer state and picker.
-	b.clientConn.UpdateState(balancer.State{
-		ConnectivityState: b.state,
-		Picker:            b.picker,
-	})
+	b.updateGRPCState()
 }
 
 func (b *Balancer) UpdateClientConnState(s balancer.ClientConnState) error {
@@ -99,8 +96,8 @@ func (b *Balancer) UpdateClientConnState(s balancer.ClientConnState) error {
 	// Check if the consistent hashing configuration exists.
 	if b.consistent == nil {
 		slog.Error("No consistent hashing configuration found")
-		b.picker = base.NewErrPicker(errors.Join(b.lastConnectionError, b.lastResolverError))
-		b.clientConn.UpdateState(balancer.State{ConnectivityState: b.state, Picker: b.picker})
+		b.picker.Store(nil)
+		b.updateGRPCState()
 		return fmt.Errorf("no consistent hashing configuration found")
 	}
 
@@ -167,29 +164,20 @@ func (b *Balancer) UpdateClientConnState(s balancer.ClientConnState) error {
 		return balancer.ErrBadResolverState
 	}
 
-	// Update the picker based on the current balancer state.
+	// Update the application picker.
 	if b.state == connectivity.TransientFailure {
-		slog.Warn("Transient failure detected, using error picker")
-		b.picker = base.NewErrPicker(errors.Join(b.lastConnectionError, b.lastResolverError))
+		slog.Warn("Transient failure detected")
+		b.picker.Store(nil)
 	} else {
 		width := b.config.PickerWidth
 		if width < 1 {
 			width = 1
 		}
-		slog.Info("Creating new picker",
-			slog.Int("width", width),
-		)
-		b.picker = &picker{
-			consistent: b.consistent,
-			width:      width,
-		}
+		slog.Info("Creating new picker", slog.Int("width", width))
+		b.picker.Store(&picker{consistent: b.consistent, width: width})
 	}
 
-	// Update the ClientConn state with the new picker.
-	slog.Info("Updating ClientConn state",
-		slog.String("connectivity_state", b.state.String()),
-	)
-	b.clientConn.UpdateState(balancer.State{ConnectivityState: b.state, Picker: b.picker})
+	b.updateGRPCState()
 
 	return nil
 }
@@ -241,10 +229,19 @@ func (b *Balancer) UpdateSubConnState(sc balancer.SubConn, state balancer.SubCon
 	}
 
 	b.state = b.connectivityEvaluator.RecordTransition(oldS, s)
+	b.updateGRPCState()
+}
+
+// updateGRPCState pushes the current connectivity state to gRPC.
+// Always uses subConnPicker — application code pre-computes SubConn in context.
+func (b *Balancer) updateGRPCState() {
 	slog.Info("Updating ClientConn state",
 		slog.String("connectivity_state", b.state.String()),
 	)
-	b.clientConn.UpdateState(balancer.State{ConnectivityState: b.state, Picker: b.picker})
+	b.clientConn.UpdateState(balancer.State{
+		ConnectivityState: b.state,
+		Picker:            &subConnPicker{},
+	})
 }
 
 func (b *Balancer) Close() {}

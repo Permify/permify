@@ -9,6 +9,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/anypb"
 
+	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/pkg/attribute"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -17,6 +18,7 @@ import (
 
 const (
 	_defaultConcurrencyLimit = 100
+	_defaultMaxBatchSize     = 100
 )
 
 // CheckOption - a functional option type for configuring the CheckEngine.
@@ -26,6 +28,13 @@ type CheckOption func(engine *CheckEngine)
 func CheckConcurrencyLimit(limit int) CheckOption {
 	return func(c *CheckEngine) {
 		c.concurrencyLimit = limit
+	}
+}
+
+// CheckMaxBatchSize - a functional option that sets the maximum batch size for the CheckEngine.
+func CheckMaxBatchSize(size int) CheckOption {
+	return func(c *CheckEngine) {
+		c.maxBatchSize = size
 	}
 }
 
@@ -73,9 +82,9 @@ type SubjectPermissionResponse struct {
 	err        error
 }
 
-// CheckResponse - a struct that holds a PermissionCheckResponse and an error for a single check function.
+// CheckResponse - a struct that holds a BatchCheckResponse and an error for a single check function.
 type CheckResponse struct {
-	resp *base.PermissionCheckResponse
+	resp *invoke.BatchCheckResponse
 	err  error
 }
 

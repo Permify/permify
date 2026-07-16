@@ -375,12 +375,12 @@ func (bc *BulkChecker) getRequestResult(ctx context.Context, req BulkCheckerRequ
 	}
 
 	// Perform the actual permission check
-	response, err := bc.checker.Check(ctx, req.Request)
+	response, err := bc.checker.Check(ctx, invoke.NewBatchCheckRequest(req.Request))
 	if err != nil {
 		return base.CheckResult_CHECK_RESULT_UNSPECIFIED, err
 	}
 
-	return response.GetCan(), nil
+	return response.UnionResult(), nil
 }
 
 // processResult processes a single result with thread-safe state updates.

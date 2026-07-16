@@ -27,10 +27,11 @@ type Invoker interface {
 }
 
 // Check is an interface that defines a method for checking permissions.
-// It requires an implementation of InvokeCheck that takes a context and a PermissionCheckRequest,
-// and returns a PermissionCheckResponse and an error if any.
+// It requires an implementation of Check that takes a context and a BatchCheckRequest
+// (which supports both single-entity and multi-entity checks),
+// and returns a BatchCheckResponse with per-entity results and an error if any.
 type Check interface {
-	Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error)
+	Check(ctx context.Context, request *BatchCheckRequest) (response *BatchCheckResponse, err error)
 }
 
 // Expand is an interface that defines a method for expanding permissions.
@@ -100,23 +101,26 @@ func NewDirectInvoker(
 }
 
 // Check is a method that implements the Check interface.
-// It calls the Run method of the CheckEngine with the provided context and PermissionCheckRequest,
-// and returns a PermissionCheckResponse and an error if any.
-func (invoker *DirectInvoker) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
+// It validates depth, sets snap/schema tokens, decrements depth, and delegates to the underlying checker.
+// Supports batch: request.EntityIDs may contain one or more entity IDs.
+func (invoker *DirectInvoker) Check(ctx context.Context, request *BatchCheckRequest) (response *BatchCheckResponse, err error) {
 	ctx, span := internal.Tracer.Start(ctx, "check", trace.WithAttributes(
-		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.GetTenantId())},
-		attribute.KeyValue{Key: "entity", Value: attribute.StringValue(tuple.EntityToString(request.GetEntity()))},
-		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.GetPermission())},
-		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
+		attribute.KeyValue{Key: "tenant_id", Value: attribute.StringValue(request.TenantID)},
+		attribute.KeyValue{Key: "entity_type", Value: attribute.StringValue(request.EntityType)},
+		attribute.KeyValue{Key: "entity_count", Value: attribute.IntValue(len(request.EntityIDs))},
+		attribute.KeyValue{Key: "permission", Value: attribute.StringValue(request.Permission)},
+		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.Subject))},
 	))
 	defer span.End()
 	invoker.checkHistogram.Record(ctx, 1,
 		metric.WithAttributeSet(
 			attribute.NewSet(
-				attribute.KeyValue{Key: "subject_id", Value: attribute.StringValue(request.GetSubject().GetId())},
-				attribute.KeyValue{Key: "subject_type", Value: attribute.StringValue(request.GetSubject().GetType())},
+				attribute.KeyValue{Key: "subject_id", Value: attribute.StringValue(request.Subject.GetId())},
+				attribute.KeyValue{Key: "subject_type", Value: attribute.StringValue(request.Subject.GetType())},
 			)),
 	)
+
+	denied := NewBatchCheckResponse(base.CheckResult_CHECK_RESULT_DENIED, request.EntityIDs...)
 
 	// Validate the depth of the request.
 	err = checkDepth(request)
@@ -124,70 +128,48 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
 		span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_CHECK_RESULT_DENIED.String())})
-		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_CHECK_RESULT_DENIED,
-			Metadata: &base.PermissionCheckResponseMetadata{
-				CheckCount: 0,
-			},
-		}, err
+		return denied, err
 	}
 
 	// Set the SnapToken if it's not provided in the request.
-	if request.GetMetadata().GetSnapToken() == "" {
+	if request.Metadata.GetSnapToken() == "" {
 		var st token.SnapToken
-		st, err = invoker.dataReader.HeadSnapshot(ctx, request.GetTenantId())
+		st, err = invoker.dataReader.HeadSnapshot(ctx, request.TenantID)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_CHECK_RESULT_DENIED.String())})
-			return &base.PermissionCheckResponse{
-				Can: base.CheckResult_CHECK_RESULT_DENIED,
-				Metadata: &base.PermissionCheckResponseMetadata{
-					CheckCount: 0,
-				},
-			}, err
+			return denied, err
 		}
 		request.Metadata.SnapToken = st.Encode().String()
 	}
 
 	// Set the SchemaVersion if it's not provided in the request.
-	if request.GetMetadata().GetSchemaVersion() == "" {
-		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.GetTenantId())
+	if request.Metadata.GetSchemaVersion() == "" {
+		request.Metadata.SchemaVersion, err = invoker.schemaReader.HeadVersion(ctx, request.TenantID)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(otelCodes.Error, err.Error())
 			span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_CHECK_RESULT_DENIED.String())})
-			return &base.PermissionCheckResponse{
-				Can: base.CheckResult_CHECK_RESULT_DENIED,
-				Metadata: &base.PermissionCheckResponseMetadata{
-					CheckCount: 0,
-				},
-			}, err
+			return denied, err
 		}
 	}
 
-	// Create a copy of the request to safely decrement depth without mutating the original.
-	nextRequest := request.CloneVT()
-	nextRequest.Metadata.Depth = request.GetMetadata().Depth - 1
+	// Decrement depth and delegate.
+	next := request.CloneWithDepth(request.Metadata.GetDepth() - 1)
 
 	// Perform the actual permission check using the provided request.
-	response, err = invoker.cc.Check(ctx, nextRequest)
+	response, err = invoker.cc.Check(ctx, next)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
 		span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(base.CheckResult_CHECK_RESULT_DENIED.String())})
-		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_CHECK_RESULT_DENIED,
-			Metadata: &base.PermissionCheckResponseMetadata{
-				CheckCount: 0,
-			},
-		}, err
+		return denied, err
 	}
 
 	// increaseCheckCount increments the CheckCount value in the response metadata by 1.
-	atomic.AddInt32(&response.GetMetadata().CheckCount, +1)
+	atomic.AddInt32(&response.Metadata.CheckCount, +1)
 
-	span.SetAttributes(attribute.KeyValue{Key: "can", Value: attribute.StringValue(response.GetCan().String())})
 	return response, err
 }
 
