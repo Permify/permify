@@ -33,6 +33,17 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	return response.(*database.TupleIterator), nil
 }
 
+// QueryRelationshipsWithSubjectFilter - Reads relation tuples with subject push-down through circuit breaker.
+func (r *DataReader) QueryRelationshipsWithSubjectFilter(ctx context.Context, tenantID string, filter *base.TupleFilter, subject *base.Subject, token string, pagination database.CursorPagination) (*database.TupleIterator, error) {
+	response, err := r.cb.Execute(func() (interface{}, error) {
+		return r.delegate.QueryRelationshipsWithSubjectFilter(ctx, tenantID, filter, subject, token, pagination)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response.(*database.TupleIterator), nil
+}
+
 // ReadRelationships - Reads relation tuples from the repository with different options.
 func (r *DataReader) ReadRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, token string, pagination database.Pagination) (collection *database.TupleCollection, ct database.EncodedContinuousToken, err error) {
 	type circuitBreakerResponse struct {

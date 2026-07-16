@@ -272,10 +272,9 @@ func (engine *CheckEngine) checkDirectRelation(request *base.PermissionCheckRequ
 			return denied(emptyResponseMetadata()), err
 		}
 
-		// Query the relationships for the entity in the request.
-		// TupleFilter helps in filtering out the relationships for a specific entity and a permission.
+		// Batch query with subject push-down
 		var rit *database.TupleIterator
-		rit, err = engine.dataReader.QueryRelationships(ctx, request.GetTenantId(), filter, request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
+		rit, err = engine.dataReader.QueryRelationshipsWithSubjectFilter(ctx, request.GetTenantId(), filter, request.GetSubject(), request.GetMetadata().GetSnapToken(), database.NewCursorPagination())
 		// If there's an error in querying, return a denied permission response along with the error.
 		if err != nil {
 			return denied(emptyResponseMetadata()), err

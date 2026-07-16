@@ -40,11 +40,17 @@ func NewDataReader(database *db.Postgres) *DataReader {
 
 // QueryRelationships reads relation tuples from the storage based on the given filter.
 func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, pagination database.CursorPagination) (it *database.TupleIterator, err error) {
-	// Start a new trace span and end it when the function exits.
-	ctx, span := internal.Tracer.Start(ctx, "data-reader.query-relationships")
+	return r.QueryRelationshipsWithSubjectFilter(ctx, tenantID, filter, nil, snap, pagination)
+}
+
+// QueryRelationshipsWithSubjectFilter reads relation tuples with an additional subject push-down filter.
+// It adds an OR predicate: (exact subject match) OR (userset tuples needing recursive expansion).
+// This avoids reading all subscribers of (entity, relation) when only one subject is being checked.
+func (r *DataReader) QueryRelationshipsWithSubjectFilter(ctx context.Context, tenantID string, filter *base.TupleFilter, subject *base.Subject, snap string, pagination database.CursorPagination) (it *database.TupleIterator, err error) {
+	ctx, span := internal.Tracer.Start(ctx, "data-reader.query-relationships-with-subject-filter")
 	defer span.End()
 	// Log query operation
-	slog.DebugContext(ctx, "querying relationships for tenant_id", slog.String("tenant_id", tenantID))
+	slog.DebugContext(ctx, "querying relationships with subject filter for tenant_id", slog.String("tenant_id", tenantID))
 	// Decode snapshot token
 	// Decode the snapshot value.
 	var st token.SnapToken
@@ -58,6 +64,13 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	builder := r.database.Builder.Select("entity_type, entity_id, relation, subject_type, subject_id, subject_relation").From(RelationTuplesTable).Where(squirrel.Eq{"tenant_id": tenantID})
 	builder = utils.TuplesFilterQueryForSelectBuilder(builder, filter)
 	builder = utils.SnapshotQuery(builder, st.(snapshot.Token).Value.Uint, st.(snapshot.Token).Snapshot)
+
+	// Apply subject push-down: only fetch exact match + userset tuples
+	if subject != nil {
+		if cond := utils.SubjectPushdownCondition(subject); cond != nil {
+			builder = builder.Where(cond)
+		}
+	}
 
 	if pagination.Cursor() != "" {
 		var t database.ContinuousToken
@@ -85,7 +98,7 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SQL_BUILDER)
 	}
 
-	slog.DebugContext(ctx, "generated sql query", slog.String("query", query), "with args", slog.Any("arguments", args))
+	slog.DebugContext(ctx, "generated sql query with subject filter", slog.String("query", query), "with args", slog.Any("arguments", args))
 	// Execute query
 	// Execute the SQL query and retrieve the result rows.
 	var rows pgx.Rows
@@ -109,7 +122,7 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 		return nil, utils.HandleError(ctx, span, err, base.ErrorCode_ERROR_CODE_SCAN)
 	}
 
-	slog.DebugContext(ctx, "successfully retrieved relation tuples from the database")
+	slog.DebugContext(ctx, "successfully retrieved relation tuples with subject filter from the database")
 	// Return a TupleIterator created from the TupleCollection.
 	return collection.CreateTupleIterator(), nil
 }

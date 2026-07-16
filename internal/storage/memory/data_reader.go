@@ -19,6 +19,7 @@ import (
 	db "github.com/Permify/permify/pkg/database/memory"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/token"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // DataReader -
@@ -34,7 +35,13 @@ func NewDataReader(database *db.Memory) *DataReader {
 }
 
 // QueryRelationships queries the database for relationships based on the provided filter.
-func (r *DataReader) QueryRelationships(_ context.Context, tenantID string, filter *base.TupleFilter, _ string, pagination database.CursorPagination) (it *database.TupleIterator, err error) {
+func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, pagination database.CursorPagination) (it *database.TupleIterator, err error) {
+	return r.QueryRelationshipsWithSubjectFilter(ctx, tenantID, filter, nil, snap, pagination)
+}
+
+// QueryRelationshipsWithSubjectFilter reads relation tuples with an additional subject push-down filter.
+// It returns only tuples where the subject matches exactly OR the tuple is a userset.
+func (r *DataReader) QueryRelationshipsWithSubjectFilter(_ context.Context, tenantID string, filter *base.TupleFilter, subject *base.Subject, _ string, pagination database.CursorPagination) (it *database.TupleIterator, err error) {
 	txn := r.database.DB.Txn(false)
 	defer txn.Abort()
 
@@ -86,6 +93,12 @@ func (r *DataReader) QueryRelationships(_ context.Context, tenantID string, filt
 	count := uint32(0)
 	limit := pagination.Limit()
 
+	// Pre-compute normalized relation for subject pushdown (only when subject is provided)
+	var subjectRelation string
+	if subject != nil {
+		subjectRelation = tuple.NormalizeRelation(subject.GetRelation())
+	}
+
 	for _, t := range tup {
 		// Skip tuples below the lower bound
 		switch pagination.Sort() {
@@ -99,7 +112,11 @@ func (r *DataReader) QueryRelationships(_ context.Context, tenantID string, filt
 			}
 		}
 
-		// Add tuple to result set
+		// Apply subject push-down when subject is provided: (exact match) OR (userset tuple)
+		if subject != nil && !matchesSubjectPushdown(t, subject, subjectRelation) {
+			continue
+		}
+
 		tuples = append(tuples, t.ToTuple())
 
 		// Enforce the limit if it's set
@@ -110,6 +127,22 @@ func (r *DataReader) QueryRelationships(_ context.Context, tenantID string, filt
 	}
 
 	return database.NewTupleCollection(tuples...).CreateTupleIterator(), nil
+}
+
+// matchesSubjectPushdown checks if a tuple matches the subject push-down criteria:
+// either an exact subject match or a userset tuple needing recursive expansion.
+func matchesSubjectPushdown(t storage.RelationTuple, subject *base.Subject, normalizedRelation string) bool {
+	// Exact match
+	if t.SubjectType == subject.GetType() && t.SubjectID == subject.GetId() {
+		if t.SubjectRelation == normalizedRelation || t.SubjectRelation == "" {
+			return true
+		}
+	}
+	// Userset tuple: subject_relation is non-empty and not ELLIPSIS
+	if t.SubjectRelation != "" && t.SubjectRelation != tuple.ELLIPSIS {
+		return true
+	}
+	return false
 }
 
 // ReadRelationships reads relationships from the database taking into account the pagination.

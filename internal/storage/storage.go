@@ -14,6 +14,11 @@ type DataReader interface {
 	// It returns an iterator to iterate over the tuples and any error encountered.
 	QueryRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, pagination database.CursorPagination) (iterator *database.TupleIterator, err error)
 
+	// QueryRelationshipsWithSubjectFilter reads relation tuples with an additional subject push-down filter.
+	// It returns only tuples where the subject matches exactly OR the tuple is a userset (subject_relation is non-empty).
+	// This avoids reading all subscribers of (entity, relation) when only one subject is being checked.
+	QueryRelationshipsWithSubjectFilter(ctx context.Context, tenantID string, filter *base.TupleFilter, subject *base.Subject, snap string, pagination database.CursorPagination) (iterator *database.TupleIterator, err error)
+
 	// ReadRelationships reads relation tuples from the storage based on the given filter and pagination.
 	// It returns a collection of tuples, a continuous token indicating the position in the data set, and any error encountered.
 	ReadRelationships(ctx context.Context, tenantID string, filter *base.TupleFilter, snap string, pagination database.Pagination) (collection *database.TupleCollection, ct database.EncodedContinuousToken, err error)
@@ -46,6 +51,10 @@ func NewNoopRelationshipReader() DataReader {
 }
 
 func (f *NoopDataReader) QueryRelationships(_ context.Context, _ string, _ *base.TupleFilter, _ string, _ database.CursorPagination) (*database.TupleIterator, error) {
+	return database.NewTupleIterator(), nil
+}
+
+func (f *NoopDataReader) QueryRelationshipsWithSubjectFilter(_ context.Context, _ string, _ *base.TupleFilter, _ *base.Subject, _ string, _ database.CursorPagination) (*database.TupleIterator, error) {
 	return database.NewTupleIterator(), nil
 }
 

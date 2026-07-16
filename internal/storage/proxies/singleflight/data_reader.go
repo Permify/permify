@@ -15,11 +15,12 @@ import (
 
 // DataReader - Add singleflight behaviour to data reader
 type DataReader struct {
-	delegate                storage.DataReader
-	headSnapshotGroup       singleflight.Group[string, token.SnapToken]
-	queryRelationshipsGroup singleflight.Group[string, []*base.Tuple]
-	querySingleAttrGroup    singleflight.Group[string, *base.Attribute]
-	queryAttributesGroup    singleflight.Group[string, []*base.Attribute]
+	delegate                         storage.DataReader
+	headSnapshotGroup                singleflight.Group[string, token.SnapToken]
+	queryRelationshipsGroup          singleflight.Group[string, []*base.Tuple]
+	queryRelWithSubjectPushdownGroup singleflight.Group[string, []*base.Tuple]
+	querySingleAttrGroup             singleflight.Group[string, *base.Attribute]
+	queryAttributesGroup             singleflight.Group[string, []*base.Attribute]
 }
 
 // NewDataReader - Add singleflight behaviour to new data reader
@@ -32,6 +33,22 @@ func (r *DataReader) QueryRelationships(ctx context.Context, tenantID string, fi
 	key := queryRelationshipsKey(tenantID, filter, token, pagination)
 	tuples, _, err := r.queryRelationshipsGroup.Do(ctx, key, func(ctx context.Context) ([]*base.Tuple, error) {
 		it, err := r.delegate.QueryRelationships(ctx, tenantID, filter, token, pagination)
+		if err != nil {
+			return nil, err
+		}
+		return drainTupleIterator(it), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return database.NewTupleIterator(tuples...), nil
+}
+
+// QueryRelationshipsWithSubjectFilter - Reads relation tuples with subject push-down, with singleflight deduplication.
+func (r *DataReader) QueryRelationshipsWithSubjectFilter(ctx context.Context, tenantID string, filter *base.TupleFilter, subject *base.Subject, token string, pagination database.CursorPagination) (*database.TupleIterator, error) {
+	key := queryRelationshipsWithSubjectKey(tenantID, filter, subject, token, pagination)
+	tuples, _, err := r.queryRelWithSubjectPushdownGroup.Do(ctx, key, func(ctx context.Context) ([]*base.Tuple, error) {
+		it, err := r.delegate.QueryRelationshipsWithSubjectFilter(ctx, tenantID, filter, subject, token, pagination)
 		if err != nil {
 			return nil, err
 		}
@@ -130,6 +147,24 @@ func queryAttributesKey(tenantID string, filter *base.AttributeFilter, token str
 		filter.GetEntity().GetType(),
 		filter.GetEntity().GetIds(),
 		filter.GetAttributes(),
+		token,
+		pagination.Cursor(),
+		pagination.Sort(),
+		pagination.Limit(),
+	)
+	return b.String()
+}
+
+func queryRelationshipsWithSubjectKey(tenantID string, filter *base.TupleFilter, subject *base.Subject, token string, pagination database.CursorPagination) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "qrsf\x00%q\x00%q\x00%#v\x00%q\x00%q\x00%q\x00%q\x00%q\x00%q\x00%q\x00%d",
+		tenantID,
+		filter.GetEntity().GetType(),
+		filter.GetEntity().GetIds(),
+		filter.GetRelation(),
+		subject.GetType(),
+		subject.GetId(),
+		subject.GetRelation(),
 		token,
 		pagination.Cursor(),
 		pagination.Sort(),
