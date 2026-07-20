@@ -12,8 +12,10 @@ import (
 )
 
 // subConnPicker is a trivial gRPC picker: reads a pre-computed SubConn from context.
-// Installed once in gRPC's balancer state; never needs to be replaced.
+// Stateless — a single instance is reused for all UpdateState calls.
 type subConnPicker struct{}
+
+var defaultSubConnPicker = &subConnPicker{}
 
 func (p *subConnPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	sc, ok := info.Ctx.Value(SubConnKey).(balancer.SubConn)

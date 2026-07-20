@@ -415,8 +415,8 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Add caching to the schema reader using a decorator
 		schemaReader = cacheproxy.NewSchemaReader(schemaReader, schemaCache)
 
-		dataReader = sfproxy.NewDataReader(dataReader)
 		dataReader = semproxy.NewDataReader(dataReader)
+		dataReader = sfproxy.NewDataReader(dataReader)
 		schemaReader = sfproxy.NewSchemaReader(schemaReader)
 
 		// Check if circuit breaker should be enabled for services

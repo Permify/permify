@@ -240,7 +240,7 @@ func (b *Balancer) updateGRPCState() {
 	)
 	b.clientConn.UpdateState(balancer.State{
 		ConnectivityState: b.state,
-		Picker:            &subConnPicker{},
+		Picker:            defaultSubConnPicker,
 	})
 }
 

@@ -220,9 +220,7 @@ func (c *Balancer) Check(ctx context.Context, request *invoke.BatchCheckRequest)
 	}
 	for _, r := range results {
 		if r.err != nil {
-			slog.ErrorContext(ctx, "node group check failed", "error", r.err.Error())
-			// Mark all entities in failed group as denied.
-			continue
+			return deniedResp, r.err
 		}
 		if r.resp != nil {
 			for entityID, result := range r.resp.Results {
