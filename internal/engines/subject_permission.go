@@ -16,24 +16,13 @@ type SubjectPermissionEngine struct {
 	checker invoke.Check
 	// schemaReader is responsible for reading schema information
 	schemaReader storage.SchemaReader
-	// concurrencyLimit is the maximum number of concurrent permission checks allowed
-	concurrencyLimit int
 }
 
-func NewSubjectPermission(checker invoke.Check, sr storage.SchemaReader, opts ...SubjectPermissionOption) *SubjectPermissionEngine {
-	// Initialize a CheckEngine with default concurrency limit and provided parameters
-	engine := &SubjectPermissionEngine{
-		checker:          checker,
-		schemaReader:     sr,
-		concurrencyLimit: _defaultConcurrencyLimit,
+func NewSubjectPermission(checker invoke.Check, sr storage.SchemaReader) *SubjectPermissionEngine {
+	return &SubjectPermissionEngine{
+		checker:      checker,
+		schemaReader: sr,
 	}
-
-	// Apply provided options to configure the CheckEngine
-	for _, opt := range opts {
-		opt(engine)
-	}
-
-	return engine
 }
 
 // SubjectPermission is a method on the SubjectPermissionEngine struct.

@@ -23,6 +23,7 @@ import (
 	"github.com/Permify/permify/internal/storage/postgres/gc"
 	cacheproxy "github.com/Permify/permify/internal/storage/proxies/cache"
 	cbproxy "github.com/Permify/permify/internal/storage/proxies/circuitbreaker"
+	semproxy "github.com/Permify/permify/internal/storage/proxies/semaphore"
 	sfproxy "github.com/Permify/permify/internal/storage/proxies/singleflight"
 	consistentbalancer "github.com/Permify/permify/pkg/balancer"
 	"github.com/Permify/permify/pkg/cmd/flags"
@@ -415,6 +416,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		schemaReader = cacheproxy.NewSchemaReader(schemaReader, schemaCache)
 
 		dataReader = sfproxy.NewDataReader(dataReader)
+		dataReader = semproxy.NewDataReader(dataReader)
 		schemaReader = sfproxy.NewSchemaReader(schemaReader)
 
 		// Check if circuit breaker should be enabled for services
@@ -501,8 +503,6 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		subjectPermissionEngine := engines.NewSubjectPermission(
 			checker,
 			schemaReader,
-			// Set concurrency limit for the subject permission checks.
-			engines.SubjectPermissionConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit),
 		)
 
 		// Create a new invoker that is used to directly call various functions or engines.
@@ -542,6 +542,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			tenantWriter,
 			watcher,
 		)
+		container.ConcurrencyLimit = cfg.Service.Permission.ConcurrencyLimit
 
 		// Create an error group with the provided context
 		var g *errgroup.Group

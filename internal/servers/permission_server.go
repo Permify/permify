@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc/status"
 
 	"github.com/Permify/permify/internal"
@@ -18,13 +19,18 @@ import (
 type PermissionServer struct {
 	v1.UnimplementedPermissionServer
 
-	invoker invoke.Invoker
+	invoker          invoke.Invoker
+	concurrencyLimit int
 }
 
 // NewPermissionServer - Creates new Permission Server
-func NewPermissionServer(i invoke.Invoker) *PermissionServer {
+func NewPermissionServer(i invoke.Invoker, concurrencyLimit int) *PermissionServer {
+	if concurrencyLimit <= 0 {
+		concurrencyLimit = invoke.DefaultConcurrencyLimit
+	}
 	return &PermissionServer{
-		invoker: i,
+		invoker:          i,
+		concurrencyLimit: concurrencyLimit,
 	}
 }
 
@@ -32,6 +38,7 @@ func NewPermissionServer(i invoke.Invoker) *PermissionServer {
 func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionCheckRequest) (*v1.PermissionCheckResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "permissions.check")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	v := request.Validate()
 	if v != nil {
@@ -58,6 +65,7 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 
 	ctx, span := internal.Tracer.Start(ctx, "permissions.bulk-check")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	// Validate tenant_id
 	if request.GetTenantId() == "" {
@@ -183,6 +191,7 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExpandRequest) (*v1.PermissionExpandResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "permissions.expand")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	v := request.Validate()
 	if v != nil {
@@ -204,6 +213,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.PermissionLookupEntityRequest) (*v1.PermissionLookupEntityResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "permissions.lookup-entity")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	v := request.Validate()
 	if v != nil {
@@ -225,6 +235,7 @@ func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.Permiss
 func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntityRequest, server v1.Permission_LookupEntityStreamServer) error {
 	ctx, span := internal.Tracer.Start(server.Context(), "permissions.lookup-entity-stream")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	v := request.Validate()
 	if v != nil {
@@ -246,6 +257,7 @@ func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntity
 func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.PermissionLookupSubjectRequest) (*v1.PermissionLookupSubjectResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "permissions.lookup-subject")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	v := request.Validate()
 	if v != nil {
@@ -267,6 +279,7 @@ func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.Permis
 func (r *PermissionServer) SubjectPermission(ctx context.Context, request *v1.PermissionSubjectPermissionRequest) (*v1.PermissionSubjectPermissionResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "permissions.subject-permission")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	v := request.Validate()
 	if v != nil {
