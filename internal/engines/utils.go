@@ -46,6 +46,12 @@ func LookupConcurrencyLimit(limit int) LookupOption {
 	}
 }
 
+func LookupMaxBatchSize(size int) LookupOption {
+	return func(c *LookupEngine) {
+		c.maxBatchSize = size
+	}
+}
+
 // SubjectFilterOption - a functional option type for configuring the LookupSubjectEngine.
 type SubjectFilterOption func(engine *SubjectFilter)
 

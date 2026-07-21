@@ -105,6 +105,8 @@ type executionState struct {
 	mu sync.Mutex
 	// results stores the results of all requests in their original order
 	results []base.CheckResult
+	// requests holds the sorted requests (stored once, reused by callbackWithToken)
+	requests []BulkCheckerRequest
 	// processedIndex tracks the next result to be processed in order
 	processedIndex int
 	// successCount tracks the number of successful permission checks
@@ -273,10 +275,83 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error { // Main execution en
 
 	// Initialize execution state for tracking progress
 	bc.executionState = &executionState{
-		results: make([]base.CheckResult, len(requests)),
-		limit:   int64(size),
+		results:  make([]base.CheckResult, len(requests)),
+		requests: requests,
+		limit:    int64(size),
 	}
 
+	// For entity-type checks: all requests share the same (type, permission, subject).
+	// Batch them into a single Check call instead of N individual calls.
+	if bc.typ == BulkCheckerTypeEntity {
+		return bc.executeBatchEntity(requests, size)
+	}
+
+	// For subject-type checks: each request has a different subject, process concurrently.
+	return bc.executeConcurrent(requests, size)
+}
+
+// executeBatchEntity batches all entity IDs into a single Check call.
+// All requests share the same (type, permission, subject) — they only differ in entity ID.
+func (bc *BulkChecker) executeBatchEntity(requests []BulkCheckerRequest, size uint32) error {
+	// Separate pre-computed results from those needing a check.
+	var entityIDs []string
+	var needCheckIndices []int
+
+	for i, req := range requests {
+		if req.Result != base.CheckResult_CHECK_RESULT_UNSPECIFIED {
+			bc.executionState.results[i] = req.Result
+		} else {
+			entityIDs = append(entityIDs, req.Request.GetEntity().GetId())
+			needCheckIndices = append(needCheckIndices, i)
+		}
+	}
+
+	// Batch check all entities at once.
+	if len(entityIDs) > 0 {
+		template := requests[needCheckIndices[0]].Request
+		batchResp, err := bc.checker.Check(bc.ctx, &invoke.BatchCheckRequest{
+			TenantID:   template.GetTenantId(),
+			EntityType: template.GetEntity().GetType(),
+			EntityIDs:  entityIDs,
+			Permission: template.GetPermission(),
+			Subject:    template.GetSubject(),
+			Metadata:   template.GetMetadata(),
+			Context:    template.GetContext(),
+			Arguments:  template.GetArguments(),
+		})
+		if err != nil {
+			if isContextError(err) {
+				return nil
+			}
+			return fmt.Errorf("bulk execution failed: %w", err)
+		}
+
+		for j, idx := range needCheckIndices {
+			if result, ok := batchResp.Results[entityIDs[j]]; ok {
+				bc.executionState.results[idx] = result
+			} else {
+				bc.executionState.results[idx] = base.CheckResult_CHECK_RESULT_DENIED
+			}
+		}
+	}
+
+	// Process results in order, invoke callback for ALLOWED.
+	for i := range requests {
+		result := bc.executionState.results[i]
+		if result == base.CheckResult_CHECK_RESULT_ALLOWED {
+			if atomic.LoadInt64(&bc.executionState.successCount) >= int64(size) {
+				break
+			}
+			atomic.AddInt64(&bc.executionState.successCount, 1)
+			bc.callbackWithToken(i)
+		}
+	}
+	return nil
+}
+
+// executeConcurrent processes requests concurrently (used for subject-type checks
+// where each request has a different subject and can't be batched).
+func (bc *BulkChecker) executeConcurrent(requests []BulkCheckerRequest, size uint32) error {
 	// Create execution context with cancellation for graceful shutdown
 	execCtx, execCancel := context.WithCancel(bc.ctx)
 	defer execCancel()
@@ -434,7 +509,7 @@ func (bc *BulkChecker) processResult(index int, result base.CheckResult) error {
 // Parameters:
 //   - index: The index of the result in the sorted list
 func (bc *BulkChecker) callbackWithToken(index int) {
-	requests := bc.getSortedRequests()
+	requests := bc.executionState.requests
 
 	// Validate index bounds
 	if index >= len(requests) {

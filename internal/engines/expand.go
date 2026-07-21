@@ -24,7 +24,9 @@ type ExpandEngine struct {
 	dataReader storage.DataReader
 }
 
-// NewExpandEngine creates a new instance of ExpandEngine.
+// NewExpandEngine - This function creates a new instance of ExpandEngine by taking a SchemaReader and a RelationshipReader as
+// parameters and returning a pointer to the created instance. The SchemaReader is used to read schema definitions, while the
+// RelationshipReader is used to read relationship definitions.
 func NewExpandEngine(sr storage.SchemaReader, rr storage.DataReader) *ExpandEngine {
 	return &ExpandEngine{
 		schemaReader: sr,

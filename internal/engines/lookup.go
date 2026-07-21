@@ -26,6 +26,8 @@ type LookupEngine struct {
 	schemaMap sync.Map
 	// concurrencyLimit is the maximum number of concurrent permission checks allowed
 	concurrencyLimit int
+	// maxBatchSize is the maximum number of subject IDs per batch query in EntityFilter
+	maxBatchSize int
 }
 
 func NewLookupEngine(
@@ -40,6 +42,7 @@ func NewLookupEngine(
 		dataReader:       dataReader,
 		schemaMap:        sync.Map{},
 		concurrencyLimit: _defaultConcurrencyLimit,
+		maxBatchSize:     _defaultMaxBatchSize,
 	}
 
 	// options
@@ -75,7 +78,7 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 	// Create configuration for BulkChecker
 	config := BulkCheckerConfig{
 		ConcurrencyLimit: engine.concurrencyLimit,
-		BufferSize:       1000,
+		BufferSize:       engine.maxBatchSize,
 	}
 
 	// Create and start BulkChecker. It performs permission checks in parallel.
@@ -99,7 +102,7 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 	visits := &VisitsMap{}
 
 	// Perform an entity filter operation based on the permission request
-	err = NewEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
+	err = NewEntityFilter(engine.dataReader, sc, engine.maxBatchSize).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
 		TenantId: request.GetTenantId(),
 		Metadata: &base.PermissionEntityFilterRequestMetadata{
 			SnapToken:     request.GetMetadata().GetSnapToken(),
@@ -114,7 +117,7 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 		Context: request.GetContext(),
 		Scope:   request.GetScope(),
 		Cursor:  request.GetContinuousToken(),
-	}, visits, publisher)
+	}, nil, visits, publisher)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +159,7 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 	// Create configuration for BulkChecker
 	config := BulkCheckerConfig{
 		ConcurrencyLimit: engine.concurrencyLimit,
-		BufferSize:       1000,
+		BufferSize:       engine.maxBatchSize,
 	}
 
 	// Create and start BulkChecker. It performs permission checks concurrently.
@@ -179,7 +182,7 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 	visits := &VisitsMap{}
 
 	// Perform an entity filter operation based on the permission request
-	err = NewEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
+	err = NewEntityFilter(engine.dataReader, sc, engine.maxBatchSize).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
 		TenantId: request.GetTenantId(),
 		Metadata: &base.PermissionEntityFilterRequestMetadata{
 			SnapToken:     request.GetMetadata().GetSnapToken(),
@@ -193,7 +196,7 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 		Subject: request.GetSubject(),
 		Context: request.GetContext(),
 		Cursor:  request.GetContinuousToken(),
-	}, visits, publisher)
+	}, nil, visits, publisher)
 	if err != nil {
 		return err
 	}

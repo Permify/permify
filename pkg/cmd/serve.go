@@ -496,7 +496,8 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			schemaReader,
 			dataReader,
 			// Set concurrency limit based on the configuration.
-			engines.LookupConcurrencyLimit(cfg.Service.Permission.BulkLimit),
+			engines.LookupConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit),
+			engines.LookupMaxBatchSize(cfg.Service.Permission.BulkLimit),
 		)
 
 		// Initialize the subjectPermissionEngine, responsible for handling subject permissions.
