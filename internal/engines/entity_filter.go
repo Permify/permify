@@ -185,6 +185,12 @@ func (engine *EntityFilter) attributeEntrance(
 
 	it := database.NewUniqueAttributeIterator(rit, cti)
 
+	// Only publish entities of the target type (the type we're looking up).
+	// Attribute entrances on intermediate types are not candidates.
+	if entrance.TargetEntrance.GetType() != request.GetEntrance().GetType() {
+		return nil
+	}
+
 	var attributeEntityIDs []string
 	attributeEntityIDSet := make(map[string]struct{})
 

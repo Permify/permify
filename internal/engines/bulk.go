@@ -49,6 +49,9 @@ type BulkCheckerConfig struct {
 	// BufferSize defines the size of the internal request buffer.
 	// This should be set based on expected request volume to avoid blocking.
 	BufferSize int
+	// Streaming disables background request collection. When true, ExecuteStreamingRequests
+	// reads directly from the request channel, enabling early termination.
+	Streaming bool
 }
 
 // DefaultBulkCheckerConfig returns a sensible default configuration
@@ -165,8 +168,14 @@ func NewBulkChecker(ctx context.Context, checker invoke.Check, typ BulkCheckerTy
 		collectionDone: make(chan struct{}),
 	}
 
-	// Start the background request collection goroutine
-	go bc.collectRequests()
+	// Start the background request collection goroutine (not needed in streaming mode).
+	if config.Streaming {
+		// No collector goroutine — ExecuteStreamingRequests reads directly from the channel.
+		// Close collectionDone immediately so StopCollectingRequests doesn't block.
+		close(bc.collectionDone)
+	} else {
+		go bc.collectRequests()
+	}
 
 	return bc, nil
 }
@@ -244,6 +253,111 @@ func (bc *BulkChecker) sortRequests(requests []BulkCheckerRequest) {
 		sort.Slice(requests, func(i, j int) bool {
 			return requests[i].Request.GetSubject().GetId() < requests[j].Request.GetSubject().GetId()
 		})
+	}
+}
+
+// ExecuteStreamingRequests processes candidates as they arrive from EntityFilter,
+// checking them in batches without waiting for all candidates to be collected.
+// When size ALLOWED results are found, it cancels the context to stop EntityFilter.
+// No ordering is applied — results are returned in arrival order.
+//
+// NOTE: This method reads directly from requestChan. The background collectRequests
+// goroutine must be stopped first by calling StopCollectingRequests or cancelling context
+// before the producer (EntityFilter) starts. In practice, the producer goroutine is started
+// AFTER this method begins reading, so collectRequests sees a closed channel or cancelled context.
+func (bc *BulkChecker) ExecuteStreamingRequests(size uint32) error {
+	// size=0 means no early termination — process all candidates.
+	var successCount int64
+
+	for {
+		// Collect a chunk from the channel.
+		chunk := make([]BulkCheckerRequest, 0, bc.config.BufferSize)
+	collect:
+		for len(chunk) < bc.config.BufferSize {
+			select {
+			case req, ok := <-bc.requestChan:
+				if !ok {
+					break collect // Channel closed, process remaining chunk
+				}
+				chunk = append(chunk, req)
+			case <-bc.ctx.Done():
+				return nil
+			default:
+				if len(chunk) > 0 {
+					break collect // No more pending, process what we have
+				}
+				// Nothing yet, block-wait for at least one
+				select {
+				case req, ok := <-bc.requestChan:
+					if !ok {
+						break collect
+					}
+					chunk = append(chunk, req)
+				case <-bc.ctx.Done():
+					return nil
+				}
+			}
+		}
+
+		if len(chunk) == 0 {
+			return nil // Channel closed, nothing left
+		}
+
+		// Separate pre-computed from needs-check.
+		var entityIDs []string
+		var needCheckIndices []int
+		results := make([]base.CheckResult, len(chunk))
+
+		for i, req := range chunk {
+			if req.Result != base.CheckResult_CHECK_RESULT_UNSPECIFIED {
+				results[i] = req.Result
+			} else {
+				entityIDs = append(entityIDs, req.Request.GetEntity().GetId())
+				needCheckIndices = append(needCheckIndices, i)
+			}
+		}
+
+		// Batch check.
+		if len(entityIDs) > 0 {
+			template := chunk[needCheckIndices[0]].Request
+			batchResp, err := bc.checker.Check(bc.ctx, &invoke.BatchCheckRequest{
+				TenantID:   template.GetTenantId(),
+				EntityType: template.GetEntity().GetType(),
+				EntityIDs:  entityIDs,
+				Permission: template.GetPermission(),
+				Subject:    template.GetSubject(),
+				Metadata:   template.GetMetadata(),
+				Context:    template.GetContext(),
+				Arguments:  template.GetArguments(),
+			})
+			if err != nil {
+				if isContextError(err) {
+					return nil
+				}
+				return fmt.Errorf("streaming bulk execution failed: %w", err)
+			}
+
+			for j, idx := range needCheckIndices {
+				if result, ok := batchResp.Results[entityIDs[j]]; ok {
+					results[idx] = result
+				} else {
+					results[idx] = base.CheckResult_CHECK_RESULT_DENIED
+				}
+			}
+		}
+
+		// Process results, callback for ALLOWED.
+		for i, req := range chunk {
+			if results[i] == base.CheckResult_CHECK_RESULT_ALLOWED {
+				id := req.Request.GetEntity().GetId()
+				bc.callback(id, "")
+				successCount++
+				if size > 0 && successCount >= int64(size) {
+					bc.cancel() // Stop EntityFilter
+					return nil
+				}
+			}
+		}
 	}
 }
 
