@@ -651,6 +651,12 @@ func (bc *BulkChecker) callbackWithToken(index int) {
 	bc.callback(id, ct)
 }
 
+// Context returns the BulkChecker's cancellable context.
+// Use this to run producers (e.g. EntityFilter) so they stop when the checker cancels.
+func (bc *BulkChecker) Context() context.Context {
+	return bc.ctx
+}
+
 // Close properly cleans up resources and cancels all operations.
 // This method should be called when the BulkChecker is no longer needed
 // to ensure proper resource cleanup and prevent goroutine leaks.

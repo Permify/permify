@@ -142,6 +142,12 @@ func (engine *EntityFilter) attributeEntrance(
 	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
+	// Only publish entities of the target type (the type we're looking up).
+	// Attribute entrances on intermediate types are not candidates — skip DB queries.
+	if entrance.TargetEntrance.GetType() != request.GetEntrance().GetType() {
+		return nil
+	}
+
 	// attributeEntrance only handles direct attribute access
 	if !visits.AddEA(entrance.TargetEntrance.GetType(), entrance.TargetEntrance.GetValue()) {
 		return nil
@@ -184,12 +190,6 @@ func (engine *EntityFilter) attributeEntrance(
 	}
 
 	it := database.NewUniqueAttributeIterator(rit, cti)
-
-	// Only publish entities of the target type (the type we're looking up).
-	// Attribute entrances on intermediate types are not candidates.
-	if entrance.TargetEntrance.GetType() != request.GetEntrance().GetType() {
-		return nil
-	}
 
 	var attributeEntityIDs []string
 	attributeEntityIDSet := make(map[string]struct{})

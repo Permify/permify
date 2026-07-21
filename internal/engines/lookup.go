@@ -129,9 +129,11 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 		// Streaming mode (x-permify-skip-ordering): EntityFilter and permission checks
 		// run in parallel. Candidates are checked in batches as they arrive, and processing
 		// stops as soon as enough ALLOWED results are found.
+		// Use checker's context so bc.cancel() stops EntityFilter too.
+		checkerCtx := checker.Context()
 		filterErrCh := make(chan error, 1)
 		go func() {
-			filterErrCh <- ef.EntityFilter(ctx, filterRequest, nil, visits, publisher)
+			filterErrCh <- ef.EntityFilter(checkerCtx, filterRequest, nil, visits, publisher)
 			checker.StopCollectingRequests()
 		}()
 
