@@ -660,6 +660,7 @@ func (bc *BulkChecker) callbackWithToken(index int) {
 // SignalProducerDone signals that the producer has finished sending requests.
 // Used in streaming mode — ExecuteStreamingRequests will drain remaining items and exit.
 func (bc *BulkChecker) SignalProducerDone() {
+	defer func() { _ = recover() }()
 	close(bc.producerDone)
 }
 
