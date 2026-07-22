@@ -134,7 +134,7 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 		filterErrCh := make(chan error, 1)
 		go func() {
 			filterErrCh <- ef.EntityFilter(checkerCtx, filterRequest, nil, visits, publisher)
-			checker.StopCollectingRequests()
+			checker.SignalProducerDone()
 		}()
 
 		err = checker.ExecuteStreamingRequests(size)

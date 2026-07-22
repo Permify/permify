@@ -94,6 +94,9 @@ type BulkChecker struct {
 	executionState *executionState
 	// collectionDone signals when request collection has completed
 	collectionDone chan struct{}
+	// producerDone signals when the producer (EntityFilter) has finished sending requests.
+	// Used in streaming mode instead of closing requestChan to avoid send-on-closed-channel races.
+	producerDone chan struct{}
 
 	// Callback for processing results
 	// callback is invoked for each successful permission check with the entity/subject ID and continuous token
@@ -166,6 +169,7 @@ func NewBulkChecker(ctx context.Context, checker invoke.Check, typ BulkCheckerTy
 		requests:       make([]BulkCheckerRequest, 0, config.BufferSize),
 		callback:       callback,
 		collectionDone: make(chan struct{}),
+		producerDone:   make(chan struct{}),
 	}
 
 	// Start the background request collection goroutine (not needed in streaming mode).
@@ -271,36 +275,34 @@ func (bc *BulkChecker) ExecuteStreamingRequests(size uint32) error {
 
 	for {
 		// Collect a chunk from the channel.
+		// We never close requestChan (to avoid send-on-closed-channel races).
+		// Instead, producerDone signals that no more items will be sent.
 		chunk := make([]BulkCheckerRequest, 0, bc.config.BufferSize)
-	collect:
+		producerFinished := false
+
+		// Block-wait for at least one item, producer done, or context cancel.
+		select {
+		case req := <-bc.requestChan:
+			chunk = append(chunk, req)
+		case <-bc.producerDone:
+			producerFinished = true
+		case <-bc.ctx.Done():
+			return nil
+		}
+
+		// Drain all immediately available items from the channel (non-blocking).
+	draining:
 		for len(chunk) < bc.config.BufferSize {
 			select {
-			case req, ok := <-bc.requestChan:
-				if !ok {
-					break collect // Channel closed, process remaining chunk
-				}
+			case req := <-bc.requestChan:
 				chunk = append(chunk, req)
-			case <-bc.ctx.Done():
-				return nil
 			default:
-				if len(chunk) > 0 {
-					break collect // No more pending, process what we have
-				}
-				// Nothing yet, block-wait for at least one
-				select {
-				case req, ok := <-bc.requestChan:
-					if !ok {
-						break collect
-					}
-					chunk = append(chunk, req)
-				case <-bc.ctx.Done():
-					return nil
-				}
+				break draining
 			}
 		}
 
 		if len(chunk) == 0 {
-			return nil // Channel closed, nothing left
+			return nil // Producer done, nothing left
 		}
 
 		// Separate pre-computed from needs-check.
@@ -357,6 +359,10 @@ func (bc *BulkChecker) ExecuteStreamingRequests(size uint32) error {
 					return nil
 				}
 			}
+		}
+
+		if producerFinished {
+			return nil
 		}
 	}
 }
@@ -649,6 +655,12 @@ func (bc *BulkChecker) callbackWithToken(index int) {
 
 	// Call the user-provided callback
 	bc.callback(id, ct)
+}
+
+// SignalProducerDone signals that the producer has finished sending requests.
+// Used in streaming mode — ExecuteStreamingRequests will drain remaining items and exit.
+func (bc *BulkChecker) SignalProducerDone() {
+	close(bc.producerDone)
 }
 
 // Context returns the BulkChecker's cancellable context.
