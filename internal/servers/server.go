@@ -366,6 +366,11 @@ func (s *Container) Run(
 	// Wait for the context to be canceled (e.g., due to a signal).
 	<-ctx.Done()
 
+	if srv.ShutdownDelay > 0 {
+		slog.Info(fmt.Sprintf("waiting %s before shutdown", srv.ShutdownDelay))
+		time.Sleep(srv.ShutdownDelay)
+	}
+
 	// Shutdown the servers gracefully.
 	ctxShutdown, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
