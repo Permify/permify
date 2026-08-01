@@ -3171,10 +3171,10 @@ usehooks-ts@^3.1.1:
   dependencies:
     lodash.debounce "^4.0.8"
 
-vis-network@^10.0.2:
-  version "10.0.2"
-  resolved "https://registry.yarnpkg.com/vis-network/-/vis-network-10.0.2.tgz#cf8ea2c6a06d32612d90c1aac14def1432112484"
-  integrity sha512-qPl8GLYBeHEFqiTqp4VBbYQIJ2EA8KLr7TstA2E8nJxfEHaKCU81hQLz7hhq11NUpHbMaRzBjW5uZpVKJ45/wA==
+vis-network@^10.1.0:
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/vis-network/-/vis-network-10.1.0.tgz#f42348b1472f0d1dd9d31c24b10467d0da522808"
+  integrity sha512-D7b5p/C6SwWv1BlH9EDdtP0Tje/PJzSBWKef9qy2DyTC14QB7KBcnAZxIyW2m7mFYyfoeR+k5GF747zDcIhaKA==
 
 vite-tsconfig-paths@^6.1.1:
   version "6.1.1"
