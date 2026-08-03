@@ -17,6 +17,7 @@ import (
 	health "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 
+	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/database"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
@@ -106,24 +107,19 @@ func (f *fakeBundleStore) Delete(_ context.Context, tenantID, name string) error
 type fakePermissionInvoker struct {
 	err error
 
-	checkReq             *v1.PermissionCheckRequest
+	checkReq             *invoke.BatchCheckRequest
 	expandReq            *v1.PermissionExpandRequest
 	lookupEntityReq      *v1.PermissionLookupEntityRequest
 	lookupSubjectReq     *v1.PermissionLookupSubjectRequest
 	subjectPermissionReq *v1.PermissionSubjectPermissionRequest
 }
 
-func (f *fakePermissionInvoker) Check(_ context.Context, request *v1.PermissionCheckRequest) (*v1.PermissionCheckResponse, error) {
+func (f *fakePermissionInvoker) Check(_ context.Context, request *invoke.BatchCheckRequest) (*invoke.BatchCheckResponse, error) {
 	f.checkReq = request
 	if f.err != nil {
 		return nil, f.err
 	}
-	return &v1.PermissionCheckResponse{
-		Can: v1.CheckResult_CHECK_RESULT_ALLOWED,
-		Metadata: &v1.PermissionCheckResponseMetadata{
-			CheckCount: 1,
-		},
-	}, nil
+	return invoke.NewBatchCheckResponse(v1.CheckResult_CHECK_RESULT_ALLOWED, request.EntityIDs...), nil
 }
 
 func (f *fakePermissionInvoker) Expand(_ context.Context, request *v1.PermissionExpandRequest) (*v1.PermissionExpandResponse, error) {
@@ -334,7 +330,7 @@ func TestInterceptorLogger(t *testing.T) {
 
 func TestPermissionServerPassesThroughInvoker(t *testing.T) {
 	invoker := &fakePermissionInvoker{}
-	server := NewPermissionServer(invoker)
+	server := NewPermissionServer(invoker, 0)
 	if server == nil {
 		t.Fatal("expected permission server")
 	}
@@ -344,7 +340,7 @@ func TestPermissionServerPassesThroughInvoker(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected check error: %v", err)
 	}
-	if invoker.checkReq != checkReq || checkResp.GetCan() != v1.CheckResult_CHECK_RESULT_ALLOWED {
+	if checkResp.GetCan() != v1.CheckResult_CHECK_RESULT_ALLOWED {
 		t.Fatalf("check did not return invoker response")
 	}
 
@@ -388,7 +384,7 @@ func TestPermissionServerPassesThroughInvoker(t *testing.T) {
 
 func TestPermissionServerValidationAndInvokerErrors(t *testing.T) {
 	invoker := &fakePermissionInvoker{}
-	server := NewPermissionServer(invoker)
+	server := NewPermissionServer(invoker, 0)
 
 	_, err := server.Check(context.Background(), &v1.PermissionCheckRequest{})
 	if err == nil {
