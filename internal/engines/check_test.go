@@ -2426,7 +2426,7 @@ var _ = Describe("check-engine", func() {
 			)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			resp, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+			resp, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 				TenantId:   "t1",
 				Entity:     &base.Entity{Type: "resource", Id: "r1"},
 				Permission: "view",
@@ -2436,9 +2436,9 @@ var _ = Describe("check-engine", func() {
 					SchemaVersion: "",
 					Depth:         20,
 				},
-			})
+			}))
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(resp.GetCan()).To(Equal(base.CheckResult_CHECK_RESULT_ALLOWED))
+			Expect(resp.UnionResult()).To(Equal(base.CheckResult_CHECK_RESULT_ALLOWED))
 		})
 
 		It("should allow cross-type recursive attribute permissions", func() {
@@ -2504,7 +2504,7 @@ var _ = Describe("check-engine", func() {
 			)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			resp, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+			resp, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 				TenantId:   "t1",
 				Entity:     &base.Entity{Type: "resource", Id: "r1"},
 				Permission: "view",
@@ -2514,9 +2514,9 @@ var _ = Describe("check-engine", func() {
 					SchemaVersion: "",
 					Depth:         20,
 				},
-			})
+			}))
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(resp.GetCan()).To(Equal(base.CheckResult_CHECK_RESULT_ALLOWED))
+			Expect(resp.UnionResult()).To(Equal(base.CheckResult_CHECK_RESULT_ALLOWED))
 		})
 
 		It("should allow mixed-entrance recursive attribute permissions", func() {
@@ -2574,7 +2574,7 @@ var _ = Describe("check-engine", func() {
 			)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			resp, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+			resp, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 				TenantId:   "t1",
 				Entity:     &base.Entity{Type: "resource", Id: "zc"},
 				Permission: "view",
@@ -2584,9 +2584,9 @@ var _ = Describe("check-engine", func() {
 					SchemaVersion: "",
 					Depth:         20,
 				},
-			})
+			}))
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(resp.GetCan()).To(Equal(base.CheckResult_CHECK_RESULT_ALLOWED))
+			Expect(resp.UnionResult()).To(Equal(base.CheckResult_CHECK_RESULT_ALLOWED))
 		})
 	})
 })
