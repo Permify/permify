@@ -544,6 +544,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			watcher,
 		)
 		container.ConcurrencyLimit = cfg.Service.Permission.ConcurrencyLimit
+		container.BulkLimit = cfg.Service.Permission.BulkLimit
 
 		// Create an error group with the provided context
 		var g *errgroup.Group

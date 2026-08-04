@@ -66,6 +66,8 @@ type Container struct {
 
 	// ConcurrencyLimit for permission checks
 	ConcurrencyLimit int
+	// BulkLimit is the maximum number of items in a BulkCheck request
+	BulkLimit int
 }
 
 // NewContainer is a constructor for the Container struct.
@@ -175,7 +177,7 @@ func (s *Container) Run(
 	grpcServer := grpc.NewServer(opts...)
 
 	// Register various gRPC services to the server.
-	grpcV1.RegisterPermissionServer(grpcServer, NewPermissionServer(s.Invoker, s.ConcurrencyLimit))
+	grpcV1.RegisterPermissionServer(grpcServer, NewPermissionServer(s.Invoker, s.ConcurrencyLimit, s.BulkLimit))
 	grpcV1.RegisterSchemaServer(grpcServer, NewSchemaServer(s.SW, s.SR))
 	grpcV1.RegisterDataServer(grpcServer, NewDataServer(s.DR, s.DW, s.BR, s.SR))
 	grpcV1.RegisterBundleServer(grpcServer, NewBundleServer(s.BR, s.BW))
@@ -188,7 +190,7 @@ func (s *Container) Run(
 
 	// Create another gRPC server, presumably for invoking permissions.
 	invokeServer := grpc.NewServer(opts...)
-	grpcV1.RegisterPermissionServer(invokeServer, NewPermissionServer(localInvoker, s.ConcurrencyLimit))
+	grpcV1.RegisterPermissionServer(invokeServer, NewPermissionServer(localInvoker, s.ConcurrencyLimit, s.BulkLimit))
 
 	// Register health check and reflection services for the invokeServer.
 	health.RegisterHealthServer(invokeServer, NewHealthServer()) // Register health server for invoker

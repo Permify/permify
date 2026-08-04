@@ -87,8 +87,11 @@ type CheckFunction func(ctx context.Context) (*invoke.BatchCheckResponse, error)
 // and a slice of CheckFunctions. It combines the per-entity results of
 // multiple CheckFunctions according to a specific strategy and returns
 // a BatchCheckResponse along with an error.
+// expectedEntityCount is the total number of unique entity IDs expected across
+// all functions. It is used by checkUnion to gate early exit correctly when
+// functions operate on disjoint entity sets.
 // Concurrency is controlled by a request-scoped semaphore stored in the context.
-type CheckCombiner func(ctx context.Context, functions []CheckFunction, limit int) (*invoke.BatchCheckResponse, error)
+type CheckCombiner func(ctx context.Context, functions []CheckFunction, limit int, expectedEntityCount int) (*invoke.BatchCheckResponse, error)
 
 // invoke creates a CheckFunction that invokes a batch check through the full invoke chain
 // (DirectInvoker -> Cache -> CheckEngine), ensuring depth tracking, caching, and tracing.
@@ -175,7 +178,7 @@ func (engine *CheckEngine) check(
 
 	// Otherwise, return a CheckFunction that checks a union of CheckFunctions.
 	return func(ctx context.Context) (*invoke.BatchCheckResponse, error) {
-		result, err := checkUnion(ctx, []CheckFunction{fn}, engine.concurrencyLimit)
+		result, err := checkUnion(ctx, []CheckFunction{fn}, engine.concurrencyLimit, len(request.EntityIDs))
 		if err != nil {
 			return result, err
 		}
@@ -268,7 +271,7 @@ func (engine *CheckEngine) setChild(
 	// (union, intersection, exclusion) on the prepared CheckFunctions.
 	// Concurrency is controlled by the request-scoped semaphore in the context.
 	return func(ctx context.Context) (*invoke.BatchCheckResponse, error) {
-		return combiner(ctx, functions, engine.concurrencyLimit)
+		return combiner(ctx, functions, engine.concurrencyLimit, len(request.EntityIDs))
 	}
 }
 
@@ -354,7 +357,9 @@ func (engine *CheckEngine) checkDirectRelation(request *invoke.BatchCheckRequest
 
 		// Build check functions for userset groups, chunking large groups.
 		var checkFunctions []CheckFunction
+		totalExpectedEntities := 0
 		for key, ids := range usersetGroups {
+			totalExpectedEntities += len(ids)
 			for i := 0; i < len(ids); i += engine.maxBatchSize {
 				end := min(i+engine.maxBatchSize, len(ids))
 				checkFunctions = append(checkFunctions, engine.invoke(&invoke.BatchCheckRequest{
@@ -379,7 +384,7 @@ func (engine *CheckEngine) checkDirectRelation(request *invoke.BatchCheckRequest
 
 		// If there are userset check functions, run them and map results back to parent entities.
 		if len(checkFunctions) > 0 {
-			usersetResp, err := checkUnion(ctx, checkFunctions, engine.concurrencyLimit)
+			usersetResp, err := checkUnion(ctx, checkFunctions, engine.concurrencyLimit, totalExpectedEntities)
 			if err != nil {
 				resp.Metadata = joinResponseMetas(resp.Metadata, usersetResp.Metadata)
 				return resp, err
@@ -458,7 +463,9 @@ func (engine *CheckEngine) checkTupleToUserSet(
 		}
 
 		var checkFunctions []CheckFunction
+		totalExpectedEntities := 0
 		for entityType, ids := range subjectsByType {
+			totalExpectedEntities += len(ids)
 			for i := 0; i < len(ids); i += engine.maxBatchSize {
 				end := min(i+engine.maxBatchSize, len(ids))
 				checkFunctions = append(checkFunctions, engine.invoke(&invoke.BatchCheckRequest{
@@ -481,7 +488,7 @@ func (engine *CheckEngine) checkTupleToUserSet(
 			return resp, nil
 		}
 
-		subjectResp, err := checkUnion(ctx, checkFunctions, engine.concurrencyLimit)
+		subjectResp, err := checkUnion(ctx, checkFunctions, engine.concurrencyLimit, totalExpectedEntities)
 		if err != nil {
 			resp.Metadata = joinResponseMetas(resp.Metadata, subjectResp.Metadata)
 			return resp, err
@@ -728,7 +735,7 @@ func (engine *CheckEngine) checkDirectCall(request *invoke.BatchCheckRequest) Ch
 
 // checkUnion checks if the subject has permission by running multiple CheckFunctions concurrently.
 // Per-entity merge: for each entityID, if ANY function returned ALLOWED -> ALLOWED, else -> DENIED.
-func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*invoke.BatchCheckResponse, error) {
+func checkUnion(ctx context.Context, functions []CheckFunction, limit int, expectedEntityCount int) (*invoke.BatchCheckResponse, error) {
 	// Initialize the response metadata
 	responseMetadata := emptyResponseMetadata()
 
@@ -792,8 +799,8 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*inv
 			}
 			entityIDsSeen = true
 
-			// Early exit: if all known entities are now ALLOWED, no further functions can change the result.
-			if entityIDsSeen && deniedCount == 0 {
+			// Early exit: if all expected entities are now ALLOWED, no further functions can change the result.
+			if entityIDsSeen && deniedCount == 0 && len(mergedResults) >= expectedEntityCount {
 				return &invoke.BatchCheckResponse{
 					Results:  mergedResults,
 					Metadata: responseMetadata,
@@ -816,7 +823,7 @@ func checkUnion(ctx context.Context, functions []CheckFunction, limit int) (*inv
 
 // checkIntersection checks if the subject has permission by running multiple CheckFunctions concurrently.
 // Per-entity merge: for each entityID, ALL functions must return ALLOWED -> ALLOWED, else -> DENIED.
-func checkIntersection(ctx context.Context, functions []CheckFunction, limit int) (*invoke.BatchCheckResponse, error) {
+func checkIntersection(ctx context.Context, functions []CheckFunction, limit int, _ int) (*invoke.BatchCheckResponse, error) {
 	// Initialize the response metadata
 	responseMetadata := emptyResponseMetadata()
 
@@ -924,7 +931,7 @@ func checkIntersection(ctx context.Context, functions []CheckFunction, limit int
 
 // checkExclusion is a function that checks if there are any exclusions for given CheckFunctions.
 // Per-entity merge: for each entityID, first function ALLOWED AND all remaining DENIED -> ALLOWED, else -> DENIED.
-func checkExclusion(ctx context.Context, functions []CheckFunction, limit int) (*invoke.BatchCheckResponse, error) {
+func checkExclusion(ctx context.Context, functions []CheckFunction, limit int, _ int) (*invoke.BatchCheckResponse, error) {
 	// Initialize the response metadata
 	responseMetadata := emptyResponseMetadata()
 

@@ -330,7 +330,7 @@ func TestInterceptorLogger(t *testing.T) {
 
 func TestPermissionServerPassesThroughInvoker(t *testing.T) {
 	invoker := &fakePermissionInvoker{}
-	server := NewPermissionServer(invoker, 0)
+	server := NewPermissionServer(invoker, 0, 0)
 	if server == nil {
 		t.Fatal("expected permission server")
 	}
@@ -384,7 +384,7 @@ func TestPermissionServerPassesThroughInvoker(t *testing.T) {
 
 func TestPermissionServerValidationAndInvokerErrors(t *testing.T) {
 	invoker := &fakePermissionInvoker{}
-	server := NewPermissionServer(invoker, 0)
+	server := NewPermissionServer(invoker, 0, 0)
 
 	_, err := server.Check(context.Background(), &v1.PermissionCheckRequest{})
 	if err == nil {

@@ -3,6 +3,7 @@ package servers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"sync"
 
@@ -21,16 +22,21 @@ type PermissionServer struct {
 
 	invoker          invoke.Invoker
 	concurrencyLimit int
+	bulkLimit        int
 }
 
 // NewPermissionServer - Creates new Permission Server
-func NewPermissionServer(i invoke.Invoker, concurrencyLimit int) *PermissionServer {
+func NewPermissionServer(i invoke.Invoker, concurrencyLimit, bulkLimit int) *PermissionServer {
 	if concurrencyLimit <= 0 {
 		concurrencyLimit = invoke.DefaultConcurrencyLimit
+	}
+	if bulkLimit <= 0 {
+		bulkLimit = 100
 	}
 	return &PermissionServer{
 		invoker:          i,
 		concurrencyLimit: concurrencyLimit,
+		bulkLimit:        bulkLimit,
 	}
 }
 
@@ -85,8 +91,8 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 		return nil, err
 	}
 
-	if len(checkItems) > 100 {
-		err := status.Error(GetStatus(nil), "maximum 100 items allowed")
+	if len(checkItems) > r.bulkLimit {
+		err := status.Error(GetStatus(nil), fmt.Sprintf("maximum %d items allowed", r.bulkLimit))
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
 		return nil, err
