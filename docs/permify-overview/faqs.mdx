@@ -71,7 +71,7 @@ It's expected that your initial schema will eventually change as your product or
 
 As an example, when a new feature arises and related permissions are created, you need to change the schema (rewrite it with the new permission) then configure it using this Write Schema API. Afterwards, you can use the preferred version of the schema in your API requests with **schema_version**. If you do not prefer to use **schema_version** params in API calls Permify automatically gets the latest schema on API calls.
 
-A potential caveat of changing or creating schemas too often is the creation of many idle relation tuples. In Permify, created relation tuples are not removed from the stored database unless you delete them with the [delete API](../data/delete-data.md). For this case, we have a [garbage collector](https://github.com/Permify/permify/pull/381) which you can use to clear expired or idle relation tuples.
+A potential caveat of changing or creating schemas too often is the creation of many idle relation tuples. In Permify, created relation tuples are not removed from the stored database unless you delete them with the [delete API](../api-reference/data/delete-data). For this case, we have a [garbage collector](https://github.com/Permify/permify/pull/381) which you can use to clear expired or idle relation tuples.
 
 We recommend applying the following pattern to safely handle schema changes:
 
@@ -124,7 +124,7 @@ Gathering authorization logic in a central place offers important advantages ove
 
 See the [What is Authorization Service] Section for a detailed explanation of those advantages.
 
-[What is Authorization Service]: ../authorization-service
+[What is Authorization Service]: ./authorization-service
 
 ![load-balancer](https://user-images.githubusercontent.com/34595361/201173835-6f6b67cd-d65b-4239-b695-04ecf1bad5bc.png)
 

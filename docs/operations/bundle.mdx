@@ -17,7 +17,7 @@ This functionality streamlines managing authorization data, allows you to manage
 
 Let's examine how Bundles operate.
 
-Let's say you want to model how data will be created when an organization is created in your application. For this purpose, you can utilize the [WriteBundle](../../api-reference/bundle/write-bundle) API endpoint. This API enables users to define or update data bundles, each distinguished by a unique name.
+Let's say you want to model how data will be created when an organization is created in your application. For this purpose, you can utilize the [WriteBundle](../api-reference/bundle/write-bundle) API endpoint. This API enables users to define or update data bundles, each distinguished by a unique name.
 
 Here's an example body for WriteBundle in this scenario:
 
@@ -54,9 +54,9 @@ Let's say user:564 creates an organization:789 in your application. According to
 - organization:789#manager@user:564
 - organization:789$public|boolean:false
 
-Instead of using the [WriteData](../../api-reference/data/write-data) endpoint, you can utilize [RunBundle](../../api-reference/data/run-bundle) to create this data by simply providing specific identifiers.
+Instead of using the [WriteData](../api-reference/data/write-data) endpoint, you can utilize [RunBundle](../api-reference/data/run-bundle) to create this data by simply providing specific identifiers.
 
-An example request of [RunBundle](../../api-reference/data/run-bundle) for this scenario:
+An example request of [RunBundle](../api-reference/data/run-bundle) for this scenario:
 
 ```json
 {
@@ -76,7 +76,7 @@ This will result in the creation of the following data in Permify:
 
 ## Endpoints
 
-- [WriteBundle](../../api-reference/bundle/write-bundle)
-- [RunBundle](../../api-reference/data/run-bundle)
-- [DeleteBundle](../../api-reference/bundle/delete-bundle)
-- [ReadBundle](../../api-reference/bundle/read-bundle)
+- [WriteBundle](../api-reference/bundle/write-bundle)
+- [RunBundle](../api-reference/data/run-bundle)
+- [DeleteBundle](../api-reference/bundle/delete-bundle)
+- [ReadBundle](../api-reference/bundle/read-bundle)
