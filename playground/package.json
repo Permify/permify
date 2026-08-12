@@ -49,7 +49,7 @@
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.29.1",
     "jsdom": "^26.1.0",
-    "less": "^4.4.2",
+    "less": "^4.8.1",
     "typescript": "^6.0.2",
     "vite": "^8.0.16",
     "vite-tsconfig-paths": "^6.1.1",
