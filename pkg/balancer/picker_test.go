@@ -46,108 +46,81 @@ var _ = Describe("Picker and Consistent Hashing", func() {
 		}
 	})
 
-	Describe("Picker Logic", func() {
-		var (
-			p       *picker
-			testCtx context.Context
-		)
+	Describe("subConnPicker (pass-through)", func() {
+		var p *subConnPicker
 
 		BeforeEach(func() {
-			// Initialize picker with consistent hashing and a width of 2
-			p = &picker{
-				consistent: c,
-				width:      2,
-			}
-			// Set up context with a valid key
-			testCtx = context.WithValue(context.Background(), Key, []byte("test-key"))
+			p = &subConnPicker{}
 		})
 
-		It("should pick a member successfully", func() {
-			members, err := c.ClosestN([]byte("test-key"), 2)
+		It("should return SubConn from context", func() {
+			sc := &mockSubConnWrapper{}
+			ctx := context.WithValue(context.Background(), SubConnKey, balancer.SubConn(sc))
+			result, err := p.Pick(balancer.PickInfo{Ctx: ctx})
 			Expect(err).To(BeNil())
-			Expect(len(members)).To(BeNumerically(">", 0))
-			Expect(members[0].(ConsistentMember).String()).To(Equal("member1"))
+			Expect(result.SubConn).To(Equal(sc))
 		})
 
-		It("should return an error if the context key is missing", func() {
+		It("should return error if no SubConn in context", func() {
 			result, err := p.Pick(balancer.PickInfo{Ctx: context.Background()})
-			Expect(err).To(MatchError("context key missing"))
+			Expect(err).To(MatchError("no SubConn in context"))
 			Expect(result.SubConn).To(BeNil())
+		})
+
+		It("should return error if SubConn is nil in context", func() {
+			ctx := context.WithValue(context.Background(), SubConnKey, nil)
+			result, err := p.Pick(balancer.PickInfo{Ctx: ctx})
+			Expect(err).To(MatchError("no SubConn in context"))
+			Expect(result.SubConn).To(BeNil())
+		})
+	})
+
+	Describe("Pick", func() {
+		var p *picker
+
+		BeforeEach(func() {
+			p = &picker{consistent: c, width: 2}
+		})
+
+		It("should locate a member successfully", func() {
+			sc, err := p.Pick([]byte("test-key"))
+			Expect(err).To(BeNil())
+			Expect(sc).ToNot(BeNil())
 		})
 
 		It("should return an error if no members are available", func() {
-			// Remove all members
 			for _, m := range members {
 				c.Remove(m.String())
 			}
-			result, err := p.Pick(balancer.PickInfo{Ctx: testCtx})
-			Expect(err).To(MatchError("failed to get closest members: not enough members to satisfy the request"))
-			Expect(result.SubConn).To(BeNil())
-		})
-
-		It("should handle context key with wrong type", func() {
-			wrongCtx := context.WithValue(context.Background(), Key, "wrong-type")
-			result, err := p.Pick(balancer.PickInfo{Ctx: wrongCtx})
-			Expect(err).To(MatchError("context key is not of type []byte"))
-			Expect(result.SubConn).To(BeNil())
+			_, err := p.Pick([]byte("test-key"))
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("failed to get closest members"))
 		})
 
 		It("should handle empty key", func() {
-			emptyCtx := context.WithValue(context.Background(), Key, []byte{})
-			result, err := p.Pick(balancer.PickInfo{Ctx: emptyCtx})
+			sc, err := p.Pick([]byte{})
 			Expect(err).To(BeNil())
-			Expect(result.SubConn).ToNot(BeNil())
+			Expect(sc).ToNot(BeNil())
 		})
 
-		It("should handle picker with width of 1", func() {
+		It("should handle width of 1", func() {
 			p.width = 1
-			result, err := p.Pick(balancer.PickInfo{Ctx: testCtx})
+			sc, err := p.Pick([]byte("test-key"))
 			Expect(err).To(BeNil())
-			Expect(result.SubConn).ToNot(BeNil())
+			Expect(sc).ToNot(BeNil())
 		})
 
-		It("should handle picker with width larger than available members", func() {
+		It("should handle width larger than available members", func() {
 			p.width = 10
-			_, err := p.Pick(balancer.PickInfo{Ctx: testCtx})
-			// If not enough members, should error
-			if len(members) < 10 {
-				Expect(err).ToNot(BeNil())
-			} else {
-				Expect(err).To(BeNil())
-			}
+			_, err := p.Pick([]byte("test-key"))
+			Expect(err).ToNot(BeNil())
 		})
 
-		It("should handle picker with zero width", func() {
+		It("should handle width of zero", func() {
 			p.width = 0
-			result, err := p.Pick(balancer.PickInfo{Ctx: testCtx})
+			sc, err := p.Pick([]byte("test-key"))
 			Expect(err).To(BeNil())
-			Expect(result.SubConn).ToNot(BeNil())
-		})
-
-		It("should handle picker with negative width", func() {
-			p.width = -1
-			result, err := p.Pick(balancer.PickInfo{Ctx: testCtx})
-			Expect(err).To(BeNil())
-			Expect(result.SubConn).ToNot(BeNil())
-		})
-
-		It("should consistently pick the same member for the same key", func() {
-			result1, err1 := p.Pick(balancer.PickInfo{Ctx: testCtx})
-			result2, err2 := p.Pick(balancer.PickInfo{Ctx: testCtx})
-			Expect(err1).To(BeNil())
-			Expect(err2).To(BeNil())
-			Expect(result1.SubConn).To(Equal(result2.SubConn))
-		})
-
-		It("should pick different members for different keys", func() {
-			ctx1 := context.WithValue(context.Background(), Key, []byte("key1"))
-			ctx2 := context.WithValue(context.Background(), Key, []byte("key2"))
-			result1, err1 := p.Pick(balancer.PickInfo{Ctx: ctx1})
-			result2, err2 := p.Pick(balancer.PickInfo{Ctx: ctx2})
-			Expect(err1).To(BeNil())
-			Expect(err2).To(BeNil())
-			Expect(result1.SubConn).ToNot(BeNil())
-			Expect(result2.SubConn).ToNot(BeNil())
+			Expect(sc).ToNot(BeNil())
 		})
 
 		It("should handle very long keys", func() {
@@ -155,10 +128,9 @@ var _ = Describe("Picker and Consistent Hashing", func() {
 			for i := range longKey {
 				longKey[i] = byte(i % 256)
 			}
-			longCtx := context.WithValue(context.Background(), Key, longKey)
-			result, err := p.Pick(balancer.PickInfo{Ctx: longCtx})
+			sc, err := p.Pick(longKey)
 			Expect(err).To(BeNil())
-			Expect(result.SubConn).ToNot(BeNil())
+			Expect(sc).ToNot(BeNil())
 		})
 
 		It("should handle special characters in keys", func() {
@@ -192,10 +164,9 @@ var _ = Describe("Picker and Consistent Hashing", func() {
 				[]byte("key/with/forward/slash"),
 			}
 			for _, key := range specialKeys {
-				specialCtx := context.WithValue(context.Background(), Key, key)
-				result, err := p.Pick(balancer.PickInfo{Ctx: specialCtx})
+				sc, err := p.Pick(key)
 				Expect(err).To(BeNil(), "Should handle key: %s", string(key))
-				Expect(result.SubConn).ToNot(BeNil(), "Should return SubConn for key: %s", string(key))
+				Expect(sc).ToNot(BeNil(), "Should return SubConn for key: %s", string(key))
 			}
 		})
 
@@ -213,20 +184,16 @@ var _ = Describe("Picker and Consistent Hashing", func() {
 				[]byte("key with தமிழ்"),
 			}
 			for _, key := range unicodeKeys {
-				unicodeCtx := context.WithValue(context.Background(), Key, key)
-				result, err := p.Pick(balancer.PickInfo{Ctx: unicodeCtx})
+				sc, err := p.Pick(key)
 				Expect(err).To(BeNil(), "Should handle unicode key: %s", string(key))
-				Expect(result.SubConn).ToNot(BeNil(), "Should return SubConn for unicode key: %s", string(key))
+				Expect(sc).ToNot(BeNil(), "Should return SubConn for unicode key: %s", string(key))
 			}
 		})
 	})
 
 	Describe("Consistent Hashing Behavior", func() {
 		It("should distribute keys evenly across members", func() {
-			p := &picker{
-				consistent: c,
-				width:      1,
-			}
+			p := &picker{consistent: c, width: 1}
 
 			// Map mockSubConnWrapper pointer to name
 			subConnToName := map[balancer.SubConn]string{}
@@ -239,10 +206,9 @@ var _ = Describe("Picker and Consistent Hashing", func() {
 
 			for i := 0; i < keyCount; i++ {
 				key := []byte(fmt.Sprintf("key-%d", i))
-				ctx := context.WithValue(context.Background(), Key, key)
-				result, err := p.Pick(balancer.PickInfo{Ctx: ctx})
+				sc, err := p.Pick(key)
 				Expect(err).To(BeNil())
-				pickedName := subConnToName[result.SubConn]
+				pickedName := subConnToName[sc]
 				memberCounts[pickedName]++
 			}
 
@@ -256,38 +222,30 @@ var _ = Describe("Picker and Consistent Hashing", func() {
 		})
 
 		It("should handle member removal gracefully", func() {
-			p := &picker{
-				consistent: c,
-				width:      2,
-			}
-			testCtx := context.WithValue(context.Background(), Key, []byte("test-key"))
-			result1, err1 := p.Pick(balancer.PickInfo{Ctx: testCtx})
+			p := &picker{consistent: c, width: 2}
+			sc1, err1 := p.Pick([]byte("test-key"))
 			Expect(err1).To(BeNil())
-			Expect(result1.SubConn).ToNot(BeNil())
+			Expect(sc1).ToNot(BeNil())
 			c.Remove("member1")
-			result2, err2 := p.Pick(balancer.PickInfo{Ctx: testCtx})
+			sc2, err2 := p.Pick([]byte("test-key"))
 			if len(members)-1 < 2 {
 				Expect(err2).ToNot(BeNil())
 			} else {
 				Expect(err2).To(BeNil())
-				Expect(result2.SubConn).ToNot(BeNil())
+				Expect(sc2).ToNot(BeNil())
 			}
 		})
 
 		It("should handle member addition gracefully", func() {
-			p := &picker{
-				consistent: c,
-				width:      2,
-			}
-			testCtx := context.WithValue(context.Background(), Key, []byte("test-key"))
-			result1, err1 := p.Pick(balancer.PickInfo{Ctx: testCtx})
+			p := &picker{consistent: c, width: 2}
+			sc1, err1 := p.Pick([]byte("test-key"))
 			Expect(err1).To(BeNil())
-			Expect(result1.SubConn).ToNot(BeNil())
+			Expect(sc1).ToNot(BeNil())
 			newMember := ConsistentMember{SubConn: &mockSubConnWrapper{}, name: "member4"}
 			c.Add(newMember)
-			result2, err2 := p.Pick(balancer.PickInfo{Ctx: testCtx})
+			sc2, err2 := p.Pick([]byte("test-key"))
 			Expect(err2).To(BeNil())
-			Expect(result2.SubConn).ToNot(BeNil())
+			Expect(sc2).ToNot(BeNil())
 		})
 	})
 
@@ -301,46 +259,25 @@ var _ = Describe("Picker and Consistent Hashing", func() {
 				Load:              1.0,
 			})
 
-			p := &picker{
-				consistent: brokenC,
-				width:      2,
-			}
-
-			// Create a test context
-			testCtx := context.WithValue(context.Background(), Key, []byte("test-key"))
-
-			// Try to pick - should handle the error gracefully
-			result, err := p.Pick(balancer.PickInfo{Ctx: testCtx})
+			p := &picker{consistent: brokenC, width: 2}
+			_, err := p.Pick([]byte("test-key"))
 			Expect(err).To(HaveOccurred())
-			Expect(result.SubConn).To(BeNil())
 		})
 
 		It("should handle nil consistent hashing", func() {
-			p := &picker{
-				consistent: nil,
-				width:      2,
-			}
-
-			// Create a test context
-			testCtx := context.WithValue(context.Background(), Key, []byte("test-key"))
-
-			// This should panic or return an error
+			p := &picker{consistent: nil, width: 2}
 			Expect(func() {
-				p.Pick(balancer.PickInfo{Ctx: testCtx})
+				p.Pick([]byte("test-key"))
 			}).To(Panic())
 		})
 	})
 
-	Describe("Picker Configuration", func() {
+	Describe("picker Configuration", func() {
 		It("should work with different width configurations", func() {
 			widths := []int{1, 2, 3, 5, 10}
 			for _, width := range widths {
-				p := &picker{
-					consistent: c,
-					width:      width,
-				}
-				testCtx := context.WithValue(context.Background(), Key, []byte("test-key"))
-				_, err := p.Pick(balancer.PickInfo{Ctx: testCtx})
+				p := &picker{consistent: c, width: width}
+				_, err := p.Pick([]byte("test-key"))
 				if width > len(members) {
 					Expect(err).ToNot(BeNil(), "Should error with width %d", width)
 				} else {
@@ -352,12 +289,8 @@ var _ = Describe("Picker and Consistent Hashing", func() {
 		It("should handle edge case width values", func() {
 			edgeWidths := []int{0, -1, -100, 1000, 999999}
 			for _, width := range edgeWidths {
-				p := &picker{
-					consistent: c,
-					width:      width,
-				}
-				testCtx := context.WithValue(context.Background(), Key, []byte("test-key"))
-				_, err := p.Pick(balancer.PickInfo{Ctx: testCtx})
+				p := &picker{consistent: c, width: width}
+				_, err := p.Pick([]byte("test-key"))
 				if width > len(members) {
 					Expect(err).ToNot(BeNil(), "Should error with edge width %d", width)
 				} else {

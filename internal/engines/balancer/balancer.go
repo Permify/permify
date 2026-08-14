@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
+
+	grpcbalancer "google.golang.org/grpc/balancer"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -18,11 +21,14 @@ import (
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
-// Balancer is a wrapper around the balancer hash implementation that
+// Balancer wraps permission checking with consistent-hash load balancing.
+// All requests (single and batch) are distributed across nodes via the consistent
+// hash picker so each entity lands on the node that caches it.
 type Balancer struct {
 	schemaReader storage.SchemaReader
 	checker      invoke.Check
 	client       base.PermissionClient
+	builder      balancer.Builder
 }
 
 // NewCheckEngineWithBalancer creates a new check engine with a load balancer.
@@ -32,6 +38,7 @@ func NewCheckEngineWithBalancer(
 	ctx context.Context,
 	checker invoke.Check,
 	schemaReader storage.SchemaReader,
+	builder balancer.Builder,
 	no string,
 	dst *config.Distributed,
 	srv *config.GRPC,
@@ -96,47 +103,139 @@ func NewCheckEngineWithBalancer(
 		schemaReader: schemaReader,
 		checker:      checker,
 		client:       base.NewPermissionClient(conn),
+		builder:      builder,
 	}, nil
 }
 
-// Check performs a permission check using the schema reader to obtain
-// entity definitions, then distributes the request based on a generated key.
-func (c *Balancer) Check(ctx context.Context, request *base.PermissionCheckRequest) (*base.PermissionCheckResponse, error) {
-	// Fetch the EntityDefinition for the given tenant, entity type, and schema version.
-	en, _, err := c.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
-	if err != nil {
-		slog.ErrorContext(ctx, err.Error())
-		// If an error occurs while reading the entity definition, deny permission and return the error.
-		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_CHECK_RESULT_DENIED,
-			Metadata: &base.PermissionCheckResponseMetadata{
-				CheckCount: 0,
-			},
-		}, err
+// Check distributes permission checks across cluster nodes via consistent hashing.
+// Each entity ID is routed to the node determined by its hash key, ensuring cache locality.
+// Entity IDs that hash to the same node are grouped into a single BulkCheck RPC.
+func (c *Balancer) Check(ctx context.Context, request *invoke.BatchCheckRequest) (*invoke.BatchCheckResponse, error) {
+	// Get the current picker; fall back to local if not ready.
+	nodePicker := c.builder.Picker()
+	if nodePicker == nil {
+		return c.checker.Check(ctx, request)
 	}
 
-	isRelational := engines.IsRelational(en, request.GetPermission())
+	deniedResp := invoke.NewBatchCheckResponse(base.CheckResult_CHECK_RESULT_DENIED, request.EntityIDs...)
 
-	// Add a timeout of 2 seconds to the context and also set the generated key as a value.
-	withTimeout, cancel := context.WithTimeout(context.WithValue(ctx, balancer.Key, []byte(engines.GenerateKey(request, isRelational))), 4*time.Second)
-	defer cancel()
-
-	// Logging the intention to forward the request to the underlying client.
-	slog.InfoContext(ctx, "Forwarding request with key to the underlying client")
-
-	// Perform the actual permission check by making a call to the underlying client.
-	response, err := c.client.Check(withTimeout, request)
+	// Read entity definition once (shared across all entity IDs).
+	en, _, err := c.schemaReader.ReadEntityDefinition(ctx, request.TenantID, request.EntityType, request.Metadata.GetSchemaVersion())
 	if err != nil {
-		// Log the error and return it.
 		slog.ErrorContext(ctx, err.Error())
-		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_CHECK_RESULT_DENIED,
-			Metadata: &base.PermissionCheckResponseMetadata{
-				CheckCount: 0,
-			},
-		}, err
+		return deniedResp, err
 	}
 
-	// Return the response received from the client.
-	return response, nil
+	isRelational := engines.IsRelational(en, request.Permission)
+
+	// Group entity IDs by target SubConn.
+	groups := map[grpcbalancer.SubConn][]string{}
+	for _, entityID := range request.EntityIDs {
+		protoReq := request.ToPermissionCheckRequest(entityID)
+		key := []byte(engines.GenerateKey(protoReq, isRelational))
+
+		sc, err := nodePicker.Pick(key)
+		if err != nil {
+			slog.ErrorContext(ctx, "Pick failed, falling back to local", "error", err.Error())
+			return c.checker.Check(ctx, request)
+		}
+		groups[sc] = append(groups[sc], entityID)
+	}
+
+	// Fan out: one RPC per node group, concurrently.
+	type groupResult struct {
+		resp *invoke.BatchCheckResponse
+		err  error
+	}
+
+	results := make([]groupResult, len(groups))
+	var wg sync.WaitGroup
+	i := 0
+	for sc, entityIDs := range groups {
+		wg.Add(1)
+		go func(idx int, sc grpcbalancer.SubConn, entityIDs []string) {
+			defer wg.Done()
+			routeCtx := context.WithValue(ctx, balancer.SubConnKey, sc)
+			withTimeout, cancel := context.WithTimeout(routeCtx, 4*time.Second)
+			defer cancel()
+
+			if len(entityIDs) == 1 {
+				// Single entity: use Check RPC.
+				protoReq := request.ToPermissionCheckRequest(entityIDs[0])
+				response, err := c.client.Check(withTimeout, protoReq)
+				if err != nil {
+					results[idx] = groupResult{err: err}
+					return
+				}
+				results[idx] = groupResult{resp: &invoke.BatchCheckResponse{
+					Results:  map[string]base.CheckResult{entityIDs[0]: response.GetCan()},
+					Metadata: response.GetMetadata(),
+				}}
+			} else {
+				// Multiple entities for same node: use BulkCheck RPC.
+				items := make([]*base.PermissionBulkCheckRequestItem, len(entityIDs))
+				for j, entityID := range entityIDs {
+					items[j] = &base.PermissionBulkCheckRequestItem{
+						Entity:     &base.Entity{Type: request.EntityType, Id: entityID},
+						Permission: request.Permission,
+						Subject:    request.Subject,
+					}
+				}
+				bulkReq := &base.PermissionBulkCheckRequest{
+					TenantId:  request.TenantID,
+					Metadata:  request.Metadata,
+					Items:     items,
+					Context:   request.Context,
+					Arguments: request.Arguments,
+				}
+				bulkResp, err := c.client.BulkCheck(withTimeout, bulkReq)
+				if err != nil {
+					results[idx] = groupResult{err: err}
+					return
+				}
+				// Map BulkCheck results back by entity ID (results are ordered same as items).
+				resp := &invoke.BatchCheckResponse{
+					Results:  make(map[string]base.CheckResult, len(entityIDs)),
+					Metadata: &base.PermissionCheckResponseMetadata{},
+				}
+				for j, entityID := range entityIDs {
+					if j < len(bulkResp.GetResults()) {
+						resp.Results[entityID] = bulkResp.GetResults()[j].GetCan()
+						resp.Metadata.CheckCount += bulkResp.GetResults()[j].GetMetadata().GetCheckCount()
+					} else {
+						resp.Results[entityID] = base.CheckResult_CHECK_RESULT_DENIED
+					}
+				}
+				results[idx] = groupResult{resp: resp}
+			}
+		}(i, sc, entityIDs)
+		i++
+	}
+	wg.Wait()
+
+	// Merge results from all node groups.
+	merged := &invoke.BatchCheckResponse{
+		Results:  make(map[string]base.CheckResult, len(request.EntityIDs)),
+		Metadata: &base.PermissionCheckResponseMetadata{},
+	}
+	for _, r := range results {
+		if r.err != nil {
+			return deniedResp, r.err
+		}
+		if r.resp != nil {
+			for entityID, result := range r.resp.Results {
+				merged.Results[entityID] = result
+			}
+			merged.Metadata.CheckCount += r.resp.Metadata.GetCheckCount()
+		}
+	}
+
+	// Fill in any missing entity IDs as DENIED.
+	for _, entityID := range request.EntityIDs {
+		if _, ok := merged.Results[entityID]; !ok {
+			merged.Results[entityID] = base.CheckResult_CHECK_RESULT_DENIED
+		}
+	}
+
+	return merged, nil
 }

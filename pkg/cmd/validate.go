@@ -15,6 +15,7 @@ import (
 	"github.com/rs/xid"
 	"github.com/spf13/cobra"
 
+	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/storage"
 	serverValidation "github.com/Permify/permify/internal/validation"
 	"github.com/Permify/permify/pkg/attribute"
@@ -287,17 +288,18 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					}
 
 					// Perform a permission check based on the context, entity, permission, and subject
-					res, err := dev.Container.Invoker.Check(ctx, &base.PermissionCheckRequest{
-						TenantId: "t1",
-						Context:  cont,
+					res, err := dev.Container.Invoker.Check(ctx, &invoke.BatchCheckRequest{
+						TenantID:   "t1",
+						EntityType: entity.GetType(),
+						EntityIDs:  []string{entity.GetId()},
+						Permission: permission,
+						Subject:    subject,
 						Metadata: &base.PermissionCheckRequestMetadata{
 							SchemaVersion: version,
 							SnapToken:     token.NewNoopToken().Encode().String(),
 							Depth:         depth,
 						},
-						Entity:     entity,
-						Permission: permission,
-						Subject:    subject,
+						Context: cont,
 					})
 					if err != nil {
 						list.Add(fmt.Sprintf("%s -> %s", query, err.Error()))
@@ -306,13 +308,13 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					}
 
 					// If the check result matches the expected result, log a success message
-					if res.Can == exp {
+					if res.UnionResult() == exp {
 						color.Success.Print("    success:")
 						fmt.Printf(" %s \n", query)
 					} else {
 						// If the check result does not match the expected result, log a failure message
 						color.Danger.Printf("    fail: %s ->", query)
-						if res.Can == base.CheckResult_CHECK_RESULT_ALLOWED {
+						if res.UnionResult() == base.CheckResult_CHECK_RESULT_ALLOWED {
 							color.Danger.Println("  expected: DENIED actual: ALLOWED ")
 							list.Add(fmt.Sprintf("%s -> expected: DENIED actual: ALLOWED ", query))
 						} else {
