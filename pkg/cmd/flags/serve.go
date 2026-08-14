@@ -29,6 +29,13 @@ func RegisterServeFlags(flags *pflag.FlagSet) {
 		panic(err)
 	}
 
+	if err = viper.BindPFlag("server.shutdown_delay", flags.Lookup("server-shutdown-delay")); err != nil {
+		panic(err)
+	}
+	if err = viper.BindEnv("server.shutdown_delay", "PERMIFY_SHUTDOWN_DELAY"); err != nil {
+		panic(err)
+	}
+
 	if err = viper.BindPFlag("server.host", flags.Lookup("server-host")); err != nil {
 		panic(err)
 	}
