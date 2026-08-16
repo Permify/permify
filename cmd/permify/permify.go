@@ -1,3 +1,4 @@
+// File: cmd/permify/permify.go
 package main
 
 import (
@@ -50,6 +51,8 @@ func main() {
 	// Add repair command
 	repair := cmd.NewRepairCommand()
 	root.AddCommand(repair)
+
+	// I have read the CLA Document and I hereby sign the CLA
 
 	if err := root.Execute(); err != nil {
 		os.Exit(1)
