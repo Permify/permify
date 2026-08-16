@@ -28,7 +28,7 @@ require (
 	github.com/fatih/color v1.19.0
 	github.com/go-jose/go-jose/v3 v3.0.5
 	github.com/golang-jwt/jwt/v4 v4.5.2
-	github.com/google/cel-go v0.29.0
+	github.com/google/cel-go v0.31.0
 	github.com/gookit/color v1.6.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
