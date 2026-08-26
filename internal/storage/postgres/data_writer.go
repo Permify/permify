@@ -429,19 +429,48 @@ func (w *DataWriter) runOperation(
 }
 
 // Batch operations helper functions
+const _insertChunkSize = 500
+
 func (w *DataWriter) batchInsertRelationships(batch *pgx.Batch, xid db.XID8, tenantID string, tupleCollection *database.TupleCollection) error {
-	titer := tupleCollection.CreateTupleIterator()
-	for titer.HasNext() {
-		t := titer.GetNext()
-		srelation := t.GetSubject().GetRelation()
-		if srelation == tuple.ELLIPSIS {
-			srelation = ""
-		}
-		batch.Queue(
-			"INSERT INTO relation_tuples (entity_type, entity_id, relation, subject_type, subject_id, subject_relation, created_tx_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT ON CONSTRAINT uq_relation_tuple_not_expired DO NOTHING",
-			t.GetEntity().GetType(), t.GetEntity().GetId(), t.GetRelation(), t.GetSubject().GetType(), t.GetSubject().GetId(), srelation, xid, tenantID,
-		)
+	tuples := tupleCollection.GetTuples()
+	if len(tuples) == 0 {
+		return nil
 	}
+
+	for i := 0; i < len(tuples); i += _insertChunkSize {
+		end := i + _insertChunkSize
+		if end > len(tuples) {
+			end = len(tuples)
+		}
+
+		insertBuilder := w.database.Builder.Insert(RelationTuplesTable).
+			Columns("entity_type", "entity_id", "relation", "subject_type", "subject_id", "subject_relation", "created_tx_id", "tenant_id").
+			Suffix("ON CONFLICT ON CONSTRAINT uq_relation_tuple_not_expired DO NOTHING")
+
+		for _, t := range tuples[i:end] {
+			srelation := t.GetSubject().GetRelation()
+			if srelation == tuple.ELLIPSIS {
+				srelation = ""
+			}
+			insertBuilder = insertBuilder.Values(
+				t.GetEntity().GetType(),
+				t.GetEntity().GetId(),
+				t.GetRelation(),
+				t.GetSubject().GetType(),
+				t.GetSubject().GetId(),
+				srelation,
+				xid,
+				tenantID,
+			)
+		}
+
+		query, args, err := insertBuilder.ToSql()
+		if err != nil {
+			return err
+		}
+		batch.Queue(query, args...)
+	}
+
 	return nil
 }
 
@@ -486,19 +515,43 @@ func buildDeleteClausesForRelationships(tupleCollection *database.TupleCollectio
 
 // Batch insert attributes
 func (w *DataWriter) batchInsertAttributes(batch *pgx.Batch, xid db.XID8, tenantID string, attributeCollection *database.AttributeCollection) error {
-	aiter := attributeCollection.CreateAttributeIterator()
-	for aiter.HasNext() {
-		a := aiter.GetNext()
-		jsonBytes, err := protojson.Marshal(a.GetValue())
+	attributes := attributeCollection.GetAttributes()
+	if len(attributes) == 0 {
+		return nil
+	}
+
+	for i := 0; i < len(attributes); i += _insertChunkSize {
+		end := i + _insertChunkSize
+		if end > len(attributes) {
+			end = len(attributes)
+		}
+
+		insertBuilder := w.database.Builder.Insert(AttributesTable).
+			Columns("entity_type", "entity_id", "attribute", "value", "created_tx_id", "tenant_id")
+
+		for _, a := range attributes[i:end] {
+			jsonBytes, err := protojson.Marshal(a.GetValue())
+			if err != nil {
+				return err
+			}
+			jsonStr := string(jsonBytes)
+			insertBuilder = insertBuilder.Values(
+				a.GetEntity().GetType(),
+				a.GetEntity().GetId(),
+				a.GetAttribute(),
+				jsonStr,
+				xid,
+				tenantID,
+			)
+		}
+
+		query, args, err := insertBuilder.ToSql()
 		if err != nil {
 			return err
 		}
-		jsonStr := string(jsonBytes)
-		batch.Queue(
-			"INSERT INTO attributes (entity_type, entity_id, attribute, value, created_tx_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6)",
-			a.GetEntity().GetType(), a.GetEntity().GetId(), a.GetAttribute(), jsonStr, xid, tenantID,
-		)
+		batch.Queue(query, args...)
 	}
+
 	return nil
 }
 
