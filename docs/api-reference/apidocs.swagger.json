@@ -3049,14 +3049,14 @@
     "SchemaDefinition": {
       "type": "object",
       "properties": {
-        "entityDefinitions": {
+        "entity_definitions": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/EntityDefinition"
           },
           "description": "Map of entity definitions. The key is the entity name, and the value is the corresponding EntityDefinition."
         },
-        "ruleDefinitions": {
+        "rule_definitions": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/RuleDefinition"
