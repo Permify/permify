@@ -468,5 +468,33 @@ var _ = Describe("walker", func() {
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_ENTITY_DEFINITION_NOT_FOUND.String()))
 		})
+
+		It("should successfully traverse multi-level nested permission references without error", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity space {
+				relation owner @user
+				permission manage = owner
+			}
+			entity folder {
+				relation parent @space
+				relation editor @user
+				permission edit = editor or parent.manage
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			e, r, err := c.Compile()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			w := NewWalker(NewSchemaFromEntityAndRuleDefinitions(e, r))
+
+			err = w.Walk("folder", "edit")
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 	})
 })
+
