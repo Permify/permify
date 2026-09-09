@@ -468,5 +468,32 @@ var _ = Describe("walker", func() {
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_ENTITY_DEFINITION_NOT_FOUND.String()))
 		})
+
+		It("should validate schema walker invariant on direct relation without action definition error", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity team {
+				relation lead @user
+				relation member @user
+				permission manage = lead
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			e, r, err := c.Compile()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			w := NewWalker(NewSchemaFromEntityAndRuleDefinitions(e, r))
+
+			err = w.Walk("team", "manage")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			err = w.Walk("team", "non_existent_permission")
+			Expect(err).Should(HaveOccurred())
+		})
 	})
 })
+
