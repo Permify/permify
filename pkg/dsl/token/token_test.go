@@ -118,6 +118,34 @@ var _ = Describe("token", func() {
 						Literal: "'",
 					},
 				},
+				{
+					positionInfo: PositionInfo{
+						LinePosition:   5,
+						ColumnPosition: 1,
+					}, typ: RCB, ch: '}',
+					result: Token{
+						PositionInfo: PositionInfo{
+							LinePosition:   5,
+							ColumnPosition: 1,
+						},
+						Type:    RCB,
+						Literal: "}",
+					},
+				},
+				{
+					positionInfo: PositionInfo{
+						LinePosition:   5,
+						ColumnPosition: 10,
+					}, typ: LP, ch: '(',
+					result: Token{
+						PositionInfo: PositionInfo{
+							LinePosition:   5,
+							ColumnPosition: 10,
+						},
+						Type:    LP,
+						Literal: "(",
+					},
+				},
 			}
 
 			for _, tt := range tests {
