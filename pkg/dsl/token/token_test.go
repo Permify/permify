@@ -32,6 +32,7 @@ var _ = Describe("token", func() {
 				{target: "permission", expected: PERMISSION},
 				{target: "attribute", expected: ATTRIBUTE},
 				{target: "rule", expected: RULE},
+				{target: "in", expected: IN},
 			}
 
 			for _, tt := range tests {
@@ -40,7 +41,7 @@ var _ = Describe("token", func() {
 		})
 	})
 
-	Context("LookupKeywords", func() {
+	Context("IsIgnores", func() {
 		It("Case 1", func() {
 			tests := []struct {
 				target   Type
