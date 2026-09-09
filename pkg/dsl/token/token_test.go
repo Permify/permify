@@ -74,6 +74,11 @@ var _ = Describe("token", func() {
 				{target: SPACE, expected: "SPACE"},
 				{target: TAB, expected: "TAB"},
 				{target: RULE, expected: "RULE"},
+				{target: COMMA, expected: "COMMA"},
+				{target: COLON, expected: "COLON"},
+				{target: HASH, expected: "HASH"},
+				{target: ASSIGN, expected: "ASSIGN"},
+				{target: EOF, expected: "EOF"},
 			}
 
 			for _, tt := range tests {
