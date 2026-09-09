@@ -491,6 +491,31 @@ var _ = Describe("walker", func() {
 			err = w.Walk("node", "view")
 			Expect(err).ShouldNot(HaveOccurred())
 		})
+
+		It("should successfully evaluate multi-term permission union chains", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity project {
+				relation admin @user
+				relation lead @user
+				relation contributor @user
+				permission write = admin or lead or contributor
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			e, r, err := c.Compile()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			w := NewWalker(NewSchemaFromEntityAndRuleDefinitions(e, r))
+
+			err = w.Walk("project", "write")
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 	})
 })
+
 
