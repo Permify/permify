@@ -468,5 +468,29 @@ var _ = Describe("walker", func() {
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(Equal(base.ErrorCode_ERROR_CODE_ENTITY_DEFINITION_NOT_FOUND.String()))
 		})
+
+		It("should terminate cleanly on self-referential entity hierarchy without infinite loop", func() {
+			sch, err := parser.NewParser(`
+			entity user {}
+			entity node {
+				relation parent @node
+				relation owner @user
+				permission view = owner or parent.view
+			}
+			`).Parse()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			c := compiler.NewCompiler(true, sch)
+			e, r, err := c.Compile()
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			w := NewWalker(NewSchemaFromEntityAndRuleDefinitions(e, r))
+
+			err = w.Walk("node", "view")
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 	})
 })
+
