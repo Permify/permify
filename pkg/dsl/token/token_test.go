@@ -74,6 +74,11 @@ var _ = Describe("token", func() {
 				{target: SPACE, expected: "SPACE"},
 				{target: TAB, expected: "TAB"},
 				{target: RULE, expected: "RULE"},
+				{target: ENTITY, expected: "ENTITY"},
+				{target: RELATION, expected: "RELATION"},
+				{target: PERMISSION, expected: "PERMISSION"},
+				{target: ATTRIBUTE, expected: "ATTRIBUTE"},
+				{target: IN, expected: "IN"},
 			}
 
 			for _, tt := range tests {
