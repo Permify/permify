@@ -233,6 +233,20 @@ func validate() func(cmd *cobra.Command, args []string) error {
 		for sn, scenario := range s.Scenarios {
 			color.Notice.Printf("%v.scenario: %s - %s\n", sn+1, scenario.Name, scenario.Description)
 
+			// Convert scenario-scoped relationships and attributes once so they can be
+			// merged into every check/filter context in this scenario.
+			scenarioTuples, scenarioAttrs, scErrs := dev.ScenarioContext(ctx, version, scenario)
+			for _, e := range scErrs {
+				list.Add(e)
+				color.Danger.Printf("  fail: %s\n", validationError(e))
+			}
+			// If the scenario's own fixtures failed to convert/validate, skip its
+			// checks and filters so we don't cascade into spurious assertion
+			// failures driven by the missing context.
+			if len(scErrs) > 0 {
+				continue
+			}
+
 			// Start log output for checks
 			color.Notice.Println("  checks:")
 
@@ -267,6 +281,8 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
 					continue
 				}
+				cont.Tuples = append(cont.Tuples, scenarioTuples...)
+				cont.Attributes = append(cont.Attributes, scenarioAttrs...)
 
 				// Iterate over all assertions in the check
 				for permission, expected := range check.Assertions {
@@ -352,6 +368,8 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
 					continue
 				}
+				cont.Tuples = append(cont.Tuples, scenarioTuples...)
+				cont.Attributes = append(cont.Attributes, scenarioAttrs...)
 
 				// Iterate over each assertion in the filter.
 				for permission, expected := range filter.Assertions {
@@ -424,6 +442,8 @@ func validate() func(cmd *cobra.Command, args []string) error {
 					color.Danger.Printf("    fail: %s\n", validationError(err.Error()))
 					continue
 				}
+				cont.Tuples = append(cont.Tuples, scenarioTuples...)
+				cont.Attributes = append(cont.Attributes, scenarioAttrs...)
 
 				// Iterate over each assertion in the filter.
 				for permission, expected := range filter.Assertions {
