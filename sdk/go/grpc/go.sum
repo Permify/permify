@@ -1,11 +1,11 @@
-buf.build/gen/go/envoyproxy/protoc-gen-validate/protocolbuffers/go v1.36.12-20240617172848-daf171c6cdb5.1 h1:n2M6Ko1hTXHNTRfYXFIbP1kE74XpJc6dY6psur6iuhA=
-buf.build/gen/go/envoyproxy/protoc-gen-validate/protocolbuffers/go v1.36.12-20240617172848-daf171c6cdb5.1/go.mod h1:uEYtK5SFuNw1hJkqTKEXvvbUyWwTBlTRj42alVWbe6M=
-buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.12-20241220201140-4c5ba75caaf8.1 h1:tUdD9w+8U70KRudIRO4Ass2S8mSB6P+0QmrrlmqlpDY=
-buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.12-20241220201140-4c5ba75caaf8.1/go.mod h1:tGHWROdiYQqFpI6EFJWW82Kfbg58TqH2EGNbkGajR0E=
+buf.build/gen/go/envoyproxy/protoc-gen-validate/protocolbuffers/go v1.36.12-20240617172848-daf171c6cdb5.2 h1:Z/mX4IRvRVjjBx45fo9cV8prOGbFZvmIjhA06txbuMI=
+buf.build/gen/go/envoyproxy/protoc-gen-validate/protocolbuffers/go v1.36.12-20240617172848-daf171c6cdb5.2/go.mod h1:uEYtK5SFuNw1hJkqTKEXvvbUyWwTBlTRj42alVWbe6M=
+buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.12-20241220201140-4c5ba75caaf8.2 h1:ESTAICuabdVu0hN+z06qMtr07mETtGjaEiNUco0RnmI=
+buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.12-20241220201140-4c5ba75caaf8.2/go.mod h1:tGHWROdiYQqFpI6EFJWW82Kfbg58TqH2EGNbkGajR0E=
 buf.build/gen/go/permifyco/permify/grpc/go v1.6.1-20260417170026-08b37474f24f.1 h1:J2PPCGs5mDUnUqowZh+y5IHCaCMwVKpBiK7yptuaMEA=
 buf.build/gen/go/permifyco/permify/grpc/go v1.6.1-20260417170026-08b37474f24f.1/go.mod h1:w0pZ0AJzhN6h4WS9+JLVwbV8xP3BAayjvxTutZWhixA=
-buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.12-20260417170026-08b37474f24f.1 h1:+LUHW8/UcJZJRZF5Pye6lo36fkQy5nksS6LcekL2+1c=
-buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.12-20260417170026-08b37474f24f.1/go.mod h1:0kI/b+eCC1sS5/Iql7Ayx+IOhhn9dIxgIf1dhaKP55A=
+buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.12-20260417170026-08b37474f24f.2 h1:fdhEVXfxg9E0PbdZBhyL/haU4l1vbng0EMcmDBO3M6s=
+buf.build/gen/go/permifyco/permify/protocolbuffers/go v1.36.12-20260417170026-08b37474f24f.2/go.mod h1:cD8ToRjMdTqsJ0aPCjJB9x2bwhEw9r83JVieMfsxJZk=
 github.com/Permify/permify-go v0.6.0 h1:j/WjqL2hnlNYgyuFzhHr3lwcUu7yC41A5a80x9WRouc=
 github.com/Permify/permify-go v0.6.0/go.mod h1:OikAZdnEYuNvxYUNERxmB0+8hQE+RA/K6vgFOJbem8M=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
