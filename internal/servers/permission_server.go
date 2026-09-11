@@ -3,10 +3,12 @@ package servers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"sync"
 
 	otelCodes "go.opentelemetry.io/otel/codes"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc/status"
 
 	"github.com/Permify/permify/internal"
@@ -18,13 +20,23 @@ import (
 type PermissionServer struct {
 	v1.UnimplementedPermissionServer
 
-	invoker invoke.Invoker
+	invoker          invoke.Invoker
+	concurrencyLimit int
+	bulkLimit        int
 }
 
 // NewPermissionServer - Creates new Permission Server
-func NewPermissionServer(i invoke.Invoker) *PermissionServer {
+func NewPermissionServer(i invoke.Invoker, concurrencyLimit, bulkLimit int) *PermissionServer {
+	if concurrencyLimit <= 0 {
+		concurrencyLimit = invoke.DefaultConcurrencyLimit
+	}
+	if bulkLimit <= 0 {
+		bulkLimit = 100
+	}
 	return &PermissionServer{
-		invoker: i,
+		invoker:          i,
+		concurrencyLimit: concurrencyLimit,
+		bulkLimit:        bulkLimit,
 	}
 }
 
@@ -32,13 +44,14 @@ func NewPermissionServer(i invoke.Invoker) *PermissionServer {
 func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionCheckRequest) (*v1.PermissionCheckResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "permissions.check")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	v := request.Validate()
 	if v != nil {
 		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
 	}
 
-	response, err := r.invoker.Check(ctx, request)
+	response, err := r.invoker.Check(ctx, invoke.NewBatchCheckRequest(request))
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
@@ -46,7 +59,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
-	return response, nil
+	return response.ToPermissionCheckResponse(), nil
 }
 
 // BulkCheck - Performs multiple authorization checks in a single request
@@ -58,6 +71,7 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 
 	ctx, span := internal.Tracer.Start(ctx, "permissions.bulk-check")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	// Validate tenant_id
 	if request.GetTenantId() == "" {
@@ -77,102 +91,101 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 		return nil, err
 	}
 
-	if len(checkItems) > 100 {
-		err := status.Error(GetStatus(nil), "maximum 100 items allowed")
+	if len(checkItems) > r.bulkLimit {
+		err := status.Error(GetStatus(nil), fmt.Sprintf("maximum %d items allowed", r.bulkLimit))
 		span.RecordError(err)
 		span.SetStatus(otelCodes.Error, err.Error())
 		return nil, err
 	}
 
-	// The buffer size is equal to the number of references in the entity.
-	type resultItem struct {
-		index    int
-		response *v1.PermissionCheckResponse
+	// Group items by (entityType, permission, subject) for batch processing.
+	// Items in the same group share a single BatchCheckRequest.
+	type groupKey struct {
+		entityType, permission, subjectType, subjectID, subjectRelation string
 	}
-	resultChannel := make(chan resultItem, len(checkItems))
+	type groupEntry struct {
+		entityIDs []string
+		indices   []int
+		subject   *v1.Subject
+	}
 
-	// The WaitGroup and Mutex are used for synchronization.
+	results := make([]*v1.PermissionCheckResponse, len(checkItems))
+	groups := map[groupKey]*groupEntry{}
+
+	for i, item := range checkItems {
+		if v := item.Validate(); v != nil {
+			results[i] = &v1.PermissionCheckResponse{
+				Can:      v1.CheckResult_CHECK_RESULT_DENIED,
+				Metadata: &v1.PermissionCheckResponseMetadata{},
+			}
+			continue
+		}
+
+		subj := item.GetSubject()
+		key := groupKey{
+			entityType:      item.GetEntity().GetType(),
+			permission:      item.GetPermission(),
+			subjectType:     subj.GetType(),
+			subjectID:       subj.GetId(),
+			subjectRelation: subj.GetRelation(),
+		}
+		g, ok := groups[key]
+		if !ok {
+			g = &groupEntry{subject: subj}
+			groups[key] = g
+		}
+		g.entityIDs = append(g.entityIDs, item.GetEntity().GetId())
+		g.indices = append(g.indices, i)
+	}
+
+	// Execute each group as a batch check, concurrently.
 	var wg sync.WaitGroup
-	var mutex sync.Mutex
-
-	// Process each check request
-	for i, checkRequestItem := range checkItems {
+	for key, g := range groups {
 		wg.Add(1)
-
-		go func(index int, checkRequestItem *v1.PermissionBulkCheckRequestItem) {
+		go func(key groupKey, g *groupEntry) {
 			defer wg.Done()
 
-			// Validate individual request
-			v := checkRequestItem.Validate()
-			if v != nil {
-				resultChannel <- resultItem{
-					index: index,
-					response: &v1.PermissionCheckResponse{
-						Can: v1.CheckResult_CHECK_RESULT_DENIED,
-						Metadata: &v1.PermissionCheckResponseMetadata{
-							CheckCount: 0,
-						},
-					},
-				}
-				return
-			}
-
-			// Perform the check using existing Check function
-			checkRequest := &v1.PermissionCheckRequest{
-				TenantId:   request.GetTenantId(),
-				Subject:    checkRequestItem.GetSubject(),
-				Entity:     checkRequestItem.GetEntity(),
-				Permission: checkRequestItem.GetPermission(),
+			batchReq := &invoke.BatchCheckRequest{
+				TenantID:   request.GetTenantId(),
+				EntityType: key.entityType,
+				EntityIDs:  g.entityIDs,
+				Permission: key.permission,
+				Subject:    g.subject,
 				Metadata:   request.GetMetadata(),
 				Context:    request.GetContext(),
 				Arguments:  request.GetArguments(),
 			}
-			response, err := r.invoker.Check(ctx, checkRequest)
+
+			resp, err := r.invoker.Check(ctx, batchReq)
 			if err != nil {
-				// Log error but don't fail the entire bulk operation
-				slog.ErrorContext(ctx, "check failed in bulk operation", "error", err.Error(), "index", index)
-				resultChannel <- resultItem{
-					index: index,
-					response: &v1.PermissionCheckResponse{
-						Can: v1.CheckResult_CHECK_RESULT_DENIED,
-						Metadata: &v1.PermissionCheckResponseMetadata{
-							CheckCount: 1,
-						},
-					},
+				slog.ErrorContext(ctx, "batch check failed in bulk operation", "error", err.Error())
+				for _, idx := range g.indices {
+					results[idx] = &v1.PermissionCheckResponse{
+						Can:      v1.CheckResult_CHECK_RESULT_DENIED,
+						Metadata: &v1.PermissionCheckResponseMetadata{CheckCount: 1},
+					}
 				}
 				return
 			}
 
-			resultChannel <- resultItem{index: index, response: &v1.PermissionCheckResponse{
-				Can:      response.GetCan(),
-				Metadata: response.GetMetadata(),
-			}}
-		}(i, checkRequestItem)
+			// Map batch results back to original indices.
+			for j, entityID := range g.entityIDs {
+				result := v1.CheckResult_CHECK_RESULT_DENIED
+				if r, ok := resp.Results[entityID]; ok {
+					result = r
+				}
+				results[g.indices[j]] = &v1.PermissionCheckResponse{
+					Can:      result,
+					Metadata: resp.Metadata,
+				}
+			}
+		}(key, g)
 	}
+	wg.Wait()
 
-	// Once the function returns, we wait for all goroutines to finish, then close the resultChannel.
-	defer func() {
-		wg.Wait()
-		close(resultChannel)
-	}()
-
-	// We read the responses from the resultChannel.
-	// We expect as many responses as there are references in the entity.
-	results := make([]*v1.PermissionCheckResponse, len(request.GetItems()))
-	for range checkItems {
-		select {
-		// If we receive a response from the resultChannel, we check for errors.
-		case response := <-resultChannel:
-			// If there's no error, we add the result to our response's Results map.
-			// We use a mutex to safely update the map since multiple goroutines may be writing to it concurrently.
-			mutex.Lock()
-			results[response.index] = response.response
-			mutex.Unlock()
-
-		// If the context is done (i.e., canceled or deadline exceeded), we return an empty response and an error.
-		case <-ctx.Done():
-			return emptyResp, errors.New(v1.ErrorCode_ERROR_CODE_CANCELLED.String())
-		}
+	// Check for context cancellation.
+	if ctx.Err() != nil {
+		return emptyResp, errors.New(v1.ErrorCode_ERROR_CODE_CANCELLED.String())
 	}
 
 	return &v1.PermissionBulkCheckResponse{
@@ -184,6 +197,7 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExpandRequest) (*v1.PermissionExpandResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "permissions.expand")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	v := request.Validate()
 	if v != nil {
@@ -205,6 +219,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.PermissionLookupEntityRequest) (*v1.PermissionLookupEntityResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "permissions.lookup-entity")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	v := request.Validate()
 	if v != nil {
@@ -226,6 +241,7 @@ func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.Permiss
 func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntityRequest, server v1.Permission_LookupEntityStreamServer) error {
 	ctx, span := internal.Tracer.Start(server.Context(), "permissions.lookup-entity-stream")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	v := request.Validate()
 	if v != nil {
@@ -247,6 +263,7 @@ func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntity
 func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.PermissionLookupSubjectRequest) (*v1.PermissionLookupSubjectResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "permissions.lookup-subject")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	v := request.Validate()
 	if v != nil {
@@ -268,6 +285,7 @@ func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.Permis
 func (r *PermissionServer) SubjectPermission(ctx context.Context, request *v1.PermissionSubjectPermissionRequest) (*v1.PermissionSubjectPermissionResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "permissions.subject-permission")
 	defer span.End()
+	ctx = invoke.WithConcurrencySemaphore(ctx, semaphore.NewWeighted(int64(r.concurrencyLimit)))
 
 	v := request.Validate()
 	if v != nil {

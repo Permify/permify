@@ -11,6 +11,26 @@ import (
 	"github.com/Permify/permify/pkg/consistent"
 )
 
+// subConnPicker is a trivial gRPC picker: reads a pre-computed SubConn from context.
+// Stateless — a single instance is reused for all UpdateState calls.
+type subConnPicker struct{}
+
+var defaultSubConnPicker = &subConnPicker{}
+
+func (p *subConnPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
+	sc, ok := info.Ctx.Value(SubConnKey).(balancer.SubConn)
+	if !ok || sc == nil {
+		return balancer.PickResult{}, fmt.Errorf("no SubConn in context")
+	}
+	return balancer.PickResult{SubConn: sc}, nil
+}
+
+// NodePicker resolves a routing key to a target SubConn.
+type NodePicker interface {
+	Pick(key []byte) (balancer.SubConn, error)
+}
+
+// picker implements NodePicker using consistent hashing.
 type picker struct {
 	consistent *consistent.Consistent
 	width      int
@@ -35,24 +55,14 @@ var randomIndex = func(max int) int {
 	return int(n.Int64())
 }
 
-func (p *picker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
-	// Safely extract the key from the context
-	keyValue := info.Ctx.Value(Key)
-	if keyValue == nil {
-		return balancer.PickResult{}, fmt.Errorf("context key missing")
-	}
-	key, ok := keyValue.([]byte)
-	if !ok {
-		return balancer.PickResult{}, fmt.Errorf("context key is not of type []byte")
-	}
-
-	// Retrieve the closest N members
+// Pick computes the target SubConn for a routing key using consistent hashing.
+func (p *picker) Pick(key []byte) (balancer.SubConn, error) {
 	members, err := p.consistent.ClosestN(key, p.width)
 	if err != nil {
-		return balancer.PickResult{}, fmt.Errorf("failed to get closest members: %w", err)
+		return nil, fmt.Errorf("failed to get closest members: %w", err)
 	}
 	if len(members) == 0 {
-		return balancer.PickResult{}, fmt.Errorf("no available members")
+		return nil, fmt.Errorf("no available members")
 	}
 
 	// Randomly pick one member if width > 1
@@ -64,9 +74,9 @@ func (p *picker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	// Assert the member type
 	chosen, ok := members[index].(ConsistentMember)
 	if !ok {
-		return balancer.PickResult{}, fmt.Errorf("invalid member type: expected subConnMember")
+		return nil, fmt.Errorf("invalid member type: expected ConsistentMember")
 	}
 
 	// Return the chosen connection
-	return balancer.PickResult{SubConn: chosen.SubConn}, nil
+	return chosen.SubConn, nil
 }

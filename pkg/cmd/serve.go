@@ -23,7 +23,9 @@ import (
 	"github.com/Permify/permify/internal/storage/postgres/gc"
 	cacheproxy "github.com/Permify/permify/internal/storage/proxies/cache"
 	cbproxy "github.com/Permify/permify/internal/storage/proxies/circuitbreaker"
+	semproxy "github.com/Permify/permify/internal/storage/proxies/semaphore"
 	sfproxy "github.com/Permify/permify/internal/storage/proxies/singleflight"
+	consistentbalancer "github.com/Permify/permify/pkg/balancer"
 	"github.com/Permify/permify/pkg/cmd/flags"
 	PQDatabase "github.com/Permify/permify/pkg/database/postgres"
 
@@ -413,6 +415,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		// Add caching to the schema reader using a decorator
 		schemaReader = cacheproxy.NewSchemaReader(schemaReader, schemaCache)
 
+		dataReader = semproxy.NewDataReader(dataReader)
 		dataReader = sfproxy.NewDataReader(dataReader)
 		schemaReader = sfproxy.NewSchemaReader(schemaReader)
 
@@ -442,7 +445,10 @@ func serve() func(cmd *cobra.Command, args []string) error {
 		}
 
 		// Initialize the engines using the key manager, schema reader, and relationship reader
-		checkEngine := engines.NewCheckEngine(schemaReader, dataReader, engines.CheckConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit))
+		checkEngine := engines.NewCheckEngine(schemaReader, dataReader,
+			engines.CheckConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit),
+			engines.CheckMaxBatchSize(cfg.Service.Permission.BulkLimit),
+		)
 		expandEngine := engines.NewExpandEngine(schemaReader, dataReader)
 
 		// Declare a variable `checker` of type `invoke.Check`.
@@ -464,6 +470,7 @@ func serve() func(cmd *cobra.Command, args []string) error {
 				ctx,
 				checker,
 				schemaReader,
+				consistentbalancer.GetBuilder(),
 				cfg.Server.NameOverride,
 				&cfg.Distributed,
 				&cfg.Server.GRPC,
@@ -489,15 +496,14 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			schemaReader,
 			dataReader,
 			// Set concurrency limit based on the configuration.
-			engines.LookupConcurrencyLimit(cfg.Service.Permission.BulkLimit),
+			engines.LookupConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit),
+			engines.LookupMaxBatchSize(cfg.Service.Permission.BulkLimit),
 		)
 
 		// Initialize the subjectPermissionEngine, responsible for handling subject permissions.
 		subjectPermissionEngine := engines.NewSubjectPermission(
 			checker,
 			schemaReader,
-			// Set concurrency limit for the subject permission checks.
-			engines.SubjectPermissionConcurrencyLimit(cfg.Service.Permission.ConcurrencyLimit),
 		)
 
 		// Create a new invoker that is used to directly call various functions or engines.
@@ -537,6 +543,8 @@ func serve() func(cmd *cobra.Command, args []string) error {
 			tenantWriter,
 			watcher,
 		)
+		container.ConcurrencyLimit = cfg.Service.Permission.ConcurrencyLimit
+		container.BulkLimit = cfg.Service.Permission.BulkLimit
 
 		// Create an error group with the provided context
 		var g *errgroup.Group

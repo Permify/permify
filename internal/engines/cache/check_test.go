@@ -549,7 +549,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -559,10 +559,10 @@ var _ = Describe("cache", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -658,7 +658,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -668,10 +668,10 @@ var _ = Describe("cache", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -769,7 +769,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -779,10 +779,10 @@ var _ = Describe("cache", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -900,7 +900,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -910,10 +910,10 @@ var _ = Describe("cache", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -1020,7 +1020,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -1033,10 +1033,10 @@ var _ = Describe("cache", func() {
 						Context: &base.Context{
 							Tuples: tuples,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -1139,7 +1139,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -1149,10 +1149,10 @@ var _ = Describe("cache", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -1290,7 +1290,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -1303,10 +1303,10 @@ var _ = Describe("cache", func() {
 						Context: &base.Context{
 							Tuples: tuples,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -1426,7 +1426,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -1439,10 +1439,10 @@ var _ = Describe("cache", func() {
 						Context: &base.Context{
 							Tuples: contextual,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -1554,7 +1554,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -1564,10 +1564,10 @@ var _ = Describe("cache", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -1681,7 +1681,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -1691,10 +1691,10 @@ var _ = Describe("cache", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -1798,7 +1798,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -1808,10 +1808,10 @@ var _ = Describe("cache", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -1915,7 +1915,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -1925,10 +1925,10 @@ var _ = Describe("cache", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -2075,7 +2075,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -2088,10 +2088,10 @@ var _ = Describe("cache", func() {
 						Context: &base.Context{
 							Tuples: tuples,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -2236,7 +2236,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -2246,10 +2246,10 @@ var _ = Describe("cache", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -2405,7 +2405,7 @@ var _ = Describe("cache", func() {
 						ctx.Data = value
 					}
 
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -2416,10 +2416,10 @@ var _ = Describe("cache", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -2525,7 +2525,7 @@ var _ = Describe("cache", func() {
 				}
 
 				for permission, res := range check.assertions {
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -2538,10 +2538,10 @@ var _ = Describe("cache", func() {
 						Context: &base.Context{
 							Attributes: attributes,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})
@@ -2693,7 +2693,7 @@ var _ = Describe("cache", func() {
 						ctx.Data = value
 					}
 
-					response, err := invoker.Check(context.Background(), &base.PermissionCheckRequest{
+					response, err := invoker.Check(context.Background(), invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -2704,10 +2704,10 @@ var _ = Describe("cache", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(res).Should(Equal(response.GetCan()))
+					Expect(res).Should(Equal(response.UnionResult()))
 				}
 			}
 		})

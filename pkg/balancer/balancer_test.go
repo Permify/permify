@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 
-	"google.golang.org/grpc/balancer/base"
 	estats "google.golang.org/grpc/experimental/stats"
 
 	"github.com/cespare/xxhash/v2"
@@ -259,7 +258,7 @@ var _ = Describe("Balancer", func() {
 		It("should handle resolver errors with no SubConns", func() {
 			b.ResolverError(errors.New("resolver failure"))
 			Expect(b.state).To(Equal(connectivity.TransientFailure))
-			Expect(b.picker).To(Equal(base.NewErrPicker(errors.Join(b.lastConnectionError, b.lastResolverError))))
+			Expect(b.picker.Load()).To(BeNil())
 		})
 	})
 

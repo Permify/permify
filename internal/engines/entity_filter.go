@@ -24,40 +24,56 @@ type EntityFilter struct {
 	dataReader storage.DataReader
 
 	graph *schema.LinkedSchemaGraph
+
+	// maxBatchSize limits how many found entities are processed per batch in recursive calls
+	maxBatchSize int
 }
 
 // NewEntityFilter creates a new EntityFilter engine
-func NewEntityFilter(dataReader storage.DataReader, sch *base.SchemaDefinition) *EntityFilter {
+func NewEntityFilter(dataReader storage.DataReader, sch *base.SchemaDefinition, maxBatchSize int) *EntityFilter {
+	if maxBatchSize <= 0 {
+		maxBatchSize = _defaultMaxBatchSize
+	}
 	return &EntityFilter{
-		dataReader: dataReader,
-		graph:      schema.NewLinkedGraph(sch),
+		dataReader:   dataReader,
+		graph:        schema.NewLinkedGraph(sch),
+		maxBatchSize: maxBatchSize,
 	}
 }
 
 // EntityFilter is a method of the EntityFilterEngine struct. It executes a permission request for linked entities.
+// subjectIDs allows batching: multiple subject IDs with the same (Type, Relation) are queried in one DB call.
+// Pass nil to use request.GetSubject().GetId() as the single subject ID.
 func (engine *EntityFilter) EntityFilter(
 	ctx context.Context, // A context used for tracing and cancellation.
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
+	subjectIDs []string, // Batch subject IDs (nil = use request.Subject.Id).
 	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
 ) (err error) { // Returns an error if one occurs during execution.
+	if len(subjectIDs) == 0 {
+		subjectIDs = []string{request.GetSubject().GetId()}
+	}
+
 	// Check if direct result
 	if request.GetEntrance().GetType() == request.GetSubject().GetType() && request.GetEntrance().GetValue() == request.GetSubject().GetRelation() {
-		found := &base.Entity{
-			Type: request.GetSubject().GetType(),
-			Id:   request.GetSubject().GetId(),
-		}
+		for _, id := range subjectIDs {
+			found := &base.Entity{
+				Type: request.GetSubject().GetType(),
+				Id:   id,
+			}
 
-		if !visits.AddPublished(found) { // If the entity and relation has already been visited.
-			return nil
-		}
+			if !visits.AddPublished(found) { // If the entity and relation has already been visited.
+				continue
+			}
 
-		// If the entity reference is the same as the subject, publish the result directly and return.
-		publisher.Publish(found, &base.PermissionCheckRequestMetadata{
-			SnapToken:     request.GetMetadata().GetSnapToken(),
-			SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-			Depth:         request.GetMetadata().GetDepth(),
-		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
+			// If the entity reference is the same as the subject, publish the result directly and return.
+			publisher.Publish(found, &base.PermissionCheckRequestMetadata{
+				SnapToken:     request.GetMetadata().GetSnapToken(),
+				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+				Depth:         request.GetMetadata().GetDepth(),
+			}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
+		}
 	}
 
 	// Retrieve linked entrances
@@ -86,18 +102,12 @@ func (engine *EntityFilter) EntityFilter(
 		// Switch on the kind of linked entrance.
 		switch entrance.LinkedEntranceKind() {
 		case schema.RelationLinkedEntrance: // If the linked entrance is a relation entrance.
-			err = engine.relationEntrance(cont, request, entrance, visits, g, publisher) // Call the relation entrance method.
+			err = engine.relationEntrance(cont, request, entrance, subjectIDs, visits, g, publisher) // Call the relation entrance method.
 			if err != nil {
 				return err
 			}
 		case schema.ComputedUserSetLinkedEntrance: // If the linked entrance is a computed user set entrance.
-			err = engine.lt(cont, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
-				Entity: &base.Entity{
-					Type: entrance.TargetEntrance.GetType(),
-					Id:   request.GetSubject().GetId(),
-				},
-				Relation: entrance.TargetEntrance.GetValue(),
-			}, visits, g, publisher)
+			err = engine.processFoundEntities(cont, request, entrance.TargetEntrance.GetType(), entrance.TargetEntrance.GetValue(), subjectIDs, visits, g, publisher)
 			if err != nil {
 				return err
 			}
@@ -107,7 +117,7 @@ func (engine *EntityFilter) EntityFilter(
 				return err
 			}
 		case schema.TupleToUserSetLinkedEntrance: // If the linked entrance is a tuple to user set entrance.
-			err = engine.tupleToUserSetEntrance(cont, request, entrance, visits, g, publisher) // Call the tuple to user set entrance method.
+			err = engine.tupleToUserSetEntrance(cont, request, entrance, subjectIDs, visits, g, publisher) // Call the tuple to user set entrance method.
 			if err != nil {
 				return err
 			}
@@ -132,6 +142,12 @@ func (engine *EntityFilter) attributeEntrance(
 	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
 ) error { // Returns an error if one occurs during execution.
+	// Only publish entities of the target type (the type we're looking up).
+	// Attribute entrances on intermediate types are not candidates — skip DB queries.
+	if entrance.TargetEntrance.GetType() != request.GetEntrance().GetType() {
+		return nil
+	}
+
 	// attributeEntrance only handles direct attribute access
 	if !visits.AddEA(entrance.TargetEntrance.GetType(), entrance.TargetEntrance.GetValue()) {
 		return nil
@@ -378,10 +394,12 @@ func (engine *EntityFilter) expandRecursiveRelation(
 }
 
 // relationEntrance is a method of the EntityFilterEngine struct. It handles relation entrances.
+// Uses batch subject IDs in SubjectFilter for a single DB query instead of per-entity queries.
 func (engine *EntityFilter) relationEntrance(
 	ctx context.Context, // A context used for tracing and cancellation.
 	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
 	entrance *schema.LinkedEntrance, // A linked entrance.
+	subjectIDs []string, // Batch subject IDs for SubjectFilter.
 	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
 	g *errgroup.Group, // An errgroup used for executing goroutines.
 	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
@@ -408,7 +426,7 @@ func (engine *EntityFilter) relationEntrance(
 		Relation: entrance.TargetEntrance.GetValue(),
 		Subject: &base.SubjectFilter{
 			Type:     request.GetSubject().GetType(),
-			Ids:      []string{request.GetSubject().GetId()},
+			Ids:      subjectIDs, // Batch: all subject IDs in one query
 			Relation: request.GetSubject().GetRelation(),
 		},
 	}
@@ -446,26 +464,29 @@ func (engine *EntityFilter) relationEntrance(
 	// NewUniqueTupleIterator() ensures that the iterator only returns unique tuples.
 	it := database.NewUniqueTupleIterator(rit, cti)
 
-	for it.HasNext() { // Loop over each relationship.
-		// Get the next tuple's subject.
-		current, ok := it.GetNext()
-		if !ok {
-			break
+	// Process results in chunks to avoid large intermediate slices.
+	// All results share the same entity type and relation (from the filter).
+	for it.HasNext() {
+		var chunkType, chunkRelation string
+		chunk := make([]string, 0, engine.maxBatchSize)
+		for it.HasNext() && len(chunk) < engine.maxBatchSize {
+			current, ok := it.GetNext()
+			if !ok {
+				break
+			}
+			chunkType = current.GetEntity().GetType()
+			chunkRelation = current.GetRelation()
+			chunk = append(chunk, current.GetEntity().GetId())
 		}
-		g.Go(func() error {
-			return engine.lt(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
-				Entity: &base.Entity{
-					Type: current.GetEntity().GetType(),
-					Id:   current.GetEntity().GetId(),
-				},
-				Relation: current.GetRelation(),
-			}, visits, g, publisher)
-		})
+		if err := engine.processFoundEntities(ctx, request, chunkType, chunkRelation, chunk, visits, g, publisher); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 // tupleToUserSetEntrance is a method of the EntityFilterEngine struct. It handles tuple to user set entrances.
+// Uses batch subject IDs in SubjectFilter for a single DB query instead of per-entity queries.
 func (engine *EntityFilter) tupleToUserSetEntrance(
 	// A context used for tracing and cancellation.
 	ctx context.Context,
@@ -473,6 +494,8 @@ func (engine *EntityFilter) tupleToUserSetEntrance(
 	request *base.PermissionEntityFilterRequest,
 	// A linked entrance.
 	entrance *schema.LinkedEntrance,
+	// Batch subject IDs for SubjectFilter.
+	subjectIDs []string,
 	// A map that keeps track of visited entities to avoid infinite loops.
 	visits *VisitsMap,
 	// An errgroup used for executing goroutines.
@@ -502,7 +525,7 @@ func (engine *EntityFilter) tupleToUserSetEntrance(
 		Relation: entrance.TupleSetRelation, // Query for relationships that match the tuple set relation.
 		Subject: &base.SubjectFilter{
 			Type:     request.GetSubject().GetType(),
-			Ids:      []string{request.GetSubject().GetId()},
+			Ids:      subjectIDs, // Batch: all subject IDs in one query
 			Relation: "",
 		},
 	}
@@ -540,82 +563,93 @@ func (engine *EntityFilter) tupleToUserSetEntrance(
 	// NewUniqueTupleIterator() ensures that the iterator only returns unique tuples.
 	it := database.NewUniqueTupleIterator(rit, cti)
 
-	for it.HasNext() { // Loop over each relationship.
-		// Get the next tuple's subject.
-		current, ok := it.GetNext()
-		if !ok {
-			break
+	// Process results in chunks to avoid large intermediate slices.
+	// All results share the same entity type and relation (from the entrance).
+	entType := entrance.TargetEntrance.GetType()
+	entRel := entrance.TargetEntrance.GetValue()
+	for it.HasNext() {
+		chunk := make([]string, 0, engine.maxBatchSize)
+		for it.HasNext() && len(chunk) < engine.maxBatchSize {
+			current, ok := it.GetNext()
+			if !ok {
+				break
+			}
+			chunk = append(chunk, current.GetEntity().GetId())
 		}
-		g.Go(func() error {
-			return engine.lt(ctx, request, &base.EntityAndRelation{ // Call the run method with a new entity and relation.
-				Entity: &base.Entity{
-					Type: entrance.TargetEntrance.GetType(),
-					Id:   current.GetEntity().GetId(),
-				},
-				Relation: entrance.TargetEntrance.GetValue(),
-			}, visits, g, publisher)
-		})
+		if err := engine.processFoundEntities(ctx, request, entType, entRel, chunk, visits, g, publisher); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-// run is a method of the EntityFilterEngine struct. It executes the linked entity engine for a given request.
-func (engine *EntityFilter) lt(
-	ctx context.Context, // A context used for tracing and cancellation.
-	request *base.PermissionEntityFilterRequest, // A permission request for linked entities.
-	found *base.EntityAndRelation, // An entity and relation that was previously found.
-	visits *VisitsMap, // A map that keeps track of visited entities to avoid infinite loops.
-	g *errgroup.Group, // An errgroup used for executing goroutines.
-	publisher *BulkEntityPublisher, // A custom publisher that publishes results in bulk.
-) error { // Returns an error if one occurs during execution.
-	if !visits.AddER(found.GetEntity(), found.GetRelation()) { // If the entity and relation has already been visited.
+// processFoundEntities handles batch processing of found entities at a single graph level.
+// All founds share the same (entityType, relation). It checks LinkedEntrances once,
+// publishes direct matches, and recursively calls EntityFilter with batch subject IDs.
+func (engine *EntityFilter) processFoundEntities(
+	ctx context.Context,
+	request *base.PermissionEntityFilterRequest,
+	entityType string,
+	relation string,
+	entityIds []string,
+	visits *VisitsMap,
+	g *errgroup.Group,
+	publisher *BulkEntityPublisher,
+) error {
+	// Visit check each entity.
+	var filtered []string
+	for _, id := range entityIds {
+		if visits.AddER(&base.Entity{Type: entityType, Id: id}, relation) {
+			filtered = append(filtered, id)
+		}
+	}
+	if len(filtered) == 0 {
 		return nil
 	}
 
-	var err error
-
-	// Retrieve linked entrances
-	var entrances []*schema.LinkedEntrance
-	entrances, err = engine.graph.LinkedEntrances(
+	// Compute LinkedEntrances once (depends on Type+Relation, not Id).
+	entrances, err := engine.graph.LinkedEntrances(
 		request.GetEntrance(),
-		&base.Entrance{
-			Type:  request.GetSubject().GetType(),
-			Value: request.GetSubject().GetRelation(),
-		},
-	) // Retrieve the linked entrances for the request.
+		&base.Entrance{Type: entityType, Value: relation},
+	)
 	if err != nil {
 		return err
 	}
 
-	if entrances == nil { // If there are no linked entrances for the request.
-		if found.GetEntity().GetType() == request.GetEntrance().GetType() && found.GetRelation() == request.GetEntrance().GetValue() { // Check if the found entity matches the requested entity reference.
-			if !visits.AddPublished(found.GetEntity()) { // If the entity and relation has already been visited.
-				return nil
+	if entrances == nil {
+		// Direct match: publish all entities.
+		if entityType == request.GetEntrance().GetType() && relation == request.GetEntrance().GetValue() {
+			for _, id := range filtered {
+				entity := &base.Entity{Type: entityType, Id: id}
+				if !visits.AddPublished(entity) {
+					continue
+				}
+				publisher.Publish(entity, &base.PermissionCheckRequestMetadata{
+					SnapToken:     request.GetMetadata().GetSnapToken(),
+					SchemaVersion: request.GetMetadata().GetSchemaVersion(),
+					Depth:         request.GetMetadata().GetDepth(),
+				}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 			}
-			publisher.Publish(found.GetEntity(), &base.PermissionCheckRequestMetadata{ // Publish the found entity with the permission check metadata.
-				SnapToken:     request.GetMetadata().GetSnapToken(),
-				SchemaVersion: request.GetMetadata().GetSchemaVersion(),
-				Depth:         request.GetMetadata().GetDepth(),
-			}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
-			return nil
 		}
-		return nil // Otherwise, return without publishing any results.
+		return nil
 	}
 
+	// Needs recursion: ONE EntityFilter call with all IDs as batch subject IDs.
+	// Input is already chunked by the caller (relationEntrance/tupleToUserSetEntrance).
 	g.Go(func() error {
-		return engine.EntityFilter(ctx, &base.PermissionEntityFilterRequest{ // Call the Run method recursively with a new permission request.
+		return engine.EntityFilter(ctx, &base.PermissionEntityFilterRequest{
 			TenantId: request.GetTenantId(),
 			Entrance: request.GetEntrance(),
 			Subject: &base.Subject{
-				Type:     found.GetEntity().GetType(),
-				Id:       found.GetEntity().GetId(),
-				Relation: found.GetRelation(),
+				Type:     entityType,
+				Id:       filtered[0], // Representative ID for Subject field
+				Relation: relation,
 			},
 			Scope:    request.GetScope(),
 			Metadata: request.GetMetadata(),
 			Context:  request.GetContext(),
 			Cursor:   request.GetCursor(),
-		}, visits, publisher)
+		}, filtered, visits, publisher)
 	})
 	return nil
 }

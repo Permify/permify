@@ -124,7 +124,7 @@ var _ = Describe("goroutine-leak-tests", func() {
 					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 					defer cancel()
 
-					_, err = invoker.Check(ctx, &base.PermissionCheckRequest{
+					_, err = invoker.Check(ctx, invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -134,7 +134,7 @@ var _ = Describe("goroutine-leak-tests", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 					Expect(err).ShouldNot(HaveOccurred())
 				}(i)
 			}
@@ -238,7 +238,7 @@ var _ = Describe("goroutine-leak-tests", func() {
 			cancel()
 
 			// This should return a cancellation error
-			_, err = invoker.Check(ctx, &base.PermissionCheckRequest{
+			_, err = invoker.Check(ctx, invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 				TenantId:   "t1",
 				Entity:     entity,
 				Subject:    subject,
@@ -248,7 +248,7 @@ var _ = Describe("goroutine-leak-tests", func() {
 					SchemaVersion: "",
 					Depth:         20,
 				},
-			})
+			}))
 
 			// We expect an error due to context cancellation
 			Expect(err).Should(HaveOccurred())
@@ -329,14 +329,14 @@ var _ = Describe("goroutine-leak-tests", func() {
 			// Test with high number of concurrent requests
 			numRequests := 30
 			errors := make(chan error, numRequests)
-			results := make(chan *base.PermissionCheckResponse, numRequests)
+			results := make(chan *invoke.BatchCheckResponse, numRequests)
 
 			for i := 0; i < numRequests; i++ {
 				go func() {
 					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 					defer cancel()
 
-					resp, err := invoker.Check(ctx, &base.PermissionCheckRequest{
+					resp, err := invoker.Check(ctx, invoke.NewBatchCheckRequest(&base.PermissionCheckRequest{
 						TenantId:   "t1",
 						Entity:     entity,
 						Subject:    subject,
@@ -346,7 +346,7 @@ var _ = Describe("goroutine-leak-tests", func() {
 							SchemaVersion: "",
 							Depth:         20,
 						},
-					})
+					}))
 
 					if err != nil {
 						errors <- err

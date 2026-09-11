@@ -6,6 +6,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/Permify/permify/internal/config"
@@ -6187,6 +6188,177 @@ entity group_perms {
 			// 2. bob -> sales -> beta -> us-west (employee->department->company->region)
 			// PathChain will traverse these 3 hops and resolve to region attributes
 			Expect(resp.GetEntityIds()).Should(ContainElements("alice", "bob"))
+		})
+	})
+
+	Context("Streaming Mode (skip-ordering)", func() {
+		It("Drive Sample: streaming returns same results as standard mode", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+			for _, relationship := range []string{
+				"doc:1#owner@user:2",
+				"doc:1#folder@user:3",
+				"doc:2#owner@user:1",
+				"doc:3#owner@user:1",
+			} {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Standard mode
+			standardResp, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+				TenantId:   "t1",
+				EntityType: "doc",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "1",
+				},
+				Permission: "read",
+				Metadata: &base.PermissionLookupEntityRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+					Depth:         100,
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Streaming mode via gRPC metadata
+			streamingCtx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("x-permify-skip-ordering", "true"))
+			streamingResp, err := invoker.LookupEntity(streamingCtx, &base.PermissionLookupEntityRequest{
+				TenantId:   "t1",
+				EntityType: "doc",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "1",
+				},
+				Permission: "read",
+				Metadata: &base.PermissionLookupEntityRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+					Depth:         100,
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Same entity IDs (order may differ)
+			Expect(streamingResp.GetEntityIds()).Should(ConsistOf(standardResp.GetEntityIds()))
+			// Streaming returns unordered token
+			Expect(streamingResp.GetContinuousToken()).Should(Equal("<unordered>"))
+		})
+
+		It("Drive Sample: streaming with page_size=1 returns exactly 1 result", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(driveSchemaEntityFilter)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+
+			lookupEngine := NewLookupEngine(
+				checkEngine,
+				schemaReader,
+				dataReader,
+			)
+
+			invoker := invoke.NewDirectInvoker(
+				schemaReader,
+				dataReader,
+				checkEngine,
+				nil,
+				lookupEngine,
+				nil,
+			)
+
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+			for _, relationship := range []string{
+				"doc:1#owner@user:1",
+				"doc:2#owner@user:1",
+				"doc:3#owner@user:1",
+			} {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection())
+			Expect(err).ShouldNot(HaveOccurred())
+
+			streamingCtx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("x-permify-skip-ordering", "true"))
+			resp, err := invoker.LookupEntity(streamingCtx, &base.PermissionLookupEntityRequest{
+				TenantId:   "t1",
+				EntityType: "doc",
+				Subject: &base.Subject{
+					Type: "user",
+					Id:   "1",
+				},
+				Permission: "read",
+				Metadata: &base.PermissionLookupEntityRequestMetadata{
+					SnapToken:     token.NewNoopToken().Encode().String(),
+					SchemaVersion: "",
+					Depth:         100,
+				},
+				PageSize: 1,
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(resp.GetEntityIds()).Should(HaveLen(1))
+			Expect(resp.GetEntityIds()[0]).Should(BeElementOf("1", "2", "3"))
 		})
 	})
 

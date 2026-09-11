@@ -14,25 +14,15 @@ import (
 // mockCheckEngine is a mock implementation of invoke.Check for testing
 type mockCheckEngine struct{}
 
-func (m *mockCheckEngine) Check(ctx context.Context, request *base.PermissionCheckRequest) (*base.PermissionCheckResponse, error) {
-	return &base.PermissionCheckResponse{
-		Can: base.CheckResult_CHECK_RESULT_ALLOWED,
-		Metadata: &base.PermissionCheckResponseMetadata{
-			CheckCount: 1,
-		},
-	}, nil
+func (m *mockCheckEngine) Check(_ context.Context, req *invoke.BatchCheckRequest) (*invoke.BatchCheckResponse, error) {
+	return invoke.NewBatchCheckResponse(base.CheckResult_CHECK_RESULT_ALLOWED, req.EntityIDs...), nil
 }
 
 // errorCheckEngine is a mock implementation that returns errors
 type errorCheckEngine struct{}
 
-func (e *errorCheckEngine) Check(ctx context.Context, request *base.PermissionCheckRequest) (*base.PermissionCheckResponse, error) {
-	return &base.PermissionCheckResponse{
-		Can: base.CheckResult_CHECK_RESULT_UNSPECIFIED,
-		Metadata: &base.PermissionCheckResponseMetadata{
-			CheckCount: 0,
-		},
-	}, errors.New("permission check failed")
+func (e *errorCheckEngine) Check(_ context.Context, req *invoke.BatchCheckRequest) (*invoke.BatchCheckResponse, error) {
+	return invoke.NewBatchCheckResponse(base.CheckResult_CHECK_RESULT_UNSPECIFIED, req.EntityIDs...), errors.New("permission check failed")
 }
 
 var _ = Describe("Bulk", func() {

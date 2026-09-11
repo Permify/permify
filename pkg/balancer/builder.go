@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"golang.org/x/exp/slog"
 	"google.golang.org/grpc/balancer"
-	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/serviceconfig"
@@ -18,10 +18,10 @@ import (
 // contextKey is a custom type for context keys to avoid collisions
 type contextKey string
 
-// Package-level constants for the balancer name and consistent hash key.
+// Package-level constants for the balancer name and context keys.
 const (
-	Name = "consistenthashing"             // Name of the balancer.
-	Key  = contextKey("consistenthashkey") // Key for the consistent hash.
+	Name       = "consistenthashing"   // Name of the balancer.
+	SubConnKey = contextKey("subconn") // Context key for pre-computed SubConn.
 )
 
 // Config represents the configuration for the consistent hashing balancer.
@@ -70,9 +70,19 @@ func (c *Config) ServiceConfigJSON() (string, error) {
 	return string(jsonData), nil
 }
 
+var defaultBuilder atomic.Pointer[builder]
+
 // NewBuilder initializes a new builder with the given hashing function.
+// The builder is also stored as the package default, accessible via GetBuilder.
 func NewBuilder(fn consistent.Hasher) Builder {
-	return &builder{hasher: fn}
+	b := &builder{hasher: fn}
+	defaultBuilder.Store(b)
+	return b
+}
+
+// GetBuilder returns the builder created by NewBuilder, or nil.
+func GetBuilder() Builder {
+	return defaultBuilder.Load()
 }
 
 // ConsistentMember represents a member in the consistent hashing ring.
@@ -86,15 +96,20 @@ func (s ConsistentMember) String() string { return s.name }
 
 // builder is responsible for creating and configuring the consistent hashing balancer.
 type builder struct {
-	sync.Mutex                   // Mutex for thread-safe updates to the builder.
-	hasher     consistent.Hasher // Hashing function for the consistent hash ring.
-	config     Config            // Current balancer configuration.
+	sync.Mutex                          // Mutex for thread-safe updates to config.
+	hasher     consistent.Hasher        // Hashing function for the consistent hash ring.
+	config     Config                   // Current balancer configuration.
+	bal        atomic.Pointer[Balancer] // Reference to the active gRPC balancer (lock-free).
 }
 
 // Builder defines the interface for the consistent hashing balancer builder.
 type Builder interface {
 	balancer.Builder      // Interface for building balancers.
 	balancer.ConfigParser // Interface for parsing balancer configurations.
+
+	// Picker returns the current NodePicker for routing keys to SubConns.
+	// Returns nil if the balancer is not ready.
+	Picker() NodePicker
 }
 
 // Name returns the name of the balancer.
@@ -103,17 +118,27 @@ func (b *builder) Name() string { return Name }
 // Build creates a new instance of the consistent hashing balancer.
 func (b *builder) Build(cc balancer.ClientConn, _ balancer.BuildOptions) balancer.Balancer {
 	// Initialize a new balancer with default values.
+	// picker starts as nil (no SubConns yet); gRPC gets an errPicker via UpdateState below.
 	bal := &Balancer{
 		clientConn:            cc,
 		addressSubConns:       resolver.NewAddressMap(),
 		subConnStates:         make(map[balancer.SubConn]connectivity.State),
 		connectivityEvaluator: &balancer.ConnectivityStateEvaluator{},
-		state:                 connectivity.Connecting, // Initial state.
+		state:                 connectivity.Connecting,
 		hasher:                b.hasher,
-		picker:                base.NewErrPicker(balancer.ErrNoSubConnAvailable), // Default picker with no SubConns available.
 	}
 
+	b.bal.Store(bal)
+
 	return bal
+}
+
+// Picker returns the current NodePicker. Nil if the balancer is not ready.
+func (b *builder) Picker() NodePicker {
+	if bal := b.bal.Load(); bal != nil {
+		return bal.picker.Load()
+	}
+	return nil
 }
 
 // ParseConfig parses the balancer configuration from the provided JSON.

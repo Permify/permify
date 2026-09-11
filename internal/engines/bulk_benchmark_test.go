@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Permify/permify/internal/invoke"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
 
@@ -15,13 +16,11 @@ type MockChecker struct {
 	delay time.Duration
 }
 
-func (m *MockChecker) Check(ctx context.Context, request *base.PermissionCheckRequest) (*base.PermissionCheckResponse, error) {
+func (m *MockChecker) Check(_ context.Context, req *invoke.BatchCheckRequest) (*invoke.BatchCheckResponse, error) {
 	if m.delay > 0 {
 		time.Sleep(m.delay)
 	}
-	return &base.PermissionCheckResponse{
-		Can: base.CheckResult_CHECK_RESULT_ALLOWED,
-	}, nil
+	return invoke.NewBatchCheckResponse(base.CheckResult_CHECK_RESULT_ALLOWED, req.EntityIDs...), nil
 }
 
 // BenchmarkBulkChecker tests the performance of the BulkChecker

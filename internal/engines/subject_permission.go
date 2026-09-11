@@ -16,24 +16,13 @@ type SubjectPermissionEngine struct {
 	checker invoke.Check
 	// schemaReader is responsible for reading schema information
 	schemaReader storage.SchemaReader
-	// concurrencyLimit is the maximum number of concurrent permission checks allowed
-	concurrencyLimit int
 }
 
-func NewSubjectPermission(checker invoke.Check, sr storage.SchemaReader, opts ...SubjectPermissionOption) *SubjectPermissionEngine {
-	// Initialize a CheckEngine with default concurrency limit and provided parameters
-	engine := &SubjectPermissionEngine{
-		checker:          checker,
-		schemaReader:     sr,
-		concurrencyLimit: _defaultConcurrencyLimit,
+func NewSubjectPermission(checker invoke.Check, sr storage.SchemaReader) *SubjectPermissionEngine {
+	return &SubjectPermissionEngine{
+		checker:      checker,
+		schemaReader: sr,
 	}
-
-	// Apply provided options to configure the CheckEngine
-	for _, opt := range opts {
-		opt(engine)
-	}
-
-	return engine
 }
 
 // SubjectPermission is a method on the SubjectPermissionEngine struct.
@@ -97,17 +86,18 @@ func (engine *SubjectPermissionEngine) SubjectPermission(ctx context.Context, re
 
 			// The checkEngine's Check method is called with a new PermissionCheckRequest.
 			// The request is created using the data from the original request, and the permission from the current iteration.
-			cr, err := engine.checker.Check(ctx, &base.PermissionCheckRequest{
-				TenantId: request.GetTenantId(),
+			cr, err := engine.checker.Check(ctx, &invoke.BatchCheckRequest{
+				TenantID:   request.GetTenantId(),
+				EntityType: request.GetEntity().GetType(),
+				EntityIDs:  []string{request.GetEntity().GetId()},
+				Permission: permission,
+				Subject:    request.GetSubject(),
 				Metadata: &base.PermissionCheckRequestMetadata{
 					SchemaVersion: request.GetMetadata().GetSchemaVersion(),
 					SnapToken:     request.GetMetadata().GetSnapToken(),
 					Depth:         request.GetMetadata().GetDepth(),
 				},
-				Entity:     request.GetEntity(),
-				Permission: permission,
-				Subject:    request.GetSubject(),
-				Context:    request.GetContext(),
+				Context: request.GetContext(),
 			})
 			// If there's an error, it is sent over the resultChannel along with the permission and a "denied" result.
 			if err != nil {
@@ -116,7 +106,7 @@ func (engine *SubjectPermissionEngine) SubjectPermission(ctx context.Context, re
 			}
 
 			// If there's no error, the result of the check (along with the permission and a nil error) is sent over the resultChannel.
-			resultChannel <- SubjectPermissionResponse{permission: permission, result: cr.Can, err: nil}
+			resultChannel <- SubjectPermissionResponse{permission: permission, result: cr.UnionResult(), err: nil}
 		}(p)
 	}
 

@@ -9,6 +9,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/anypb"
 
+	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/schema"
 	"github.com/Permify/permify/pkg/attribute"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
@@ -17,6 +18,7 @@ import (
 
 const (
 	_defaultConcurrencyLimit = 100
+	_defaultMaxBatchSize     = 100
 )
 
 // CheckOption - a functional option type for configuring the CheckEngine.
@@ -29,11 +31,24 @@ func CheckConcurrencyLimit(limit int) CheckOption {
 	}
 }
 
+// CheckMaxBatchSize - a functional option that sets the maximum batch size for the CheckEngine.
+func CheckMaxBatchSize(size int) CheckOption {
+	return func(c *CheckEngine) {
+		c.maxBatchSize = size
+	}
+}
+
 type LookupOption func(engine *LookupEngine)
 
 func LookupConcurrencyLimit(limit int) LookupOption {
 	return func(c *LookupEngine) {
 		c.concurrencyLimit = limit
+	}
+}
+
+func LookupMaxBatchSize(size int) LookupOption {
+	return func(c *LookupEngine) {
+		c.maxBatchSize = size
 	}
 }
 
@@ -43,16 +58,6 @@ type SubjectFilterOption func(engine *SubjectFilter)
 // SubjectFilterConcurrencyLimit - a functional option that sets the concurrency limit for the LookupSubjectEngine.
 func SubjectFilterConcurrencyLimit(limit int) SubjectFilterOption {
 	return func(c *SubjectFilter) {
-		c.concurrencyLimit = limit
-	}
-}
-
-// SubjectPermissionOption - a functional option type for configuring the SubjectPermissionEngine.
-type SubjectPermissionOption func(engine *SubjectPermissionEngine)
-
-// SubjectPermissionConcurrencyLimit - a functional option that sets the concurrency limit for the SubjectPermissionEngine.
-func SubjectPermissionConcurrencyLimit(limit int) SubjectPermissionOption {
-	return func(c *SubjectPermissionEngine) {
 		c.concurrencyLimit = limit
 	}
 }
@@ -73,9 +78,9 @@ type SubjectPermissionResponse struct {
 	err        error
 }
 
-// CheckResponse - a struct that holds a PermissionCheckResponse and an error for a single check function.
+// CheckResponse - a struct that holds a BatchCheckResponse and an error for a single check function.
 type CheckResponse struct {
-	resp *base.PermissionCheckResponse
+	resp *invoke.BatchCheckResponse
 	err  error
 }
 
