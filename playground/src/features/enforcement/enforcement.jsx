@@ -11,6 +11,9 @@ function Enforcement() {
     const [yamlData, setYamlData] = useState("");
 
     const handleYamlChange = (newCode) => {
+        // While typing the editor text is the source of truth, so keep it as it is
+        // and only feed the parsed result into the store.
+        setYamlData(newCode);
         try {
             const updatedData = yaml.load(newCode);
             setScenarios(updatedData);
@@ -20,7 +23,19 @@ function Enforcement() {
     };
 
     useEffect(() => {
-        setYamlData(dump(scenarios))
+        const dumped = dump(scenarios);
+        setYamlData((current) => {
+            try {
+                if (dump(yaml.load(current)) === dumped) {
+                    return current;
+                }
+            } catch (error) {
+                // Not valid YAML yet, the user is still typing it.
+                return current;
+            }
+            // The scenarios changed outside of the editor (example, import, new scenario).
+            return dumped;
+        });
     }, [scenarios]);
 
     return (
