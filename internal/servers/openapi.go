@@ -8,28 +8,12 @@ import (
 	"github.com/Permify/permify/docs"
 )
 
-// RegisterOpenAPIHandlers registers endpoints on the gRPC-Gateway ServeMux to expose
-// OpenAPI and Swagger specifications over HTTP.
+// RegisterOpenAPIHandlers registers the OpenAPI endpoint on the gRPC-Gateway ServeMux
+// to expose the API specification over HTTP.
 func RegisterOpenAPIHandlers(mux *runtime.ServeMux) error {
-	endpoints := map[string][]byte{
-		"/openapi.json":        docs.OpenAPIJSON,
-		"/swagger.json":        docs.SwaggerJSON,
-		"/docs/openapi.json":   docs.OpenAPIJSON,
-		"/docs/swagger.json":   docs.SwaggerJSON,
-		"/docs/openapiv2.json": docs.OpenAPIV2JSON,
-	}
-
-	for path, spec := range endpoints {
-		content := spec
-		err := mux.HandlePath(http.MethodGet, path, func(w http.ResponseWriter, r *http.Request, _ map[string]string) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write(content)
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return mux.HandlePath(http.MethodGet, "/openapi.json", func(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(docs.OpenAPIJSON)
+	})
 }

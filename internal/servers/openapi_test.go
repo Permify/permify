@@ -15,87 +15,30 @@ func TestRegisterOpenAPIHandlers(t *testing.T) {
 	err := RegisterOpenAPIHandlers(mux)
 	require.NoError(t, err)
 
-	testCases := []struct {
-		name         string
-		path         string
-		expectedCode int
-		validateJSON func(t *testing.T, body []byte)
-	}{
-		{
-			name:         "GET /openapi.json",
-			path:         "/openapi.json",
-			expectedCode: http.StatusOK,
-			validateJSON: func(t *testing.T, body []byte) {
-				var data map[string]any
-				err := json.Unmarshal(body, &data)
-				require.NoError(t, err)
-				require.Equal(t, "3.0.0", data["openapi"])
-				info, ok := data["info"].(map[string]any)
-				require.True(t, ok)
-				require.Equal(t, "Permify API", info["title"])
-			},
-		},
-		{
-			name:         "GET /swagger.json",
-			path:         "/swagger.json",
-			expectedCode: http.StatusOK,
-			validateJSON: func(t *testing.T, body []byte) {
-				var data map[string]any
-				err := json.Unmarshal(body, &data)
-				require.NoError(t, err)
-				require.Equal(t, "2.0", data["swagger"])
-				info, ok := data["info"].(map[string]any)
-				require.True(t, ok)
-				require.Equal(t, "Permify API", info["title"])
-			},
-		},
-		{
-			name:         "GET /docs/openapi.json",
-			path:         "/docs/openapi.json",
-			expectedCode: http.StatusOK,
-			validateJSON: func(t *testing.T, body []byte) {
-				var data map[string]any
-				err := json.Unmarshal(body, &data)
-				require.NoError(t, err)
-				require.Equal(t, "3.0.0", data["openapi"])
-			},
-		},
-		{
-			name:         "GET /docs/swagger.json",
-			path:         "/docs/swagger.json",
-			expectedCode: http.StatusOK,
-			validateJSON: func(t *testing.T, body []byte) {
-				var data map[string]any
-				err := json.Unmarshal(body, &data)
-				require.NoError(t, err)
-				require.Equal(t, "2.0", data["swagger"])
-			},
-		},
-		{
-			name:         "GET /docs/openapiv2.json",
-			path:         "/docs/openapiv2.json",
-			expectedCode: http.StatusOK,
-			validateJSON: func(t *testing.T, body []byte) {
-				var data map[string]any
-				err := json.Unmarshal(body, &data)
-				require.NoError(t, err)
-				require.Equal(t, "2.0", data["swagger"])
-			},
-		},
-	}
+	t.Run("GET /openapi.json returns 200 and valid OpenAPI JSON", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/openapi.json", nil)
+		w := httptest.NewRecorder()
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
-			w := httptest.NewRecorder()
+		mux.ServeHTTP(w, req)
 
-			mux.ServeHTTP(w, req)
+		require.Equal(t, http.StatusOK, w.Code)
+		require.Equal(t, "application/json", w.Header().Get("Content-Type"))
 
-			require.Equal(t, tc.expectedCode, w.Code)
-			require.Equal(t, "application/json", w.Header().Get("Content-Type"))
-			if tc.validateJSON != nil {
-				tc.validateJSON(t, w.Body.Bytes())
-			}
-		})
-	}
+		var data map[string]any
+		err := json.Unmarshal(w.Body.Bytes(), &data)
+		require.NoError(t, err)
+		require.Equal(t, "3.0.0", data["openapi"])
+		info, ok := data["info"].(map[string]any)
+		require.True(t, ok)
+		require.Equal(t, "Permify API", info["title"])
+	})
+
+	t.Run("GET /unregistered returns 404", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/unregistered", nil)
+		w := httptest.NewRecorder()
+
+		mux.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusNotFound, w.Code)
+	})
 }
