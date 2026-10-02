@@ -16,7 +16,7 @@ func (x *XID8) Set(src interface{}) error {
 
 // Get returns the underlying value
 func (x XID8) Get() interface{} {
-	return (pguint64)(x).Get()
+	return pguint64(x).Get()
 }
 
 // AssignTo assigns the value to the destination
@@ -36,12 +36,12 @@ func (x *XID8) DecodeBinary(ci *pgtype.ConnInfo, src []byte) error {
 
 // EncodeText encodes to text format
 func (x XID8) EncodeText(ci *pgtype.ConnInfo, buf []byte) ([]byte, error) {
-	return (pguint64)(x).EncodeText(ci, buf)
+	return pguint64(x).EncodeText(ci, buf)
 }
 
 // EncodeBinary encodes to binary format
 func (x XID8) EncodeBinary(ci *pgtype.ConnInfo, buf []byte) ([]byte, error) {
-	return (pguint64)(x).EncodeBinary(ci, buf)
+	return pguint64(x).EncodeBinary(ci, buf)
 }
 
 // Scan implements the database/sql Scanner interface
@@ -51,5 +51,5 @@ func (x *XID8) Scan(src interface{}) error {
 
 // Value implements the database/sql/driver Valuer interface
 func (x XID8) Value() (driver.Value, error) {
-	return (pguint64)(x).Value()
+	return pguint64(x).Value()
 }

@@ -7,6 +7,8 @@ import (
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"google.golang.org/grpc/status"
 
+	"buf.build/go/protovalidate"
+
 	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/validation"
@@ -36,7 +38,7 @@ func (r *BundleServer) Write(ctx context.Context, request *v1.BundleWriteRequest
 	ctx, span := internal.Tracer.Start(ctx, "bundle.write")
 	defer span.End()
 
-	v := request.Validate()
+	v := protovalidate.Validate(request)
 	if v != nil {
 		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
 	}
@@ -77,7 +79,7 @@ func (r *BundleServer) Read(ctx context.Context, request *v1.BundleReadRequest) 
 	ctx, span := internal.Tracer.Start(ctx, "bundle.read")
 	defer span.End()
 
-	v := request.Validate()
+	v := protovalidate.Validate(request)
 	if v != nil {
 		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
 	}
@@ -100,7 +102,7 @@ func (r *BundleServer) Delete(ctx context.Context, request *v1.BundleDeleteReque
 	ctx, span := internal.Tracer.Start(ctx, "bundle.delete")
 	defer span.End()
 
-	v := request.Validate()
+	v := protovalidate.Validate(request)
 	if v != nil {
 		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
 	}

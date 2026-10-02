@@ -9,6 +9,8 @@ import (
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"google.golang.org/grpc/status"
 
+	"buf.build/go/protovalidate"
+
 	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/invoke"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
@@ -33,7 +35,7 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 	ctx, span := internal.Tracer.Start(ctx, "permissions.check")
 	defer span.End()
 
-	v := request.Validate()
+	v := protovalidate.Validate(request)
 	if v != nil {
 		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
 	}
@@ -103,7 +105,7 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 			defer wg.Done()
 
 			// Validate individual request
-			v := checkRequestItem.Validate()
+			v := protovalidate.Validate(checkRequestItem)
 			if v != nil {
 				resultChannel <- resultItem{
 					index: index,
@@ -185,7 +187,7 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 	ctx, span := internal.Tracer.Start(ctx, "permissions.expand")
 	defer span.End()
 
-	v := request.Validate()
+	v := protovalidate.Validate(request)
 	if v != nil {
 		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
 	}
@@ -206,7 +208,7 @@ func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.Permiss
 	ctx, span := internal.Tracer.Start(ctx, "permissions.lookup-entity")
 	defer span.End()
 
-	v := request.Validate()
+	v := protovalidate.Validate(request)
 	if v != nil {
 		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
 	}
@@ -227,7 +229,7 @@ func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntity
 	ctx, span := internal.Tracer.Start(server.Context(), "permissions.lookup-entity-stream")
 	defer span.End()
 
-	v := request.Validate()
+	v := protovalidate.Validate(request)
 	if v != nil {
 		return v
 	}
@@ -248,7 +250,7 @@ func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.Permis
 	ctx, span := internal.Tracer.Start(ctx, "permissions.lookup-subject")
 	defer span.End()
 
-	v := request.Validate()
+	v := protovalidate.Validate(request)
 	if v != nil {
 		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
 	}
@@ -269,7 +271,7 @@ func (r *PermissionServer) SubjectPermission(ctx context.Context, request *v1.Pe
 	ctx, span := internal.Tracer.Start(ctx, "permissions.subject-permission")
 	defer span.End()
 
-	v := request.Validate()
+	v := protovalidate.Validate(request)
 	if v != nil {
 		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
 	}
