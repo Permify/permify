@@ -1,14 +1,20 @@
-version: v1
-name: buf.build/permifyco/permify
+version: v2
+modules:
+  - path: .
+    name: buf.build/permifyco/permify
 deps:
   - buf.build/bufbuild/protovalidate
-  - buf.build/grpc-ecosystem/grpc-gateway:4c5ba75caaf84e928b7137ae5c18c26a
   - buf.build/googleapis/googleapis:61b203b9a9164be9a834f58c37be6f62
-breaking:
-  ignore_unstable_packages: true
+  - buf.build/grpc-ecosystem/grpc-gateway:4c5ba75caaf84e928b7137ae5c18c26a
 lint:
-  allow_comment_ignores: true
   except:
-    - PACKAGE_VERSION_SUFFIX
     - FIELD_LOWER_SNAKE_CASE
+    - FIELD_NOT_REQUIRED
+    - PACKAGE_NO_IMPORT_CYCLE
+    - PACKAGE_VERSION_SUFFIX
     - SERVICE_SUFFIX
+breaking:
+  except:
+    - EXTENSION_NO_DELETE
+    - FIELD_SAME_DEFAULT
+  ignore_unstable_packages: true
