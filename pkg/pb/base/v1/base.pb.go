@@ -7,7 +7,7 @@
 package basev1
 
 import (
-	_ "github.com/envoyproxy/protoc-gen-validate/validate"
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1alpha1 "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -3280,23 +3280,23 @@ var File_base_v1_base_proto protoreflect.FileDescriptor
 
 const file_base_v1_base_proto_rawDesc = "" +
 	"\n" +
-	"\x12base/v1/base.proto\x12\abase.v1\x1a&google/api/expr/v1alpha1/checked.proto\x1a\x19google/protobuf/any.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17validate/validate.proto\"\x92\x01\n" +
+	"\x12base/v1/base.proto\x12\abase.v1\x1a\x1bbuf/validate/validate.proto\x1a&google/api/expr/v1alpha1/checked.proto\x1a\x19google/protobuf/any.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x92\x01\n" +
 	"\aContext\x12&\n" +
 	"\x06tuples\x18\x01 \x03(\v2\x0e.base.v1.TupleR\x06tuples\x122\n" +
 	"\n" +
 	"attributes\x18\x02 \x03(\v2\x12.base.v1.AttributeR\n" +
 	"attributes\x12+\n" +
-	"\x04data\x18\x03 \x01(\v2\x17.google.protobuf.StructR\x04data\"{\n" +
-	"\x05Child\x12-\n" +
-	"\x04leaf\x18\x01 \x01(\v2\r.base.v1.LeafB\b\xfaB\x05\x8a\x01\x02\x10\x01H\x00R\x04leaf\x126\n" +
-	"\arewrite\x18\x02 \x01(\v2\x10.base.v1.RewriteB\b\xfaB\x05\x8a\x01\x02\x10\x01H\x00R\arewriteB\v\n" +
-	"\x04type\x12\x03\xf8B\x01\"\xbb\x02\n" +
-	"\x04Leaf\x12P\n" +
-	"\x11computed_user_set\x18\x01 \x01(\v2\x18.base.v1.ComputedUserSetB\b\xfaB\x05\x8a\x01\x02\x10\x01H\x00R\x0fcomputedUserSet\x12N\n" +
-	"\x11tuple_to_user_set\x18\x02 \x01(\v2\x17.base.v1.TupleToUserSetB\b\xfaB\x05\x8a\x01\x02\x10\x01H\x00R\x0etupleToUserSet\x12U\n" +
-	"\x12computed_attribute\x18\x03 \x01(\v2\x1a.base.v1.ComputedAttributeB\b\xfaB\x05\x8a\x01\x02\x10\x01H\x00R\x11computedAttribute\x12-\n" +
-	"\x04call\x18\x04 \x01(\v2\r.base.v1.CallB\b\xfaB\x05\x8a\x01\x02\x10\x01H\x00R\x04callB\v\n" +
-	"\x04type\x12\x03\xf8B\x01\"\xf0\x01\n" +
+	"\x04data\x18\x03 \x01(\v2\x17.google.protobuf.StructR\x04data\"i\n" +
+	"\x05Child\x12#\n" +
+	"\x04leaf\x18\x01 \x01(\v2\r.base.v1.LeafH\x00R\x04leaf\x12,\n" +
+	"\arewrite\x18\x02 \x01(\v2\x10.base.v1.RewriteH\x00R\arewriteB\r\n" +
+	"\x04type\x12\x05\xbaH\x02\b\x01\"\x95\x02\n" +
+	"\x04Leaf\x12F\n" +
+	"\x11computed_user_set\x18\x01 \x01(\v2\x18.base.v1.ComputedUserSetH\x00R\x0fcomputedUserSet\x12D\n" +
+	"\x11tuple_to_user_set\x18\x02 \x01(\v2\x17.base.v1.TupleToUserSetH\x00R\x0etupleToUserSet\x12K\n" +
+	"\x12computed_attribute\x18\x03 \x01(\v2\x1a.base.v1.ComputedAttributeH\x00R\x11computedAttribute\x12#\n" +
+	"\x04call\x18\x04 \x01(\v2\r.base.v1.CallH\x00R\x04callB\r\n" +
+	"\x04type\x12\x05\xbaH\x02\b\x01\"\xf0\x01\n" +
 	"\aRewrite\x12G\n" +
 	"\x11rewrite_operation\x18\x01 \x01(\x0e2\x1a.base.v1.Rewrite.OperationR\x10rewriteOperation\x12*\n" +
 	"\bchildren\x18\x02 \x03(\v2\x0e.base.v1.ChildR\bchildren\"p\n" +
@@ -3325,7 +3325,7 @@ const file_base_v1_base_proto_rawDesc = "" +
 	"\x10REFERENCE_ENTITY\x10\x01\x12\x12\n" +
 	"\x0eREFERENCE_RULE\x10\x02\"\xdc\x06\n" +
 	"\x10EntityDefinition\x12.\n" +
-	"\x04name\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x12F\n" +
+	"\x04name\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x12F\n" +
 	"\trelations\x18\x02 \x03(\v2(.base.v1.EntityDefinition.RelationsEntryR\trelations\x12L\n" +
 	"\vpermissions\x18\x03 \x03(\v2*.base.v1.EntityDefinition.PermissionsEntryR\vpermissions\x12I\n" +
 	"\n" +
@@ -3352,7 +3352,7 @@ const file_base_v1_base_proto_rawDesc = "" +
 	"\x14REFERENCE_PERMISSION\x10\x02\x12\x17\n" +
 	"\x13REFERENCE_ATTRIBUTE\x10\x03\"\xa3\x02\n" +
 	"\x0eRuleDefinition\x12.\n" +
-	"\x04name\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x12D\n" +
+	"\x04name\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x12D\n" +
 	"\targuments\x18\x02 \x03(\v2&.base.v1.RuleDefinition.ArgumentsEntryR\targuments\x12E\n" +
 	"\n" +
 	"expression\x18\x03 \x01(\v2%.google.api.expr.v1alpha1.CheckedExprR\n" +
@@ -3361,20 +3361,20 @@ const file_base_v1_base_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12,\n" +
 	"\x05value\x18\x02 \x01(\x0e2\x16.base.v1.AttributeTypeR\x05value:\x028\x01\"q\n" +
 	"\x13AttributeDefinition\x12.\n" +
-	"\x04name\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x12*\n" +
+	"\x04name\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x12*\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x16.base.v1.AttributeTypeR\x04type\"\x91\x01\n" +
 	"\x12RelationDefinition\x12.\n" +
-	"\x04name\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x12K\n" +
+	"\x04name\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x12K\n" +
 	"\x13relation_references\x18\x02 \x03(\v2\x1a.base.v1.RelationReferenceR\x12relationReferences\"l\n" +
 	"\x14PermissionDefinition\x12.\n" +
-	"\x04name\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x12$\n" +
+	"\x04name\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\x12$\n" +
 	"\x05child\x18\x02 \x01(\v2\x0e.base.v1.ChildR\x05child\"~\n" +
 	"\x11RelationReference\x12.\n" +
-	"\x04type\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04type\x129\n" +
-	"\brelation\x18\x02 \x01(\tB\x1d\xfaB\x1ar\x18(@2\x11^[a-zA-Z_]{1,64}$\xd0\x01\x01R\brelation\"l\n" +
+	"\x04type\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04type\x129\n" +
+	"\brelation\x18\x02 \x01(\tB\x1d\xbaH\x1a\xd8\x01\x01r\x15(@2\x11^[a-zA-Z_]{1,64}$R\brelation\"l\n" +
 	"\bEntrance\x12.\n" +
-	"\x04type\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04type\x120\n" +
-	"\x05value\x18\x02 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x05value\"_\n" +
+	"\x04type\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04type\x120\n" +
+	"\x05value\x18\x02 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x05value\"_\n" +
 	"\bArgument\x12K\n" +
 	"\x12computed_attribute\x18\x01 \x01(\v2\x1a.base.v1.ComputedAttributeH\x00R\x11computedAttributeB\x06\n" +
 	"\x04type\"T\n" +
@@ -3382,20 +3382,20 @@ const file_base_v1_base_proto_rawDesc = "" +
 	"\trule_name\x18\x01 \x01(\tR\bruleName\x12/\n" +
 	"\targuments\x18\x02 \x03(\v2\x11.base.v1.ArgumentR\targuments\"C\n" +
 	"\x11ComputedAttribute\x12.\n" +
-	"\x04name\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\"I\n" +
+	"\x04name\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04name\"I\n" +
 	"\x0fComputedUserSet\x126\n" +
-	"\brelation\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\brelation\"u\n" +
+	"\brelation\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\brelation\"u\n" +
 	"\x0eTupleToUserSet\x12-\n" +
 	"\btupleSet\x18\x01 \x01(\v2\x11.base.v1.TupleSetR\btupleSet\x124\n" +
 	"\bcomputed\x18\x02 \x01(\v2\x18.base.v1.ComputedUserSetR\bcomputed\"B\n" +
 	"\bTupleSet\x126\n" +
-	"\brelation\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\brelation\"\xa8\x01\n" +
-	"\x05Tuple\x121\n" +
-	"\x06entity\x18\x01 \x01(\v2\x0f.base.v1.EntityB\b\xfaB\x05\x8a\x01\x02\x10\x01R\x06entity\x126\n" +
-	"\brelation\x18\x02 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\brelation\x124\n" +
-	"\asubject\x18\x03 \x01(\v2\x10.base.v1.SubjectB\b\xfaB\x05\x8a\x01\x02\x10\x01R\asubject\"\x88\x01\n" +
-	"\tAttribute\x121\n" +
-	"\x06entity\x18\x01 \x01(\v2\x0f.base.v1.EntityB\b\xfaB\x05\x8a\x01\x02\x10\x01R\x06entity\x12\x1c\n" +
+	"\brelation\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\brelation\"\xa4\x01\n" +
+	"\x05Tuple\x12/\n" +
+	"\x06entity\x18\x01 \x01(\v2\x0f.base.v1.EntityB\x06\xbaH\x03\xc8\x01\x01R\x06entity\x126\n" +
+	"\brelation\x18\x02 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\brelation\x122\n" +
+	"\asubject\x18\x03 \x01(\v2\x10.base.v1.SubjectB\x06\xbaH\x03\xc8\x01\x01R\asubject\"\x86\x01\n" +
+	"\tAttribute\x12/\n" +
+	"\x06entity\x18\x01 \x01(\v2\x0f.base.v1.EntityB\x06\xbaH\x03\xc8\x01\x01R\x06entity\x12\x1c\n" +
 	"\tattribute\x18\x02 \x01(\tR\tattribute\x12*\n" +
 	"\x05value\x18\x03 \x01(\v2\x14.google.protobuf.AnyR\x05value\"0\n" +
 	"\x06Tuples\x12&\n" +
@@ -3406,15 +3406,15 @@ const file_base_v1_base_proto_rawDesc = "" +
 	"attributes\x18\x01 \x03(\v2\x12.base.v1.AttributeR\n" +
 	"attributes\"u\n" +
 	"\x06Entity\x12.\n" +
-	"\x04type\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04type\x12;\n" +
-	"\x02id\x18\x02 \x01(\tB+\xfaB(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\x02id\"~\n" +
-	"\x11EntityAndRelation\x121\n" +
-	"\x06entity\x18\x01 \x01(\v2\x0f.base.v1.EntityB\b\xfaB\x05\x8a\x01\x02\x10\x01R\x06entity\x126\n" +
-	"\brelation\x18\x02 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\brelation\"\xb1\x01\n" +
+	"\x04type\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04type\x12;\n" +
+	"\x02id\x18\x02 \x01(\tB+\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\x02id\"|\n" +
+	"\x11EntityAndRelation\x12/\n" +
+	"\x06entity\x18\x01 \x01(\v2\x0f.base.v1.EntityB\x06\xbaH\x03\xc8\x01\x01R\x06entity\x126\n" +
+	"\brelation\x18\x02 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\brelation\"\xb1\x01\n" +
 	"\aSubject\x12.\n" +
-	"\x04type\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04type\x12;\n" +
-	"\x02id\x18\x02 \x01(\tB+\xfaB(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\x02id\x129\n" +
-	"\brelation\x18\x03 \x01(\tB\x1d\xfaB\x1ar\x18(@2\x11^[a-zA-Z_]{1,64}$\xd0\x01\x01R\brelation\"`\n" +
+	"\x04type\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\x04type\x12;\n" +
+	"\x02id\x18\x02 \x01(\tB+\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\x02id\x129\n" +
+	"\brelation\x18\x03 \x01(\tB\x1d\xbaH\x1a\xd8\x01\x01r\x15(@2\x11^[a-zA-Z_]{1,64}$R\brelation\"`\n" +
 	"\x0fAttributeFilter\x12-\n" +
 	"\x06entity\x18\x01 \x01(\v2\x15.base.v1.EntityFilterR\x06entity\x12\x1e\n" +
 	"\n" +
@@ -3422,7 +3422,7 @@ const file_base_v1_base_proto_rawDesc = "" +
 	"attributes\"\xa9\x01\n" +
 	"\vTupleFilter\x12-\n" +
 	"\x06entity\x18\x01 \x01(\v2\x15.base.v1.EntityFilterR\x06entity\x129\n" +
-	"\brelation\x18\x02 \x01(\tB\x1d\xfaB\x1ar\x18(@2\x11^[a-zA-Z_]{1,64}$\xd0\x01\x01R\brelation\x120\n" +
+	"\brelation\x18\x02 \x01(\tB\x1d\xbaH\x1a\xd8\x01\x01r\x15(@2\x11^[a-zA-Z_]{1,64}$R\brelation\x120\n" +
 	"\asubject\x18\x03 \x01(\v2\x16.base.v1.SubjectFilterR\asubject\"4\n" +
 	"\fEntityFilter\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x10\n" +
@@ -3430,7 +3430,7 @@ const file_base_v1_base_proto_rawDesc = "" +
 	"\rSubjectFilter\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x10\n" +
 	"\x03ids\x18\x02 \x03(\tR\x03ids\x129\n" +
-	"\brelation\x18\x03 \x01(\tB\x1d\xfaB\x1ar\x18(@2\x11^[a-zA-Z_]{1,64}$\xd0\x01\x01R\brelation\"\xf0\x01\n" +
+	"\brelation\x18\x03 \x01(\tB\x1d\xbaH\x1a\xd8\x01\x01r\x15(@2\x11^[a-zA-Z_]{1,64}$R\brelation\"\xf0\x01\n" +
 	"\x0eExpandTreeNode\x12?\n" +
 	"\toperation\x18\x01 \x01(\x0e2!.base.v1.ExpandTreeNode.OperationR\toperation\x12+\n" +
 	"\bchildren\x18\x02 \x03(\v2\x0f.base.v1.ExpandR\bchildren\"p\n" +
@@ -3447,13 +3447,13 @@ const file_base_v1_base_proto_rawDesc = "" +
 	"\targuments\x18\x03 \x03(\v2\x11.base.v1.ArgumentR\targuments\x121\n" +
 	"\x06expand\x18\x04 \x01(\v2\x17.base.v1.ExpandTreeNodeH\x00R\x06expand\x12)\n" +
 	"\x04leaf\x18\x05 \x01(\v2\x13.base.v1.ExpandLeafH\x00R\x04leafB\x06\n" +
-	"\x04node\"\xa3\x01\n" +
+	"\x04node\"\xa5\x01\n" +
 	"\n" +
 	"ExpandLeaf\x12/\n" +
 	"\bsubjects\x18\x01 \x01(\v2\x11.base.v1.SubjectsH\x00R\bsubjects\x12)\n" +
 	"\x06values\x18\x02 \x01(\v2\x0f.base.v1.ValuesH\x00R\x06values\x12,\n" +
-	"\x05value\x18\x03 \x01(\v2\x14.google.protobuf.AnyH\x00R\x05valueB\v\n" +
-	"\x04type\x12\x03\xf8B\x01\"\x8e\x01\n" +
+	"\x05value\x18\x03 \x01(\v2\x14.google.protobuf.AnyH\x00R\x05valueB\r\n" +
+	"\x04type\x12\x05\xbaH\x02\b\x01\"\x8e\x01\n" +
 	"\x06Values\x123\n" +
 	"\x06values\x18\x01 \x03(\v2\x1b.base.v1.Values.ValuesEntryR\x06values\x1aO\n" +
 	"\vValuesEntry\x12\x10\n" +
@@ -3471,7 +3471,7 @@ const file_base_v1_base_proto_rawDesc = "" +
 	"\n" +
 	"snap_token\x18\x01 \x01(\tR\n" +
 	"snap_token\x127\n" +
-	"\fdata_changes\x18\x02 \x03(\v2\x13.base.v1.DataChangeR\fdata_changes\"\x86\x02\n" +
+	"\fdata_changes\x18\x02 \x03(\v2\x13.base.v1.DataChangeR\fdata_changes\"\x88\x02\n" +
 	"\n" +
 	"DataChange\x12;\n" +
 	"\toperation\x18\x01 \x01(\x0e2\x1d.base.v1.DataChange.OperationR\toperation\x12&\n" +
@@ -3480,8 +3480,8 @@ const file_base_v1_base_proto_rawDesc = "" +
 	"\tOperation\x12\x19\n" +
 	"\x15OPERATION_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10OPERATION_CREATE\x10\x01\x12\x14\n" +
-	"\x10OPERATION_DELETE\x10\x02B\v\n" +
-	"\x04type\x12\x03\xf8B\x01\"!\n" +
+	"\x10OPERATION_DELETE\x10\x02B\r\n" +
+	"\x04type\x12\x05\xbaH\x02\b\x01\"!\n" +
 	"\vStringValue\x12\x12\n" +
 	"\x04data\x18\x01 \x01(\tR\x04data\"\"\n" +
 	"\fIntegerValue\x12\x12\n" +

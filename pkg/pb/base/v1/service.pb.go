@@ -7,7 +7,7 @@
 package basev1
 
 import (
-	_ "github.com/envoyproxy/protoc-gen-validate/validate"
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -3898,15 +3898,15 @@ var File_base_v1_service_proto protoreflect.FileDescriptor
 
 const file_base_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x15base/v1/service.proto\x12\abase.v1\x1a\x12base/v1/base.proto\x1a\x1cgoogle/api/annotations.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\x1a\x17validate/validate.proto\"\x80\a\n" +
-	"\x16PermissionCheckRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12M\n" +
-	"\bmetadata\x18\x02 \x01(\v2'.base.v1.PermissionCheckRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x12D\n" +
-	"\x06entity\x18\x03 \x01(\v2\x0f.base.v1.EntityB\x1b\x92A\x10J\x0e\"repository:1\"\xfaB\x05\x8a\x01\x02\x10\x01R\x06entity\x12v\n" +
+	"\x15base/v1/service.proto\x12\abase.v1\x1a\x12base/v1/base.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xf4\x06\n" +
+	"\x16PermissionCheckRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12K\n" +
+	"\bmetadata\x18\x02 \x01(\v2'.base.v1.PermissionCheckRequestMetadataB\x06\xbaH\x03\xc8\x01\x01R\bmetadata\x12B\n" +
+	"\x06entity\x18\x03 \x01(\v2\x0f.base.v1.EntityB\x19\x92A\x10J\x0e\"repository:1\"\xbaH\x03\xc8\x01\x01R\x06entity\x12s\n" +
 	"\n" +
-	"permission\x18\x04 \x01(\tBV\x92A624The action the user wants to perform on the resource\xfaB\x1ar\x18(@2\x11^[a-zA-Z_]{1,64}$\xd0\x01\x00R\n" +
-	"permission\x124\n" +
-	"\asubject\x18\x05 \x01(\v2\x10.base.v1.SubjectB\b\xfaB\x05\x8a\x01\x02\x10\x01R\asubject\x12\xc4\x01\n" +
+	"permission\x18\x04 \x01(\tBS\x92A624The action the user wants to perform on the resource\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\n" +
+	"permission\x122\n" +
+	"\asubject\x18\x05 \x01(\v2\x10.base.v1.SubjectB\x06\xbaH\x03\xc8\x01\x01R\asubject\x12\xc4\x01\n" +
 	"\acontext\x18\x06 \x01(\v2\x10.base.v1.ContextB\x97\x01\x92A\x93\x012\x90\x01Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)R\acontext\x12/\n" +
 	"\targuments\x18\a \x03(\v2\x11.base.v1.ArgumentR\targuments\"\xb2\x02\n" +
 	"\x1ePermissionCheckRequestMetadata\x12&\n" +
@@ -3914,33 +3914,33 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\n" +
 	"snap_token\x18\x02 \x01(\tBi\x92Af2dThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)R\n" +
 	"snap_token\x12\\\n" +
-	"\x05depth\x18\x03 \x01(\x05BF\x92A<2:Query limit when if recursive database queries got in loop\xfaB\x04\x1a\x02(\x03R\x05depth\"\x87\x01\n" +
+	"\x05depth\x18\x03 \x01(\x05BF\x92A<2:Query limit when if recursive database queries got in loop\xbaH\x04\x1a\x02(\x03R\x05depth\"\x87\x01\n" +
 	"\x17PermissionCheckResponse\x12&\n" +
 	"\x03can\x18\x01 \x01(\x0e2\x14.base.v1.CheckResultR\x03can\x12D\n" +
 	"\bmetadata\x18\x02 \x01(\v2(.base.v1.PermissionCheckResponseMetadataR\bmetadata\"C\n" +
 	"\x1fPermissionCheckResponseMetadata\x12 \n" +
-	"\vcheck_count\x18\x01 \x01(\x05R\vcheck_count\"\x94\x02\n" +
-	"\x1ePermissionBulkCheckRequestItem\x12D\n" +
-	"\x06entity\x18\x01 \x01(\v2\x0f.base.v1.EntityB\x1b\x92A\x10J\x0e\"repository:1\"\xfaB\x05\x8a\x01\x02\x10\x01R\x06entity\x12v\n" +
+	"\vcheck_count\x18\x01 \x01(\x05R\vcheck_count\"\x8d\x02\n" +
+	"\x1ePermissionBulkCheckRequestItem\x12B\n" +
+	"\x06entity\x18\x01 \x01(\v2\x0f.base.v1.EntityB\x19\x92A\x10J\x0e\"repository:1\"\xbaH\x03\xc8\x01\x01R\x06entity\x12s\n" +
 	"\n" +
-	"permission\x18\x02 \x01(\tBV\x92A624The action the user wants to perform on the resource\xfaB\x1ar\x18(@2\x11^[a-zA-Z_]{1,64}$\xd0\x01\x00R\n" +
-	"permission\x124\n" +
-	"\asubject\x18\x03 \x01(\v2\x10.base.v1.SubjectB\b\xfaB\x05\x8a\x01\x02\x10\x01R\asubject\"\xdb\x05\n" +
-	"\x1aPermissionBulkCheckRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12M\n" +
-	"\bmetadata\x18\x02 \x01(\v2'.base.v1.PermissionCheckRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x12I\n" +
+	"permission\x18\x02 \x01(\tBS\x92A624The action the user wants to perform on the resource\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\n" +
+	"permission\x122\n" +
+	"\asubject\x18\x03 \x01(\v2\x10.base.v1.SubjectB\x06\xbaH\x03\xc8\x01\x01R\asubject\"\xd6\x05\n" +
+	"\x1aPermissionBulkCheckRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12K\n" +
+	"\bmetadata\x18\x02 \x01(\v2'.base.v1.PermissionCheckRequestMetadataB\x06\xbaH\x03\xc8\x01\x01R\bmetadata\x12I\n" +
 	"\x05items\x18\x03 \x03(\v2'.base.v1.PermissionBulkCheckRequestItemB\n" +
-	"\xfaB\a\x92\x01\x04\b\x01\x10dR\x05items\x12\xc4\x01\n" +
+	"\xbaH\a\x92\x01\x04\b\x01\x10dR\x05items\x12\xc4\x01\n" +
 	"\acontext\x18\x04 \x01(\v2\x10.base.v1.ContextB\x97\x01\x92A\x93\x012\x90\x01Contextual data that can be dynamically added to permission check requests. See details on [Contextual Data](../../operations/contextual-tuples)R\acontext\x12/\n" +
 	"\targuments\x18\x05 \x03(\v2\x11.base.v1.ArgumentR\targuments\"Y\n" +
 	"\x1bPermissionBulkCheckResponse\x12:\n" +
-	"\aresults\x18\x01 \x03(\v2 .base.v1.PermissionCheckResponseR\aresults\"\xe5\x04\n" +
-	"\x17PermissionExpandRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12N\n" +
-	"\bmetadata\x18\x02 \x01(\v2(.base.v1.PermissionExpandRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x121\n" +
-	"\x06entity\x18\x03 \x01(\v2\x0f.base.v1.EntityB\b\xfaB\x05\x8a\x01\x02\x10\x01R\x06entity\x12=\n" +
+	"\aresults\x18\x01 \x03(\v2 .base.v1.PermissionCheckResponseR\aresults\"\xde\x04\n" +
+	"\x17PermissionExpandRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12L\n" +
+	"\bmetadata\x18\x02 \x01(\v2(.base.v1.PermissionExpandRequestMetadataB\x06\xbaH\x03\xc8\x01\x01R\bmetadata\x12/\n" +
+	"\x06entity\x18\x03 \x01(\v2\x0f.base.v1.EntityB\x06\xbaH\x03\xc8\x01\x01R\x06entity\x12=\n" +
 	"\n" +
-	"permission\x18\x04 \x01(\tB\x1d\xfaB\x1ar\x18(@2\x11^[a-zA-Z_]{1,64}$\xd0\x01\x01R\n" +
+	"permission\x18\x04 \x01(\tB\x1d\xbaH\x1a\xd8\x01\x01r\x15(@2\x11^[a-zA-Z_]{1,64}$R\n" +
 	"permission\x12*\n" +
 	"\acontext\x18\x05 \x01(\v2\x10.base.v1.ContextR\acontext\x12/\n" +
 	"\targuments\x18\x06 \x03(\v2\x11.base.v1.ArgumentR\targuments\"\xd6\x01\n" +
@@ -3950,19 +3950,20 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"snap_token\x18\x02 \x01(\tBj\x92Ag2eThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens).R\n" +
 	"snap_token\"?\n" +
 	"\x18PermissionExpandResponse\x12#\n" +
-	"\x04tree\x18\x01 \x01(\v2\x0f.base.v1.ExpandR\x04tree\"\x81\a\n" +
-	"\x1dPermissionLookupEntityRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12T\n" +
-	"\bmetadata\x18\x02 \x01(\v2..base.v1.PermissionLookupEntityRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x12?\n" +
-	"\ventity_type\x18\x03 \x01(\tB\x1d\xfaB\x1ar\x18(@2\x11^[a-zA-Z_]{1,64}$\xd0\x01\x00R\ventity_type\x12=\n" +
+	"\x04tree\x18\x01 \x01(\v2\x0f.base.v1.ExpandR\x04tree\"\xf5\x06\n" +
+	"\x1dPermissionLookupEntityRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12R\n" +
+	"\bmetadata\x18\x02 \x01(\v2..base.v1.PermissionLookupEntityRequestMetadataB\x06\xbaH\x03\xc8\x01\x01R\bmetadata\x12<\n" +
+	"\ventity_type\x18\x03 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\ventity_type\x12:\n" +
 	"\n" +
-	"permission\x18\x04 \x01(\tB\x1d\xfaB\x1ar\x18(@2\x11^[a-zA-Z_]{1,64}$\xd0\x01\x00R\n" +
-	"permission\x124\n" +
-	"\asubject\x18\x05 \x01(\v2\x10.base.v1.SubjectB\b\xfaB\x05\x8a\x01\x02\x10\x01R\asubject\x12*\n" +
+	"permission\x18\x04 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\n" +
+	"permission\x122\n" +
+	"\asubject\x18\x05 \x01(\v2\x10.base.v1.SubjectB\x06\xbaH\x03\xc8\x01\x01R\asubject\x12*\n" +
 	"\acontext\x18\x06 \x01(\v2\x10.base.v1.ContextR\acontext\x12G\n" +
-	"\x05scope\x18\a \x03(\v21.base.v1.PermissionLookupEntityRequest.ScopeEntryR\x05scope\x12'\n" +
-	"\tpage_size\x18\b \x01(\rB\t\xfaB\x06*\x04(\x01@\x01R\tpage_size\x124\n" +
-	"\x10continuous_token\x18\t \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x01R\x10continuous_token\x1aS\n" +
+	"\x05scope\x18\a \x03(\v21.base.v1.PermissionLookupEntityRequest.ScopeEntryR\x05scope\x12(\n" +
+	"\tpage_size\x18\b \x01(\rB\n" +
+	"\xbaH\a\xd8\x01\x01*\x02(\x01R\tpage_size\x124\n" +
+	"\x10continuous_token\x18\t \x01(\tB\b\xbaH\x05\xd8\x01\x01r\x00R\x10continuous_token\x1aS\n" +
 	"\n" +
 	"ScopeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
@@ -3972,7 +3973,7 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\n" +
 	"snap_token\x18\x02 \x01(\tBj\x92Ag2eThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens).R\n" +
 	"snap_token\x12]\n" +
-	"\x05depth\x18\x03 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xfaB\x04\x1a\x02(\x03R\x05depth\"l\n" +
+	"\x05depth\x18\x03 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xbaH\x04\x1a\x02(\x03R\x05depth\"l\n" +
 	"\x1ePermissionLookupEntityResponse\x12\x1e\n" +
 	"\n" +
 	"entity_ids\x18\x01 \x03(\tR\n" +
@@ -3980,15 +3981,15 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token\"p\n" +
 	"$PermissionLookupEntityStreamResponse\x12\x1c\n" +
 	"\tentity_id\x18\x01 \x01(\tR\tentity_id\x12*\n" +
-	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token\"\xe9\x05\n" +
-	"\x1dPermissionEntityFilterRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12T\n" +
-	"\bmetadata\x18\x02 \x01(\v2..base.v1.PermissionEntityFilterRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x12-\n" +
+	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token\"\xe4\x05\n" +
+	"\x1dPermissionEntityFilterRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12R\n" +
+	"\bmetadata\x18\x02 \x01(\v2..base.v1.PermissionEntityFilterRequestMetadataB\x06\xbaH\x03\xc8\x01\x01R\bmetadata\x12-\n" +
 	"\bentrance\x18\x03 \x01(\v2\x11.base.v1.EntranceR\bentrance\x12*\n" +
 	"\asubject\x18\x04 \x01(\v2\x10.base.v1.SubjectR\asubject\x12*\n" +
 	"\acontext\x18\x05 \x01(\v2\x10.base.v1.ContextR\acontext\x12G\n" +
 	"\x05scope\x18\x06 \x03(\v21.base.v1.PermissionEntityFilterRequest.ScopeEntryR\x05scope\x12 \n" +
-	"\x06cursor\x18\a \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x01R\x06cursor\x1aS\n" +
+	"\x06cursor\x18\a \x01(\tB\b\xbaH\x05\xd8\x01\x01r\x00R\x06cursor\x1aS\n" +
 	"\n" +
 	"ScopeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
@@ -3998,33 +3999,34 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\n" +
 	"snap_token\x18\x02 \x01(\tBj\x92Ag2eThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens).R\n" +
 	"snap_token\x12]\n" +
-	"\x05depth\x18\x03 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xfaB\x04\x1a\x02(\x03R\x05depth\"\xa6\x06\n" +
-	"\x1ePermissionLookupSubjectRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12U\n" +
-	"\bmetadata\x18\x02 \x01(\v2/.base.v1.PermissionLookupSubjectRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x121\n" +
-	"\x06entity\x18\x03 \x01(\v2\x0f.base.v1.EntityB\b\xfaB\x05\x8a\x01\x02\x10\x01R\x06entity\x12=\n" +
+	"\x05depth\x18\x03 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xbaH\x04\x1a\x02(\x03R\x05depth\"\x9b\x06\n" +
+	"\x1ePermissionLookupSubjectRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12S\n" +
+	"\bmetadata\x18\x02 \x01(\v2/.base.v1.PermissionLookupSubjectRequestMetadataB\x06\xbaH\x03\xc8\x01\x01R\bmetadata\x12/\n" +
+	"\x06entity\x18\x03 \x01(\v2\x0f.base.v1.EntityB\x06\xbaH\x03\xc8\x01\x01R\x06entity\x12:\n" +
 	"\n" +
-	"permission\x18\x04 \x01(\tB\x1d\xfaB\x1ar\x18(@2\x11^[a-zA-Z_]{1,64}$\xd0\x01\x00R\n" +
-	"permission\x12R\n" +
-	"\x11subject_reference\x18\x05 \x01(\v2\x1a.base.v1.RelationReferenceB\b\xfaB\x05\x8a\x01\x02\x10\x01R\x11subject_reference\x12*\n" +
+	"permission\x18\x04 \x01(\tB\x1a\xbaH\x17r\x15(@2\x11^[a-zA-Z_]{1,64}$R\n" +
+	"permission\x12P\n" +
+	"\x11subject_reference\x18\x05 \x01(\v2\x1a.base.v1.RelationReferenceB\x06\xbaH\x03\xc8\x01\x01R\x11subject_reference\x12*\n" +
 	"\acontext\x18\x06 \x01(\v2\x10.base.v1.ContextR\acontext\x12/\n" +
-	"\targuments\x18\a \x03(\v2\x11.base.v1.ArgumentR\targuments\x12'\n" +
-	"\tpage_size\x18\b \x01(\rB\t\xfaB\x06*\x04(\x01@\x01R\tpage_size\x124\n" +
-	"\x10continuous_token\x18\t \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x01R\x10continuous_token\"\xbc\x02\n" +
+	"\targuments\x18\a \x03(\v2\x11.base.v1.ArgumentR\targuments\x12(\n" +
+	"\tpage_size\x18\b \x01(\rB\n" +
+	"\xbaH\a\xd8\x01\x01*\x02(\x01R\tpage_size\x124\n" +
+	"\x10continuous_token\x18\t \x01(\tB\b\xbaH\x05\xd8\x01\x01r\x00R\x10continuous_token\"\xbc\x02\n" +
 	"&PermissionLookupSubjectRequestMetadata\x12&\n" +
 	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\x12\x8a\x01\n" +
 	"\n" +
 	"snap_token\x18\x02 \x01(\tBj\x92Ag2eThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens).R\n" +
 	"snap_token\x12]\n" +
-	"\x05depth\x18\x03 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xfaB\x04\x1a\x02(\x03R\x05depth\"o\n" +
+	"\x05depth\x18\x03 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xbaH\x04\x1a\x02(\x03R\x05depth\"o\n" +
 	"\x1fPermissionLookupSubjectResponse\x12 \n" +
 	"\vsubject_ids\x18\x01 \x03(\tR\vsubject_ids\x12*\n" +
-	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token\"\xc1\x04\n" +
-	"\"PermissionSubjectPermissionRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12Y\n" +
-	"\bmetadata\x18\x02 \x01(\v23.base.v1.PermissionSubjectPermissionRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x121\n" +
-	"\x06entity\x18\x03 \x01(\v2\x0f.base.v1.EntityB\b\xfaB\x05\x8a\x01\x02\x10\x01R\x06entity\x124\n" +
-	"\asubject\x18\x04 \x01(\v2\x10.base.v1.SubjectB\b\xfaB\x05\x8a\x01\x02\x10\x01R\asubject\x12*\n" +
+	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token\"\xb8\x04\n" +
+	"\"PermissionSubjectPermissionRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12W\n" +
+	"\bmetadata\x18\x02 \x01(\v23.base.v1.PermissionSubjectPermissionRequestMetadataB\x06\xbaH\x03\xc8\x01\x01R\bmetadata\x12/\n" +
+	"\x06entity\x18\x03 \x01(\v2\x0f.base.v1.EntityB\x06\xbaH\x03\xc8\x01\x01R\x06entity\x122\n" +
+	"\asubject\x18\x04 \x01(\v2\x10.base.v1.SubjectB\x06\xbaH\x03\xc8\x01\x01R\asubject\x12*\n" +
 	"\acontext\x18\x05 \x01(\v2\x10.base.v1.ContextR\acontext\"\xea\x02\n" +
 	"*PermissionSubjectPermissionRequestMetadata\x12&\n" +
 	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\x12\x8a\x01\n" +
@@ -4032,27 +4034,27 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"snap_token\x18\x02 \x01(\tBj\x92Ag2eThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens).R\n" +
 	"snap_token\x12(\n" +
 	"\x0fonly_permission\x18\x03 \x01(\bR\x0fonly_permission\x12]\n" +
-	"\x05depth\x18\x04 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xfaB\x04\x1a\x02(\x03R\x05depth\"\xcc\x01\n" +
+	"\x05depth\x18\x04 \x01(\x05BG\x92A=2;Query limit when if recursive database queries got in loop.\xbaH\x04\x1a\x02(\x03R\x05depth\"\xcc\x01\n" +
 	"#PermissionSubjectPermissionResponse\x12S\n" +
 	"\aresults\x18\x01 \x03(\v29.base.v1.PermissionSubjectPermissionResponse.ResultsEntryR\aresults\x1aP\n" +
 	"\fResultsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12*\n" +
-	"\x05value\x18\x02 \x01(\x0e2\x14.base.v1.CheckResultR\x05value:\x028\x01\"\xc8\x03\n" +
-	"\fWatchRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12\x8a\x01\n" +
+	"\x05value\x18\x02 \x01(\x0e2\x14.base.v1.CheckResultR\x05value:\x028\x01\"\xc5\x03\n" +
+	"\fWatchRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12\x8a\x01\n" +
 	"\n" +
 	"snap_token\x18\x02 \x01(\tBj\x92Ag2eThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens).R\n" +
 	"snap_token\"?\n" +
 	"\rWatchResponse\x12.\n" +
-	"\achanges\x18\x01 \x01(\v2\x14.base.v1.DataChangesR\achanges\"\xd9\x02\n" +
-	"\x12SchemaWriteRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12\x16\n" +
+	"\achanges\x18\x01 \x01(\v2\x14.base.v1.DataChangesR\achanges\"\xd6\x02\n" +
+	"\x12SchemaWriteRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12\x16\n" +
 	"\x06schema\x18\x02 \x01(\tR\x06schema\"=\n" +
 	"\x13SchemaWriteResponse\x12&\n" +
-	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\"\xd9\x02\n" +
-	"\x19SchemaPartialWriteRequest\x12L\n" +
-	"\ttenant_id\x18\x01 \x01(\tB.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12P\n" +
-	"\bmetadata\x18\x02 \x01(\v2*.base.v1.SchemaPartialWriteRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x12L\n" +
+	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\"\xd4\x02\n" +
+	"\x19SchemaPartialWriteRequest\x12I\n" +
+	"\ttenant_id\x18\x01 \x01(\tB+\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12N\n" +
+	"\bmetadata\x18\x02 \x01(\v2*.base.v1.SchemaPartialWriteRequestMetadataB\x06\xbaH\x03\xc8\x01\x01R\bmetadata\x12L\n" +
 	"\bpartials\x18\x03 \x03(\v20.base.v1.SchemaPartialWriteRequest.PartialsEntryR\bpartials\x1aN\n" +
 	"\rPartialsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12'\n" +
@@ -4060,18 +4062,19 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"!SchemaPartialWriteRequestMetadata\x12&\n" +
 	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\"D\n" +
 	"\x1aSchemaPartialWriteResponse\x12&\n" +
-	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\"\x8a\x03\n" +
-	"\x11SchemaReadRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12H\n" +
-	"\bmetadata\x18\x02 \x01(\v2\".base.v1.SchemaReadRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\"C\n" +
+	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\"\x85\x03\n" +
+	"\x11SchemaReadRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12F\n" +
+	"\bmetadata\x18\x02 \x01(\v2\".base.v1.SchemaReadRequestMetadataB\x06\xbaH\x03\xc8\x01\x01R\bmetadata\"C\n" +
 	"\x19SchemaReadRequestMetadata\x12&\n" +
 	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\"G\n" +
 	"\x12SchemaReadResponse\x121\n" +
-	"\x06schema\x18\x01 \x01(\v2\x19.base.v1.SchemaDefinitionR\x06schema\"\x9f\x03\n" +
-	"\x11SchemaListRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12'\n" +
-	"\tpage_size\x18\x02 \x01(\rB\t\xfaB\x06*\x04(\x01@\x01R\tpage_size\x124\n" +
-	"\x10continuous_token\x18\x03 \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x01R\x10continuous_token\"\x83\x01\n" +
+	"\x06schema\x18\x01 \x01(\v2\x19.base.v1.SchemaDefinitionR\x06schema\"\x9d\x03\n" +
+	"\x11SchemaListRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12(\n" +
+	"\tpage_size\x18\x02 \x01(\rB\n" +
+	"\xbaH\a\xd8\x01\x01*\x02(\x01R\tpage_size\x124\n" +
+	"\x10continuous_token\x18\x03 \x01(\tB\b\xbaH\x05\xd8\x01\x01r\x00R\x10continuous_token\"\x83\x01\n" +
 	"\x12SchemaListResponse\x12\x12\n" +
 	"\x04head\x18\x01 \x01(\tR\x04head\x12-\n" +
 	"\aschemas\x18\x02 \x03(\v2\x13.base.v1.SchemaListR\aschemas\x12*\n" +
@@ -4081,49 +4084,51 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\aversion\x18\x01 \x01(\tR\aversion\x12\x1e\n" +
 	"\n" +
 	"created_at\x18\x02 \x01(\tR\n" +
-	"created_at\"\x86\x04\n" +
-	"\x10DataWriteRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12G\n" +
-	"\bmetadata\x18\x02 \x01(\v2!.base.v1.DataWriteRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x127\n" +
-	"\x06tuples\x18\x03 \x03(\v2\x0e.base.v1.TupleB\x0f\xfaB\f\x92\x01\t\b\x00\"\x05\x8a\x01\x02\x10\x01R\x06tuples\x12C\n" +
+	"created_at\"\xf3\x03\n" +
+	"\x10DataWriteRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12E\n" +
+	"\bmetadata\x18\x02 \x01(\v2!.base.v1.DataWriteRequestMetadataB\x06\xbaH\x03\xc8\x01\x01R\bmetadata\x120\n" +
+	"\x06tuples\x18\x03 \x03(\v2\x0e.base.v1.TupleB\b\xbaH\x05\x92\x01\x02\b\x00R\x06tuples\x12<\n" +
 	"\n" +
-	"attributes\x18\x04 \x03(\v2\x12.base.v1.AttributeB\x0f\xfaB\f\x92\x01\t\b\x00\"\x05\x8a\x01\x02\x10\x01R\n" +
+	"attributes\x18\x04 \x03(\v2\x12.base.v1.AttributeB\b\xbaH\x05\x92\x01\x02\b\x00R\n" +
 	"attributes\"B\n" +
 	"\x18DataWriteRequestMetadata\x12&\n" +
 	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\"\xa0\x01\n" +
 	"\x11DataWriteResponse\x12\x8a\x01\n" +
 	"\n" +
 	"snap_token\x18\x01 \x01(\tBj\x92Ag2eThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens).R\n" +
-	"snap_token\"\xd1\x03\n" +
-	"\x18RelationshipWriteRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12O\n" +
-	"\bmetadata\x18\x02 \x01(\v2).base.v1.RelationshipWriteRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x127\n" +
-	"\x06tuples\x18\x03 \x03(\v2\x0e.base.v1.TupleB\x0f\xfaB\f\x92\x01\t\b\x01\"\x05\x8a\x01\x02\x10\x01R\x06tuples\"J\n" +
+	"snap_token\"\xc5\x03\n" +
+	"\x18RelationshipWriteRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12M\n" +
+	"\bmetadata\x18\x02 \x01(\v2).base.v1.RelationshipWriteRequestMetadataB\x06\xbaH\x03\xc8\x01\x01R\bmetadata\x120\n" +
+	"\x06tuples\x18\x03 \x03(\v2\x0e.base.v1.TupleB\b\xbaH\x05\x92\x01\x02\b\x01R\x06tuples\"J\n" +
 	" RelationshipWriteRequestMetadata\x12&\n" +
 	"\x0eschema_version\x18\x01 \x01(\tR\x0eschema_version\"\xa7\x01\n" +
 	"\x19RelationshipWriteResponse\x12\x89\x01\n" +
 	"\n" +
 	"snap_token\x18\x01 \x01(\tBi\x92Af2dThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)R\n" +
-	"snap_token\"\xad\x04\n" +
-	"\x17RelationshipReadRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12N\n" +
-	"\bmetadata\x18\x02 \x01(\v2(.base.v1.RelationshipReadRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x126\n" +
-	"\x06filter\x18\x03 \x01(\v2\x14.base.v1.TupleFilterB\b\xfaB\x05\x8a\x01\x02\x10\x01R\x06filter\x12'\n" +
-	"\tpage_size\x18\x04 \x01(\rB\t\xfaB\x06*\x04(\x01@\x01R\tpage_size\x124\n" +
-	"\x10continuous_token\x18\x05 \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x01R\x10continuous_token\"\xad\x01\n" +
+	"snap_token\"\xa7\x04\n" +
+	"\x17RelationshipReadRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12L\n" +
+	"\bmetadata\x18\x02 \x01(\v2(.base.v1.RelationshipReadRequestMetadataB\x06\xbaH\x03\xc8\x01\x01R\bmetadata\x124\n" +
+	"\x06filter\x18\x03 \x01(\v2\x14.base.v1.TupleFilterB\x06\xbaH\x03\xc8\x01\x01R\x06filter\x12(\n" +
+	"\tpage_size\x18\x04 \x01(\rB\n" +
+	"\xbaH\a\xd8\x01\x01*\x02(\x01R\tpage_size\x124\n" +
+	"\x10continuous_token\x18\x05 \x01(\tB\b\xbaH\x05\xd8\x01\x01r\x00R\x10continuous_token\"\xad\x01\n" +
 	"\x1fRelationshipReadRequestMetadata\x12\x89\x01\n" +
 	"\n" +
 	"snap_token\x18\x01 \x01(\tBi\x92Af2dThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)R\n" +
 	"snap_token\"n\n" +
 	"\x18RelationshipReadResponse\x12&\n" +
 	"\x06tuples\x18\x01 \x03(\v2\x0e.base.v1.TupleR\x06tuples\x12*\n" +
-	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token\"\xab\x04\n" +
-	"\x14AttributeReadRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12K\n" +
-	"\bmetadata\x18\x02 \x01(\v2%.base.v1.AttributeReadRequestMetadataB\b\xfaB\x05\x8a\x01\x02\x10\x01R\bmetadata\x12:\n" +
-	"\x06filter\x18\x03 \x01(\v2\x18.base.v1.AttributeFilterB\b\xfaB\x05\x8a\x01\x02\x10\x01R\x06filter\x12'\n" +
-	"\tpage_size\x18\x04 \x01(\rB\t\xfaB\x06*\x04(\x01@\x01R\tpage_size\x124\n" +
-	"\x10continuous_token\x18\x05 \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x01R\x10continuous_token\"\xaa\x01\n" +
+	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token\"\xa5\x04\n" +
+	"\x14AttributeReadRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12I\n" +
+	"\bmetadata\x18\x02 \x01(\v2%.base.v1.AttributeReadRequestMetadataB\x06\xbaH\x03\xc8\x01\x01R\bmetadata\x128\n" +
+	"\x06filter\x18\x03 \x01(\v2\x18.base.v1.AttributeFilterB\x06\xbaH\x03\xc8\x01\x01R\x06filter\x12(\n" +
+	"\tpage_size\x18\x04 \x01(\rB\n" +
+	"\xbaH\a\xd8\x01\x01*\x02(\x01R\tpage_size\x124\n" +
+	"\x10continuous_token\x18\x05 \x01(\tB\b\xbaH\x05\xd8\x01\x01r\x00R\x10continuous_token\"\xaa\x01\n" +
 	"\x1cAttributeReadRequestMetadata\x12\x89\x01\n" +
 	"\n" +
 	"snap_token\x18\x01 \x01(\tBi\x92Af2dThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)R\n" +
@@ -4132,24 +4137,24 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\n" +
 	"attributes\x18\x01 \x03(\v2\x12.base.v1.AttributeR\n" +
 	"attributes\x12*\n" +
-	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token\"\xd4\x03\n" +
-	"\x11DataDeleteRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12B\n" +
-	"\ftuple_filter\x18\x02 \x01(\v2\x14.base.v1.TupleFilterB\b\xfaB\x05\x8a\x01\x02\x10\x01R\ftuple_filter\x12N\n" +
-	"\x10attribute_filter\x18\x03 \x01(\v2\x18.base.v1.AttributeFilterB\b\xfaB\x05\x8a\x01\x02\x10\x01R\x10attribute_filter\"\xa0\x01\n" +
+	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token\"\xcd\x03\n" +
+	"\x11DataDeleteRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12@\n" +
+	"\ftuple_filter\x18\x02 \x01(\v2\x14.base.v1.TupleFilterB\x06\xbaH\x03\xc8\x01\x01R\ftuple_filter\x12L\n" +
+	"\x10attribute_filter\x18\x03 \x01(\v2\x18.base.v1.AttributeFilterB\x06\xbaH\x03\xc8\x01\x01R\x10attribute_filter\"\xa0\x01\n" +
 	"\x12DataDeleteResponse\x12\x89\x01\n" +
 	"\n" +
 	"snap_token\x18\x01 \x01(\tBi\x92Af2dThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)R\n" +
-	"snap_token\"\xf6\x02\n" +
-	"\x19RelationshipDeleteRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12,\n" +
+	"snap_token\"\xf3\x02\n" +
+	"\x19RelationshipDeleteRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12,\n" +
 	"\x06filter\x18\x02 \x01(\v2\x14.base.v1.TupleFilterR\x06filter\"\xa8\x01\n" +
 	"\x1aRelationshipDeleteResponse\x12\x89\x01\n" +
 	"\n" +
 	"snap_token\x18\x01 \x01(\tBi\x92Af2dThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)R\n" +
-	"snap_token\"\xd9\x03\n" +
-	"\x10BundleRunRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12\x12\n" +
+	"snap_token\"\xd6\x03\n" +
+	"\x10BundleRunRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12F\n" +
 	"\targuments\x18\x03 \x03(\v2(.base.v1.BundleRunRequest.ArgumentsEntryR\targuments\x1a<\n" +
 	"\x0eArgumentsEntry\x12\x10\n" +
@@ -4158,35 +4163,35 @@ const file_base_v1_service_proto_rawDesc = "" +
 	"\x11BundleRunResponse\x12\x89\x01\n" +
 	"\n" +
 	"snap_token\x18\x01 \x01(\tBi\x92Af2dThe snap token to avoid stale cache, see more details on [Snap Tokens](../../operations/snap-tokens)R\n" +
-	"snap_token\"\xf0\x02\n" +
-	"\x12BundleWriteRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12-\n" +
+	"snap_token\"\xed\x02\n" +
+	"\x12BundleWriteRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12-\n" +
 	"\abundles\x18\x02 \x03(\v2\x13.base.v1.DataBundleR\abundles\"+\n" +
 	"\x13BundleWriteResponse\x12\x14\n" +
-	"\x05names\x18\x01 \x03(\tR\x05names\"\xd4\x02\n" +
-	"\x11BundleReadRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12\x12\n" +
+	"\x05names\x18\x01 \x03(\tR\x05names\"\xd1\x02\n" +
+	"\x11BundleReadRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\"A\n" +
 	"\x12BundleReadResponse\x12+\n" +
-	"\x06bundle\x18\x01 \x01(\v2\x13.base.v1.DataBundleR\x06bundle\"\xd6\x02\n" +
-	"\x13BundleDeleteRequest\x12\xaa\x02\n" +
-	"\ttenant_id\x18\x01 \x01(\tB\x8b\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xfaB+r)(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$\xd0\x01\x00R\ttenant_id\x12\x12\n" +
+	"\x06bundle\x18\x01 \x01(\v2\x13.base.v1.DataBundleR\x06bundle\"\xd3\x02\n" +
+	"\x13BundleDeleteRequest\x12\xa7\x02\n" +
+	"\ttenant_id\x18\x01 \x01(\tB\x88\x02\x92A\xd9\x012\xd6\x01Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes.\xbaH(r&(\x80\x012!^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$R\ttenant_id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\"*\n" +
 	"\x14BundleDeleteResponse\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"a\n" +
-	"\x13TenantCreateRequest\x12*\n" +
-	"\x02id\x18\x01 \x01(\tB\x1a\xfaB\x17r\x15(@2\x0e[a-zA-Z0-9-,]+\xd0\x01\x00R\x02id\x12\x1e\n" +
-	"\x04name\x18\x02 \x01(\tB\n" +
-	"\xfaB\ar\x05(@\xd0\x01\x00R\x04name\"?\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"[\n" +
+	"\x13TenantCreateRequest\x12'\n" +
+	"\x02id\x18\x01 \x01(\tB\x17\xbaH\x14r\x12(@2\x0e[a-zA-Z0-9-,]+R\x02id\x12\x1b\n" +
+	"\x04name\x18\x02 \x01(\tB\a\xbaH\x04r\x02(@R\x04name\"?\n" +
 	"\x14TenantCreateResponse\x12'\n" +
-	"\x06tenant\x18\x01 \x01(\v2\x0f.base.v1.TenantR\x06tenant\"/\n" +
-	"\x13TenantDeleteRequest\x12\x18\n" +
-	"\x02id\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x00R\x02id\"4\n" +
+	"\x06tenant\x18\x01 \x01(\v2\x0f.base.v1.TenantR\x06tenant\",\n" +
+	"\x13TenantDeleteRequest\x12\x15\n" +
+	"\x02id\x18\x01 \x01(\tB\x05\xbaH\x02r\x00R\x02id\"4\n" +
 	"\x14TenantDeleteResponse\x12\x1c\n" +
-	"\ttenant_id\x18\x01 \x01(\tR\ttenant_id\"r\n" +
-	"\x11TenantListRequest\x12'\n" +
-	"\tpage_size\x18\x01 \x01(\rB\t\xfaB\x06*\x04(\x01@\x01R\tpage_size\x124\n" +
-	"\x10continuous_token\x18\x02 \x01(\tB\b\xfaB\x05r\x03\xd0\x01\x01R\x10continuous_token\"k\n" +
+	"\ttenant_id\x18\x01 \x01(\tR\ttenant_id\"s\n" +
+	"\x11TenantListRequest\x12(\n" +
+	"\tpage_size\x18\x01 \x01(\rB\n" +
+	"\xbaH\a\xd8\x01\x01*\x02(\x01R\tpage_size\x124\n" +
+	"\x10continuous_token\x18\x02 \x01(\tB\b\xbaH\x05\xd8\x01\x01r\x00R\x10continuous_token\"k\n" +
 	"\x12TenantListResponse\x12)\n" +
 	"\atenants\x18\x01 \x03(\v2\x0f.base.v1.TenantR\atenants\x12*\n" +
 	"\x10continuous_token\x18\x02 \x01(\tR\x10continuous_token2\xafN\n" +
