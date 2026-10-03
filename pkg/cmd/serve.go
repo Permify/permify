@@ -60,6 +60,7 @@ func NewServeCommand() *cobra.Command {
 	f.Bool("http-enabled", conf.Server.HTTP.Enabled, "switch option for HTTP server")
 	f.String("account-id", conf.AccountID, "account id")
 	f.Int64("server-rate-limit", conf.Server.RateLimit, "the maximum number of requests the server should handle per second")
+	f.Duration("server-shutdown-delay", conf.Server.ShutdownDelay, "shutdown delay allowing time to stop routing traffic")
 	f.String("server-host", conf.Server.Host, "host/interface to bind the HTTP server")
 	f.String("server-name-override", conf.Server.NameOverride, "server name override")
 	f.String("grpc-port", conf.Server.GRPC.Port, "port that GRPC server run on")

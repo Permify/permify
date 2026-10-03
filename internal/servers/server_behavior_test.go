@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -17,6 +18,7 @@ import (
 	health "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 
+	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/database"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
@@ -538,5 +540,47 @@ func TestBundleServerValidationAndStorageErrors(t *testing.T) {
 	})
 	if status.Code(err) != codes.NotFound {
 		t.Fatalf("expected not found status, got %v", status.Code(err))
+	}
+}
+
+func TestServerShutdownDelay(t *testing.T) {
+	container := NewContainer(
+		nil,
+		storage.NewNoopRelationshipReader(),
+		storage.NewNoopDataWriter(),
+		storage.NewNoopBundleReader(),
+		storage.NewNoopBundleWriter(),
+		storage.NewNoopSchemaReader(),
+		storage.NewNoopSchemaWriter(),
+		storage.NewNoopTenantReader(),
+		storage.NewNoopTenantWriter(),
+		storage.NewNoopWatcher(),
+	)
+
+	srv := &config.Server{
+		RateLimit:     1000,
+		GRPC:          config.GRPC{Port: "0"},
+		HTTP:          config.HTTP{Enabled: false},
+		ShutdownDelay: 200 * time.Millisecond,
+	}
+	dst := &config.Distributed{Port: "0"}
+	profiler := &config.Profiler{Enabled: false}
+
+	var cancelledAt time.Time
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		cancelledAt = time.Now()
+		cancel()
+	}()
+
+	err := container.Run(ctx, srv, slog.Default(), dst, nil, profiler, nil)
+	elapsed := time.Since(cancelledAt)
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if elapsed < 200*time.Millisecond {
+		t.Fatalf("expected at least 200ms delay after cancellation, got %v", elapsed)
 	}
 }
