@@ -312,6 +312,7 @@ func (w *DataWriter) delete(
 	// Return snapshot token
 	return snapshot.NewToken(xid, snapshotValue).Encode(), nil
 } // End Delete
+
 // Helper functions for RunBundle
 // RunBundle helper function
 // RunBundle implementation

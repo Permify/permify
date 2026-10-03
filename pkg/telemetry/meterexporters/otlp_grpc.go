@@ -6,6 +6,7 @@ import (               // gRPC metric dependencies
 	"go.opentelemetry.io/otel/sdk/metric"                               // Metric SDK
 	"google.golang.org/grpc/credentials"                                // TLS credentials
 ) // End imports
+
 // NewOTLPGrpc - Creates new OTLP metric exporter using GRPC protocol for metrics collection.
 func NewOTLPGrpc(
 	endpoint string,

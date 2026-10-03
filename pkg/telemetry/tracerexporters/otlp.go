@@ -8,6 +8,7 @@ import (                // OTLP trace dependencies
 	"go.opentelemetry.io/otel/sdk/trace"                              // Trace SDK
 	"google.golang.org/grpc/credentials"                              // TLS credentials
 ) // End imports
+
 // NewOTLP - Creates new OTLP trace exporter based on protocol (HTTP or gRPC).
 func NewOTLP(endpoint string, insecure bool, urlpath string, headers map[string]string, protocol string) (trace.SpanExporter, error) { // Create OTLP tracer
 	switch protocol { // Select protocol

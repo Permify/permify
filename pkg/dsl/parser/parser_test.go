@@ -2,15 +2,18 @@ package parser // Parser package tests
 import (       // Test imports
 	"testing" // Testing framework
 
+	. "github.com/onsi/ginkgo/v2" // BDD framework
+	. "github.com/onsi/gomega"    // Matchers
+
 	"github.com/Permify/permify/pkg/dsl/ast" // AST types
-	. "github.com/onsi/ginkgo/v2"            // BDD framework
-	. "github.com/onsi/gomega"               // Matchers
 ) // End imports
+
 // TestParser - Parser test suite entry point
 func TestParser(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "parser-suite")
-}                                   // End TestParser
+} // End TestParser
+
 var _ = Describe("parser", func() { // Parser test suite
 	Context("Statement", func() {
 		It("Case // Test case 1 - Repository with parent and owner relations and read action", func() {

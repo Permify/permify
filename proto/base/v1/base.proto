@@ -1,11 +1,11 @@
 syntax = "proto3";
 package base.v1;
 
+import "buf/validate/validate.proto";
 import "google/api/expr/v1alpha1/checked.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
-import "validate/validate.proto";
 
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
 
@@ -65,13 +65,13 @@ message Child {
   // Child node can be either a leaf or a rewrite operation.
   oneof type {
     // Either leaf or rewrite operation is required.
-    option (validate.required) = true;
+    option (buf.validate.oneof).required = true;
 
     // Leaf node in the permission tree.
-    Leaf leaf = 1 [(validate.rules).message.required = true];
+    Leaf leaf = 1;
 
     // Rewrite operation in the permission tree.
-    Rewrite rewrite = 2 [(validate.rules).message.required = true];
+    Rewrite rewrite = 2;
   }
 }
 
@@ -80,19 +80,19 @@ message Leaf {
   // Leaf node can be one of several types.
   oneof type {
     // One type is required.
-    option (validate.required) = true;
+    option (buf.validate.oneof).required = true;
 
     // A computed set of users.
-    ComputedUserSet computed_user_set = 1 [(validate.rules).message.required = true];
+    ComputedUserSet computed_user_set = 1;
 
     // A tuple to user set conversion.
-    TupleToUserSet tuple_to_user_set = 2 [(validate.rules).message.required = true];
+    TupleToUserSet tuple_to_user_set = 2;
 
     // A computed attribute.
-    ComputedAttribute computed_attribute = 3 [(validate.rules).message.required = true];
+    ComputedAttribute computed_attribute = 3;
 
     // A call to a function or method.
-    Call call = 4 [(validate.rules).message.required = true];
+    Call call = 4;
   }
 }
 
@@ -148,7 +148,7 @@ message EntityDefinition {
   }
 
   // The name of the entity, which follows a specific string pattern and has a maximum byte size.
-  string name = 1 [(validate.rules).string = {
+  string name = 1 [(buf.validate.field).string = {
     pattern: "^[a-zA-Z_]{1,64}$"
     max_bytes: 64
   }];
@@ -169,7 +169,7 @@ message EntityDefinition {
 // The RuleDefinition message provides detailed information about a specific rule.
 message RuleDefinition {
   // The name of the rule, which follows a specific string pattern and has a maximum byte size.
-  string name = 1 [(validate.rules).string = {
+  string name = 1 [(buf.validate.field).string = {
     pattern: "^[a-zA-Z_]{1,64}$"
     max_bytes: 64
   }];
@@ -184,7 +184,7 @@ message RuleDefinition {
 // The AttributeDefinition message provides detailed information about a specific attribute.
 message AttributeDefinition {
   // The name of the attribute, which follows a specific string pattern and has a maximum byte size.
-  string name = 1 [(validate.rules).string = {
+  string name = 1 [(buf.validate.field).string = {
     pattern: "^[a-zA-Z_]{1,64}$"
     max_bytes: 64
   }];
@@ -196,7 +196,7 @@ message AttributeDefinition {
 // The RelationDefinition message provides detailed information about a specific relation.
 message RelationDefinition {
   // The name of the relation, which follows a specific string pattern and has a maximum byte size.
-  string name = 1 [(validate.rules).string = {
+  string name = 1 [(buf.validate.field).string = {
     pattern: "^[a-zA-Z_]{1,64}$"
     max_bytes: 64
   }];
@@ -208,7 +208,7 @@ message RelationDefinition {
 // The PermissionDefinition message provides detailed information about a specific permission.
 message PermissionDefinition {
   // The name of the permission, which follows a specific string pattern and has a maximum byte size.
-  string name = 1 [(validate.rules).string = {
+  string name = 1 [(buf.validate.field).string = {
     pattern: "^[a-zA-Z_]{1,64}$"
     max_bytes: 64
   }];
@@ -220,28 +220,30 @@ message PermissionDefinition {
 // The RelationReference message provides a reference to a specific relation.
 message RelationReference {
   // The type of the referenced entity, which follows a specific string pattern and has a maximum byte size.
-  string type = 1 [(validate.rules).string = {
+  string type = 1 [(buf.validate.field).string = {
     pattern: "^[a-zA-Z_]{1,64}$"
     max_bytes: 64
   }];
 
   // The name of the referenced relation, which follows a specific string pattern and has a maximum byte size.
-  string relation = 2 [(validate.rules).string = {
-    pattern: "^[a-zA-Z_]{1,64}$"
-    max_bytes: 64
-    ignore_empty: true
-  }];
+  string relation = 2 [
+    (buf.validate.field).string = {
+      pattern: "^[a-zA-Z_]{1,64}$"
+      max_bytes: 64
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
 }
 
 message Entrance {
   // The type of the entrance entity, which follows a specific string pattern and has a maximum byte size.
-  string type = 1 [(validate.rules).string = {
+  string type = 1 [(buf.validate.field).string = {
     pattern: "^[a-zA-Z_]{1,64}$"
     max_bytes: 64
   }];
 
   // The value associated with the entrance, which follows a specific string pattern and has a maximum byte size.
-  string value = 2 [(validate.rules).string = {
+  string value = 2 [(buf.validate.field).string = {
     pattern: "^[a-zA-Z_]{1,64}$"
     max_bytes: 64
   }];
@@ -262,7 +264,7 @@ message Call {
 
 // ComputedAttribute defines a computed attribute which includes its name.
 message ComputedAttribute {
-  string name = 1 [(validate.rules).string = {
+  string name = 1 [(buf.validate.field).string = {
     pattern: "^[a-zA-Z_]{1,64}$"
     max_bytes: 64
   }]; // Name of the computed attribute
@@ -270,7 +272,7 @@ message ComputedAttribute {
 
 // ComputedUserSet defines a set of computed users which includes the relation name.
 message ComputedUserSet {
-  string relation = 1 [(validate.rules).string = {
+  string relation = 1 [(buf.validate.field).string = {
     pattern: "^[a-zA-Z_]{1,64}$"
     max_bytes: 64
   }]; // Relation name
@@ -284,7 +286,7 @@ message TupleToUserSet {
 
 // TupleSet represents a set of tuples associated with a specific relation.
 message TupleSet {
-  string relation = 1 [(validate.rules).string = {
+  string relation = 1 [(buf.validate.field).string = {
     pattern: "^[a-zA-Z_]{1,64}$"
     max_bytes: 64
   }];
@@ -294,12 +296,12 @@ message TupleSet {
 message Tuple {
   Entity entity = 1 [
     json_name = "entity",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   string relation = 2 [
     json_name = "relation",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^[a-zA-Z_]{1,64}$"
       max_bytes: 64
     }
@@ -307,7 +309,7 @@ message Tuple {
 
   Subject subject = 3 [
     json_name = "subject",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 }
 
@@ -315,7 +317,7 @@ message Tuple {
 message Attribute {
   Entity entity = 1 [
     json_name = "entity",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   string attribute = 2 [json_name = "attribute"]; // Name of the attribute
@@ -337,7 +339,7 @@ message Attributes {
 message Entity {
   string type = 1 [
     json_name = "type",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^[a-zA-Z_]{1,64}$"
       max_bytes: 64
     }
@@ -345,7 +347,7 @@ message Entity {
 
   string id = 2 [
     json_name = "id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
     }
@@ -356,12 +358,12 @@ message Entity {
 message EntityAndRelation {
   Entity entity = 1 [
     json_name = "entity",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   string relation = 2 [
     json_name = "relation",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^[a-zA-Z_]{1,64}$"
       max_bytes: 64
     }
@@ -372,7 +374,7 @@ message EntityAndRelation {
 message Subject {
   string type = 1 [
     json_name = "type",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^[a-zA-Z_]{1,64}$"
       max_bytes: 64
     }
@@ -380,7 +382,7 @@ message Subject {
 
   string id = 2 [
     json_name = "id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
     }
@@ -388,11 +390,11 @@ message Subject {
 
   string relation = 3 [
     json_name = "relation",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^[a-zA-Z_]{1,64}$"
       max_bytes: 64
-      ignore_empty: true
-    }
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 }
 
@@ -409,11 +411,11 @@ message TupleFilter {
 
   string relation = 2 [
     json_name = "relation",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^[a-zA-Z_]{1,64}$"
       max_bytes: 64
-      ignore_empty: true
-    }
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 
   SubjectFilter subject = 3 [json_name = "subject"]; // The subject filter
@@ -434,11 +436,11 @@ message SubjectFilter {
 
   string relation = 3 [
     json_name = "relation",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^[a-zA-Z_]{1,64}$"
       max_bytes: 64
-      ignore_empty: true
-    }
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 }
 
@@ -482,7 +484,7 @@ message Expand {
 // ExpandLeaf is the leaf node of an Expand tree and can be either a set of Subjects or a set of Values.
 message ExpandLeaf {
   oneof type { // type can be either Subjects or Values.
-    option (validate.required) = true;
+    option (buf.validate.oneof).required = true;
 
     // subjects are used when the leaf is a set of subjects.
     Subjects subjects = 1 [json_name = "subjects"];
@@ -529,7 +531,7 @@ message DataChange {
   Operation operation = 1 [json_name = "operation"]; // The operation type.
 
   oneof type { // The type of the change which can be either a tuple or an attribute.
-    option (validate.required) = true;
+    option (buf.validate.oneof).required = true;
     Tuple tuple = 2 [json_name = "tuple"]; // If the change is a tuple.
     Attribute attribute = 3 [json_name = "attribute"]; // If the change is an attribute.
   }

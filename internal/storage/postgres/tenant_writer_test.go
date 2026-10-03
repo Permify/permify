@@ -9,12 +9,13 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/rs/xid"
+
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/database"
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 	"github.com/Permify/permify/pkg/testinstance"
 	"github.com/Permify/permify/pkg/tuple"
-	"github.com/rs/xid"
 )
 
 var _ = Describe("TenantWriter", func() {
