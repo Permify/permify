@@ -13,6 +13,7 @@ import (
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	health "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
@@ -171,6 +172,30 @@ func (f *fakePermissionInvoker) SubjectPermission(_ context.Context, request *v1
 			"view": v1.CheckResult_CHECK_RESULT_ALLOWED,
 		},
 	}, nil
+}
+
+type fakeServerStream struct {
+	grpc.ServerStream
+}
+
+func (f *fakeServerStream) Context() context.Context {
+	return context.Background()
+}
+
+type fakeLookupEntityStreamServer struct {
+	fakeServerStream
+}
+
+func (f *fakeLookupEntityStreamServer) Send(*v1.PermissionLookupEntityStreamResponse) error {
+	return nil
+}
+
+type fakeWatchStreamServer struct {
+	fakeServerStream
+}
+
+func (f *fakeWatchStreamServer) Send(*v1.WatchResponse) error {
+	return nil
 }
 
 type testContextKey struct{}
@@ -402,6 +427,65 @@ func TestPermissionServerValidationAndInvokerErrors(t *testing.T) {
 	_, err = server.Check(context.Background(), validPermissionCheckRequest())
 	if status.Code(err) != codes.NotFound {
 		t.Fatalf("expected not found status, got %v", status.Code(err))
+	}
+
+	invoker.err = nil
+	invoker.checkReq = nil
+	invoker.lookupEntityReq = nil
+	bulk, err := server.BulkCheck(context.Background(), &v1.PermissionBulkCheckRequest{
+		TenantId: "tenant-1",
+		Items:    []*v1.PermissionBulkCheckRequestItem{{}},
+	})
+	if err != nil {
+		t.Fatalf("unexpected bulk check error: %v", err)
+	}
+	if len(bulk.GetResults()) != 1 || bulk.GetResults()[0].GetCan() != v1.CheckResult_CHECK_RESULT_DENIED {
+		t.Fatalf("expected invalid bulk item to be denied, got %v", bulk.GetResults())
+	}
+	if invoker.checkReq != nil {
+		t.Fatal("invalid bulk item should not reach invoker")
+	}
+
+	err = server.LookupEntityStream(&v1.PermissionLookupEntityRequest{}, &fakeLookupEntityStreamServer{})
+	if err == nil {
+		t.Fatal("expected invalid lookup entity stream request to fail")
+	}
+	if invoker.lookupEntityReq != nil {
+		t.Fatal("invalid lookup entity stream request should not reach invoker")
+	}
+}
+
+func TestDataServerValidation(t *testing.T) {
+	server := NewDataServer(nil, nil, nil, nil)
+	ctx := context.Background()
+
+	if _, err := server.ReadRelationships(ctx, &v1.RelationshipReadRequest{}); err == nil {
+		t.Fatal("expected invalid read relationships request to fail")
+	}
+	if _, err := server.ReadAttributes(ctx, &v1.AttributeReadRequest{}); err == nil {
+		t.Fatal("expected invalid read attributes request to fail")
+	}
+	if _, err := server.Write(ctx, &v1.DataWriteRequest{}); err == nil {
+		t.Fatal("expected invalid write request to fail")
+	}
+	if _, err := server.WriteRelationships(ctx, &v1.RelationshipWriteRequest{}); err == nil {
+		t.Fatal("expected invalid write relationships request to fail")
+	}
+	if _, err := server.Delete(ctx, &v1.DataDeleteRequest{}); err == nil {
+		t.Fatal("expected invalid delete request to fail")
+	}
+	if _, err := server.DeleteRelationships(ctx, &v1.RelationshipDeleteRequest{}); err == nil {
+		t.Fatal("expected invalid delete relationships request to fail")
+	}
+	if _, err := server.RunBundle(ctx, &v1.BundleRunRequest{}); err == nil {
+		t.Fatal("expected invalid run bundle request to fail")
+	}
+}
+
+func TestWatchServerValidation(t *testing.T) {
+	server := NewWatchServer(nil, nil)
+	if err := server.Watch(&v1.WatchRequest{}, &fakeWatchStreamServer{}); err == nil {
+		t.Fatal("expected invalid watch request to fail")
 	}
 }
 
