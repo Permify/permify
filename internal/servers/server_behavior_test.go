@@ -562,8 +562,12 @@ func TestDataServerValidation(t *testing.T) {
 			name: "Delete",
 			call: func(tenantID string) error {
 				_, err := server.Delete(ctx, &v1.DataDeleteRequest{
-					TenantId:        tenantID,
-					TupleFilter:     &v1.TupleFilter{},
+					TenantId: tenantID,
+					TupleFilter: &v1.TupleFilter{
+						Entity:   &v1.EntityFilter{Type: "document", Ids: []string{"document-1"}},
+						Relation: "viewer",
+						Subject:  &v1.SubjectFilter{Type: "user", Ids: []string{"user-1"}},
+					},
 					AttributeFilter: &v1.AttributeFilter{},
 				})
 				return err
@@ -574,7 +578,11 @@ func TestDataServerValidation(t *testing.T) {
 			call: func(tenantID string) error {
 				_, err := server.DeleteRelationships(ctx, &v1.RelationshipDeleteRequest{
 					TenantId: tenantID,
-					Filter:   &v1.TupleFilter{},
+					Filter: &v1.TupleFilter{
+						Entity:   &v1.EntityFilter{Type: "document", Ids: []string{"document-1"}},
+						Relation: "viewer",
+						Subject:  &v1.SubjectFilter{Type: "user", Ids: []string{"user-1"}},
+					},
 				})
 				return err
 			},
