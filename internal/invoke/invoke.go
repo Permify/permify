@@ -110,12 +110,15 @@ func (invoker *DirectInvoker) Check(ctx context.Context, request *base.Permissio
 		attribute.KeyValue{Key: "subject", Value: attribute.StringValue(tuple.SubjectToString(request.GetSubject()))},
 	))
 	defer span.End()
+	// Use only bounded-cardinality `subject_type` as a metric label.
+	// Do NOT include `subject_id`: it has unbounded cardinality (one per end-user),
+	// causing OTel metric series to grow monotonically. Each Prometheus scrape then
+	// triggers `aggregate.reset` to allocate hundreds of MB, leading to a GC storm
+	// where mark/scan workers consume 80%+ CPU.
 	invoker.checkHistogram.Record(ctx, 1,
-		metric.WithAttributeSet(
-			attribute.NewSet(
-				attribute.KeyValue{Key: "subject_id", Value: attribute.StringValue(request.GetSubject().GetId())},
-				attribute.KeyValue{Key: "subject_type", Value: attribute.StringValue(request.GetSubject().GetType())},
-			)),
+		metric.WithAttributes(
+			attribute.String("subject_type", request.GetSubject().GetType()),
+		),
 	)
 
 	// Validate the depth of the request.
