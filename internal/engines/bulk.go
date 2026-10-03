@@ -49,6 +49,9 @@ type BulkCheckerConfig struct {
 	// BufferSize defines the size of the internal request buffer.
 	// This should be set based on expected request volume to avoid blocking.
 	BufferSize int
+	// Streaming disables background request collection. When true, ExecuteStreamingRequests
+	// reads directly from the request channel, enabling early termination.
+	Streaming bool
 }
 
 // DefaultBulkCheckerConfig returns a sensible default configuration
@@ -91,6 +94,9 @@ type BulkChecker struct {
 	executionState *executionState
 	// collectionDone signals when request collection has completed
 	collectionDone chan struct{}
+	// producerDone signals when the producer (EntityFilter) has finished sending requests.
+	// Used in streaming mode instead of closing requestChan to avoid send-on-closed-channel races.
+	producerDone chan struct{}
 
 	// Callback for processing results
 	// callback is invoked for each successful permission check with the entity/subject ID and continuous token
@@ -105,6 +111,8 @@ type executionState struct {
 	mu sync.Mutex
 	// results stores the results of all requests in their original order
 	results []base.CheckResult
+	// requests holds the sorted requests (stored once, reused by callbackWithToken)
+	requests []BulkCheckerRequest
 	// processedIndex tracks the next result to be processed in order
 	processedIndex int
 	// successCount tracks the number of successful permission checks
@@ -161,10 +169,17 @@ func NewBulkChecker(ctx context.Context, checker invoke.Check, typ BulkCheckerTy
 		requests:       make([]BulkCheckerRequest, 0, config.BufferSize),
 		callback:       callback,
 		collectionDone: make(chan struct{}),
+		producerDone:   make(chan struct{}),
 	}
 
-	// Start the background request collection goroutine
-	go bc.collectRequests()
+	// Start the background request collection goroutine (not needed in streaming mode).
+	if config.Streaming {
+		// No collector goroutine — ExecuteStreamingRequests reads directly from the channel.
+		// Close collectionDone immediately so StopCollectingRequests doesn't block.
+		close(bc.collectionDone)
+	} else {
+		go bc.collectRequests()
+	}
 
 	return bc, nil
 }
@@ -245,6 +260,113 @@ func (bc *BulkChecker) sortRequests(requests []BulkCheckerRequest) {
 	}
 }
 
+// ExecuteStreamingRequests processes candidates as they arrive from EntityFilter,
+// checking them in batches without waiting for all candidates to be collected.
+// When size ALLOWED results are found, it cancels the context to stop EntityFilter.
+// No ordering is applied — results are returned in arrival order.
+//
+// NOTE: This method reads directly from requestChan. The background collectRequests
+// goroutine must be stopped first by calling StopCollectingRequests or cancelling context
+// before the producer (EntityFilter) starts. In practice, the producer goroutine is started
+// AFTER this method begins reading, so collectRequests sees a closed channel or cancelled context.
+func (bc *BulkChecker) ExecuteStreamingRequests(size uint32) error {
+	// size=0 means no early termination — process all candidates.
+	var successCount int64
+
+	for {
+		// Collect a chunk from the channel.
+		// We never close requestChan (to avoid send-on-closed-channel races).
+		// Instead, producerDone signals that no more items will be sent.
+		chunk := make([]BulkCheckerRequest, 0, bc.config.BufferSize)
+		producerFinished := false
+
+		// Block-wait for at least one item, producer done, or context cancel.
+		select {
+		case req := <-bc.requestChan:
+			chunk = append(chunk, req)
+		case <-bc.producerDone:
+			producerFinished = true
+		case <-bc.ctx.Done():
+			return nil
+		}
+
+		// Drain all immediately available items from the channel (non-blocking).
+	draining:
+		for len(chunk) < bc.config.BufferSize {
+			select {
+			case req := <-bc.requestChan:
+				chunk = append(chunk, req)
+			default:
+				break draining
+			}
+		}
+
+		if len(chunk) == 0 {
+			return nil // Producer done, nothing left
+		}
+
+		// Separate pre-computed from needs-check.
+		var entityIDs []string
+		var needCheckIndices []int
+		results := make([]base.CheckResult, len(chunk))
+
+		for i, req := range chunk {
+			if req.Result != base.CheckResult_CHECK_RESULT_UNSPECIFIED {
+				results[i] = req.Result
+			} else {
+				entityIDs = append(entityIDs, req.Request.GetEntity().GetId())
+				needCheckIndices = append(needCheckIndices, i)
+			}
+		}
+
+		// Batch check.
+		if len(entityIDs) > 0 {
+			template := chunk[needCheckIndices[0]].Request
+			batchResp, err := bc.checker.Check(bc.ctx, &invoke.BatchCheckRequest{
+				TenantID:   template.GetTenantId(),
+				EntityType: template.GetEntity().GetType(),
+				EntityIDs:  entityIDs,
+				Permission: template.GetPermission(),
+				Subject:    template.GetSubject(),
+				Metadata:   template.GetMetadata(),
+				Context:    template.GetContext(),
+				Arguments:  template.GetArguments(),
+			})
+			if err != nil {
+				if isContextError(err) {
+					return nil
+				}
+				return fmt.Errorf("streaming bulk execution failed: %w", err)
+			}
+
+			for j, idx := range needCheckIndices {
+				if result, ok := batchResp.Results[entityIDs[j]]; ok {
+					results[idx] = result
+				} else {
+					results[idx] = base.CheckResult_CHECK_RESULT_DENIED
+				}
+			}
+		}
+
+		// Process results, callback for ALLOWED.
+		for i, req := range chunk {
+			if results[i] == base.CheckResult_CHECK_RESULT_ALLOWED {
+				id := req.Request.GetEntity().GetId()
+				bc.callback(id, "")
+				successCount++
+				if size > 0 && successCount >= int64(size) {
+					bc.cancel() // Stop EntityFilter
+					return nil
+				}
+			}
+		}
+
+		if producerFinished {
+			return nil
+		}
+	}
+}
+
 // ExecuteRequests processes requests concurrently with comprehensive error handling and resource management.
 // This method is the main entry point for bulk permission checking. It:
 // 1. Stops collecting new requests
@@ -273,10 +395,83 @@ func (bc *BulkChecker) ExecuteRequests(size uint32) error { // Main execution en
 
 	// Initialize execution state for tracking progress
 	bc.executionState = &executionState{
-		results: make([]base.CheckResult, len(requests)),
-		limit:   int64(size),
+		results:  make([]base.CheckResult, len(requests)),
+		requests: requests,
+		limit:    int64(size),
 	}
 
+	// For entity-type checks: all requests share the same (type, permission, subject).
+	// Batch them into a single Check call instead of N individual calls.
+	if bc.typ == BulkCheckerTypeEntity {
+		return bc.executeBatchEntity(requests, size)
+	}
+
+	// For subject-type checks: each request has a different subject, process concurrently.
+	return bc.executeConcurrent(requests, size)
+}
+
+// executeBatchEntity batches all entity IDs into a single Check call.
+// All requests share the same (type, permission, subject) — they only differ in entity ID.
+func (bc *BulkChecker) executeBatchEntity(requests []BulkCheckerRequest, size uint32) error {
+	// Separate pre-computed results from those needing a check.
+	var entityIDs []string
+	var needCheckIndices []int
+
+	for i, req := range requests {
+		if req.Result != base.CheckResult_CHECK_RESULT_UNSPECIFIED {
+			bc.executionState.results[i] = req.Result
+		} else {
+			entityIDs = append(entityIDs, req.Request.GetEntity().GetId())
+			needCheckIndices = append(needCheckIndices, i)
+		}
+	}
+
+	// Batch check all entities at once.
+	if len(entityIDs) > 0 {
+		template := requests[needCheckIndices[0]].Request
+		batchResp, err := bc.checker.Check(bc.ctx, &invoke.BatchCheckRequest{
+			TenantID:   template.GetTenantId(),
+			EntityType: template.GetEntity().GetType(),
+			EntityIDs:  entityIDs,
+			Permission: template.GetPermission(),
+			Subject:    template.GetSubject(),
+			Metadata:   template.GetMetadata(),
+			Context:    template.GetContext(),
+			Arguments:  template.GetArguments(),
+		})
+		if err != nil {
+			if isContextError(err) {
+				return nil
+			}
+			return fmt.Errorf("bulk execution failed: %w", err)
+		}
+
+		for j, idx := range needCheckIndices {
+			if result, ok := batchResp.Results[entityIDs[j]]; ok {
+				bc.executionState.results[idx] = result
+			} else {
+				bc.executionState.results[idx] = base.CheckResult_CHECK_RESULT_DENIED
+			}
+		}
+	}
+
+	// Process results in order, invoke callback for ALLOWED.
+	for i := range requests {
+		result := bc.executionState.results[i]
+		if result == base.CheckResult_CHECK_RESULT_ALLOWED {
+			if atomic.LoadInt64(&bc.executionState.successCount) >= int64(size) {
+				break
+			}
+			atomic.AddInt64(&bc.executionState.successCount, 1)
+			bc.callbackWithToken(i)
+		}
+	}
+	return nil
+}
+
+// executeConcurrent processes requests concurrently (used for subject-type checks
+// where each request has a different subject and can't be batched).
+func (bc *BulkChecker) executeConcurrent(requests []BulkCheckerRequest, size uint32) error {
 	// Create execution context with cancellation for graceful shutdown
 	execCtx, execCancel := context.WithCancel(bc.ctx)
 	defer execCancel()
@@ -375,12 +570,12 @@ func (bc *BulkChecker) getRequestResult(ctx context.Context, req BulkCheckerRequ
 	}
 
 	// Perform the actual permission check
-	response, err := bc.checker.Check(ctx, req.Request)
+	response, err := bc.checker.Check(ctx, invoke.NewBatchCheckRequest(req.Request))
 	if err != nil {
 		return base.CheckResult_CHECK_RESULT_UNSPECIFIED, err
 	}
 
-	return response.GetCan(), nil
+	return response.UnionResult(), nil
 }
 
 // processResult processes a single result with thread-safe state updates.
@@ -434,7 +629,7 @@ func (bc *BulkChecker) processResult(index int, result base.CheckResult) error {
 // Parameters:
 //   - index: The index of the result in the sorted list
 func (bc *BulkChecker) callbackWithToken(index int) {
-	requests := bc.getSortedRequests()
+	requests := bc.executionState.requests
 
 	// Validate index bounds
 	if index >= len(requests) {
@@ -460,6 +655,19 @@ func (bc *BulkChecker) callbackWithToken(index int) {
 
 	// Call the user-provided callback
 	bc.callback(id, ct)
+}
+
+// SignalProducerDone signals that the producer has finished sending requests.
+// Used in streaming mode — ExecuteStreamingRequests will drain remaining items and exit.
+func (bc *BulkChecker) SignalProducerDone() {
+	defer func() { _ = recover() }()
+	close(bc.producerDone)
+}
+
+// Context returns the BulkChecker's cancellable context.
+// Use this to run producers (e.g. EntityFilter) so they stop when the checker cancels.
+func (bc *BulkChecker) Context() context.Context {
+	return bc.ctx
 }
 
 // Close properly cleans up resources and cancels all operations.

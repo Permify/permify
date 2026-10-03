@@ -4,6 +4,7 @@ import (
 	"github.com/Masterminds/squirrel"
 
 	base "github.com/Permify/permify/pkg/pb/base/v1"
+	"github.com/Permify/permify/pkg/tuple"
 )
 
 // TuplesFilterQueryForSelectBuilder -
@@ -145,6 +146,45 @@ func TuplesFilterQueryForUpdateBuilder(sl squirrel.UpdateBuilder, filter *base.T
 	}
 
 	return sl.Where(eq)
+}
+
+// SubjectPushdownCondition builds a squirrel OR condition for the check engine's
+// direct relation path. It returns only rows where:
+//   - the subject matches exactly (type + id + normalized relation), OR
+//   - the tuple is a userset (subject_relation is non-empty and not ELLIPSIS)
+//
+// This dramatically reduces the number of rows returned from the database
+// when checking a specific subject against a widely-subscribed entity+relation.
+func SubjectPushdownCondition(subject *base.Subject) squirrel.Sqlizer {
+	if subject == nil {
+		return nil
+	}
+
+	subjectRelation := tuple.NormalizeRelation(subject.GetRelation())
+
+	// Exact match: the subject we are checking for.
+	// subject_relation is stored as "" for direct subjects (ELLIPSIS is normalized on write).
+	exactMatch := squirrel.And{
+		squirrel.Eq{"subject_type": subject.GetType()},
+		squirrel.Eq{"subject_id": subject.GetId()},
+	}
+	if subjectRelation == "" {
+		exactMatch = append(exactMatch, squirrel.Eq{"subject_relation": ""})
+	} else {
+		exactMatch = append(exactMatch, squirrel.Or{
+			squirrel.Eq{"subject_relation": subjectRelation},
+			squirrel.Eq{"subject_relation": ""},
+		})
+	}
+
+	// Userset match: tuples that need recursive expansion.
+	// subject_relation is non-empty (a real relation, not a direct reference).
+	usersetMatch := squirrel.And{
+		squirrel.NotEq{"subject_relation": ""},
+		squirrel.NotEq{"subject_relation": tuple.ELLIPSIS},
+	}
+
+	return squirrel.Or{exactMatch, usersetMatch}
 }
 
 // AttributesFilterQueryForUpdateBuilder -

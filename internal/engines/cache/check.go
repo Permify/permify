@@ -44,56 +44,68 @@ func NewCheckEngineWithCache(
 }
 
 // Check performs a permission check for a given request, using the cached results if available.
-func (c *CheckEngineWithCache) Check(ctx context.Context, request *base.PermissionCheckRequest) (response *base.PermissionCheckResponse, err error) {
-	// Retrieve entity definition
-	var en *base.EntityDefinition
-	en, _, err = c.schemaReader.ReadEntityDefinition(ctx, request.GetTenantId(), request.GetEntity().GetType(), request.GetMetadata().GetSchemaVersion())
+// Supports batch: request.EntityIDs may contain one or more entity IDs.
+// For each entity, the cache is checked individually; uncached entities are delegated to the underlying checker.
+func (c *CheckEngineWithCache) Check(ctx context.Context, request *invoke.BatchCheckRequest) (response *invoke.BatchCheckResponse, err error) {
+	// Read entity definition once (all entities share the same type)
+	en, _, err := c.schemaReader.ReadEntityDefinition(ctx, request.TenantID, request.EntityType, request.Metadata.GetSchemaVersion())
 	if err != nil {
-		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_CHECK_RESULT_DENIED,
-			Metadata: &base.PermissionCheckResponseMetadata{
-				CheckCount: 0,
-			},
-		}, err
+		return invoke.NewBatchCheckResponse(base.CheckResult_CHECK_RESULT_DENIED, request.EntityIDs...), err
 	}
 
-	isRelational := engines.IsRelational(en, request.GetPermission())
+	isRelational := engines.IsRelational(en, request.Permission)
 
-	// Try to get the cached result for the given request.
-	res, found := c.getCheckKey(request, isRelational)
+	// Per-entity cached results
+	cachedResults := make(map[string]base.CheckResult)
 
-	// If a cached result is found, handle exclusion and return the result.
-	if found {
-		// Increase the hit count in the metrics.
-		c.cacheHitHistogram.Record(ctx, 1)
+	// Check cache per entity_id, collect uncached IDs
+	var uncachedIDs []string
+	for _, id := range request.EntityIDs {
+		singleReq := request.ToPermissionCheckRequest(id)
+		res, found := c.getCheckKey(singleReq, isRelational)
+		if found {
+			c.cacheHitHistogram.Record(ctx, 1)
+			cachedResults[id] = res.GetCan()
+			continue
+		}
+		uncachedIDs = append(uncachedIDs, id)
+	}
 
-		// If the request doesn't have the exclusion flag set, return the cached result.
-		return &base.PermissionCheckResponse{
-			Can:      res.GetCan(),
+	// All cached → return cached results
+	if len(uncachedIDs) == 0 {
+		return &invoke.BatchCheckResponse{
+			Results:  cachedResults,
 			Metadata: &base.PermissionCheckResponseMetadata{},
 		}, nil
 	}
 
-	// Perform the actual permission check using the provided request.
-	cres, err := c.checker.Check(ctx, request)
-	// Check if there's an error or the response is nil, and return the result.
+	// Delegate uncached to underlying checker
+	batchReq := request.Clone()
+	batchReq.EntityIDs = uncachedIDs
+	cres, err := c.checker.Check(ctx, batchReq)
 	if err != nil {
-		return &base.PermissionCheckResponse{
-			Can: base.CheckResult_CHECK_RESULT_DENIED,
-			Metadata: &base.PermissionCheckResponseMetadata{
-				CheckCount: 0,
-			},
-		}, err
+		return invoke.NewBatchCheckResponse(base.CheckResult_CHECK_RESULT_DENIED, request.EntityIDs...), err
 	}
 
-	// Add to histogram the response
+	// Cache the per-entity results for each uncached entity
+	for _, id := range uncachedIDs {
+		singleReq := request.ToPermissionCheckRequest(id)
+		result := base.CheckResult_CHECK_RESULT_DENIED
+		if r, ok := cres.Results[id]; ok {
+			result = r
+		}
+		c.setCheckKey(singleReq, &base.PermissionCheckResponse{
+			Can:      result,
+			Metadata: &base.PermissionCheckResponseMetadata{},
+		}, isRelational)
+	}
 
-	c.setCheckKey(request, &base.PermissionCheckResponse{
-		Can:      cres.GetCan(),
-		Metadata: &base.PermissionCheckResponseMetadata{},
-	}, isRelational)
-	// Return the result of the permission check.
-	return cres, err
+	// Merge cached results into the response
+	for id, result := range cachedResults {
+		cres.Results[id] = result
+	}
+
+	return cres, nil
 }
 
 // GetCheckKey retrieves the value for the given key from the EngineKeys cache.

@@ -328,17 +328,18 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 				}
 
 				// A Permission Check is made for the current entity, permission and subject
-				res, err := c.Container.Invoker.Check(ctx, &v1.PermissionCheckRequest{
-					TenantId: "t1",
+				res, err := c.Container.Invoker.Check(ctx, &invoke.BatchCheckRequest{
+					TenantID:   "t1",
+					EntityType: entity.GetType(),
+					EntityIDs:  []string{entity.GetId()},
+					Permission: permission,
+					Subject:    subject,
 					Metadata: &v1.PermissionCheckRequestMetadata{
 						SchemaVersion: version,
 						SnapToken:     token.NewNoopToken().Encode().String(),
 						Depth:         100,
 					},
-					Context:    cont,
-					Entity:     entity,
-					Permission: permission,
-					Subject:    subject,
+					Context: cont,
 				})
 				if err != nil {
 					errors = append(errors, Error{
@@ -352,7 +353,7 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 				query := tuple.SubjectToString(subject) + " " + permission + " " + tuple.EntityToString(entity)
 
 				// Check if the permission check result matches the expected result
-				if res.Can != exp {
+				if res.UnionResult() != exp {
 					var expectedStr, actualStr string
 					if exp == v1.CheckResult_CHECK_RESULT_ALLOWED {
 						expectedStr = "true"
@@ -360,7 +361,7 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 						expectedStr = "false"
 					}
 
-					if res.Can == v1.CheckResult_CHECK_RESULT_ALLOWED {
+					if res.UnionResult() == v1.CheckResult_CHECK_RESULT_ALLOWED {
 						actualStr = "true"
 					} else {
 						actualStr = "false"
