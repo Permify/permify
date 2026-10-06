@@ -48,9 +48,12 @@ type PermissionClient interface {
 	Expand(ctx context.Context, in *PermissionExpandRequest, opts ...grpc.CallOption) (*PermissionExpandResponse, error)
 	// LookupEntity method receives a PermissionLookupEntityRequest and returns a PermissionLookupEntityResponse.
 	// It is used to retrieve an entity by its identifier.
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	LookupEntity(ctx context.Context, in *PermissionLookupEntityRequest, opts ...grpc.CallOption) (*PermissionLookupEntityResponse, error)
 	// LookupEntityStream method receives a PermissionLookupEntityRequest and streams a series of PermissionLookupEntityStreamResponse messages.
 	// It is used to retrieve entities by their identifiers in a streaming fashion.
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
 	LookupEntityStream(ctx context.Context, in *PermissionLookupEntityRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PermissionLookupEntityStreamResponse], error)
 	// LookupSubject method receives a PermissionLookupSubjectRequest and returns a PermissionLookupSubjectResponse.
 	// It is used to retrieve a subject by its identifier.
@@ -167,9 +170,12 @@ type PermissionServer interface {
 	Expand(context.Context, *PermissionExpandRequest) (*PermissionExpandResponse, error)
 	// LookupEntity method receives a PermissionLookupEntityRequest and returns a PermissionLookupEntityResponse.
 	// It is used to retrieve an entity by its identifier.
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	LookupEntity(context.Context, *PermissionLookupEntityRequest) (*PermissionLookupEntityResponse, error)
 	// LookupEntityStream method receives a PermissionLookupEntityRequest and streams a series of PermissionLookupEntityStreamResponse messages.
 	// It is used to retrieve entities by their identifiers in a streaming fashion.
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
 	LookupEntityStream(*PermissionLookupEntityRequest, grpc.ServerStreamingServer[PermissionLookupEntityStreamResponse]) error
 	// LookupSubject method receives a PermissionLookupSubjectRequest and returns a PermissionLookupSubjectResponse.
 	// It is used to retrieve a subject by its identifier.
@@ -750,16 +756,26 @@ type DataClient interface {
 	// The Write RPC method creates a new relation tuple.
 	Write(ctx context.Context, in *DataWriteRequest, opts ...grpc.CallOption) (*DataWriteResponse, error)
 	// RPC method to write relationships for a tenant. This can be accessed via a POST request to the given HTTP path. It's tagged under "Data" in OpenAPI documentation.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	WriteRelationships(ctx context.Context, in *RelationshipWriteRequest, opts ...grpc.CallOption) (*RelationshipWriteResponse, error)
 	// The ReadRelationships RPC method reads relation tuple(s).
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	ReadRelationships(ctx context.Context, in *RelationshipReadRequest, opts ...grpc.CallOption) (*RelationshipReadResponse, error)
 	// The ReadAttributes RPC method reads attribute(s) of a relation.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	ReadAttributes(ctx context.Context, in *AttributeReadRequest, opts ...grpc.CallOption) (*AttributeReadResponse, error)
 	// The Delete RPC method deletes a relation tuple.
 	Delete(ctx context.Context, in *DataDeleteRequest, opts ...grpc.CallOption) (*DataDeleteResponse, error)
 	// RPC method to delete relationships for a tenant, accessed via a POST request to the specified path, tagged as "Data" in OpenAPI documentation.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	DeleteRelationships(ctx context.Context, in *RelationshipDeleteRequest, opts ...grpc.CallOption) (*RelationshipDeleteResponse, error)
 	// Executes or runs a specific bundle. This method is useful for processing or triggering actions based on the bundle's data.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	RunBundle(ctx context.Context, in *BundleRunRequest, opts ...grpc.CallOption) (*BundleRunResponse, error)
 }
 
@@ -850,16 +866,26 @@ type DataServer interface {
 	// The Write RPC method creates a new relation tuple.
 	Write(context.Context, *DataWriteRequest) (*DataWriteResponse, error)
 	// RPC method to write relationships for a tenant. This can be accessed via a POST request to the given HTTP path. It's tagged under "Data" in OpenAPI documentation.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	WriteRelationships(context.Context, *RelationshipWriteRequest) (*RelationshipWriteResponse, error)
 	// The ReadRelationships RPC method reads relation tuple(s).
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	ReadRelationships(context.Context, *RelationshipReadRequest) (*RelationshipReadResponse, error)
 	// The ReadAttributes RPC method reads attribute(s) of a relation.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	ReadAttributes(context.Context, *AttributeReadRequest) (*AttributeReadResponse, error)
 	// The Delete RPC method deletes a relation tuple.
 	Delete(context.Context, *DataDeleteRequest) (*DataDeleteResponse, error)
 	// RPC method to delete relationships for a tenant, accessed via a POST request to the specified path, tagged as "Data" in OpenAPI documentation.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	DeleteRelationships(context.Context, *RelationshipDeleteRequest) (*RelationshipDeleteResponse, error)
 	// Executes or runs a specific bundle. This method is useful for processing or triggering actions based on the bundle's data.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	RunBundle(context.Context, *BundleRunRequest) (*BundleRunResponse, error)
 	mustEmbedUnimplementedDataServer()
 }
@@ -1275,12 +1301,18 @@ const (
 type TenancyClient interface {
 	// Create is a unary RPC to create a new tenant.
 	// It requires a TenantCreateRequest and returns a TenantCreateResponse.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	Create(ctx context.Context, in *TenantCreateRequest, opts ...grpc.CallOption) (*TenantCreateResponse, error)
 	// Delete is a unary RPC to delete an existing tenant.
 	// It requires a TenantDeleteRequest and returns a TenantDeleteResponse.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	Delete(ctx context.Context, in *TenantDeleteRequest, opts ...grpc.CallOption) (*TenantDeleteResponse, error)
 	// List is a unary RPC to get a list of all tenants.
 	// It requires a TenantListRequest and returns a TenantListResponse.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	List(ctx context.Context, in *TenantListRequest, opts ...grpc.CallOption) (*TenantListResponse, error)
 }
 
@@ -1328,12 +1360,18 @@ func (c *tenancyClient) List(ctx context.Context, in *TenantListRequest, opts ..
 type TenancyServer interface {
 	// Create is a unary RPC to create a new tenant.
 	// It requires a TenantCreateRequest and returns a TenantCreateResponse.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	Create(context.Context, *TenantCreateRequest) (*TenantCreateResponse, error)
 	// Delete is a unary RPC to delete an existing tenant.
 	// It requires a TenantDeleteRequest and returns a TenantDeleteResponse.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	Delete(context.Context, *TenantDeleteRequest) (*TenantDeleteResponse, error)
 	// List is a unary RPC to get a list of all tenants.
 	// It requires a TenantListRequest and returns a TenantListResponse.
+	// buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	List(context.Context, *TenantListRequest) (*TenantListResponse, error)
 	mustEmbedUnimplementedTenancyServer()
 }

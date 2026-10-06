@@ -4,10 +4,11 @@ import (
 	"context"
 	"log"
 
-	"buf.build/gen/go/permifyco/permify/protocolbuffers/go/base/v1"
-	pclient "github.com/Permify/permify-go/grpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"buf.build/gen/go/permifyco/permify/protocolbuffers/go/base/v1"
+
+	pclient "github.com/Permify/permify-go/grpc"
 )
 
 func main() {

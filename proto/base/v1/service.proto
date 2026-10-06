@@ -2,11 +2,12 @@ syntax = "proto3";
 package base.v1;
 
 import "base/v1/base.proto";
+import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
-import "validate/validate.proto";
 
 option go_package = "github.com/Permify/permify/pkg/pb/base/v1";
+
 // ** PERMISSION SERVICE **
 // Permission service contains methods to interact with permissions.
 service Permission {
@@ -791,10 +792,9 @@ message PermissionCheckRequest {
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -802,23 +802,22 @@ message PermissionCheckRequest {
   // Metadata associated with this request, required.
   PermissionCheckRequestMetadata metadata = 2 [
     json_name = "metadata",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Entity on which the permission needs to be checked, required.
   Entity entity = 3 [
     json_name = "entity",
-    (validate.rules).message.required = true,
+    (buf.validate.field).required = true,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example: "\"repository:1\""}
   ];
 
   // Name of the permission or relation, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   string permission = 4 [
     json_name = "permission",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^[a-zA-Z_]{1,64}$"
       max_bytes: 64
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The action the user wants to perform on the resource"}
   ];
@@ -826,7 +825,7 @@ message PermissionCheckRequest {
   // Subject for which the permission needs to be checked, required.
   Subject subject = 5 [
     json_name = "subject",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Context associated with this request.
@@ -853,7 +852,7 @@ message PermissionCheckRequestMetadata {
   // Depth of the check, must be greater than or equal to 3.
   int32 depth = 3 [
     json_name = "depth",
-    (validate.rules).int32.gte = 3,
+    (buf.validate.field).int32.gte = 3,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop"}
   ];
 }
@@ -878,17 +877,16 @@ message PermissionBulkCheckRequestItem {
   // Entity on which the permission needs to be checked, required.
   Entity entity = 1 [
     json_name = "entity",
-    (validate.rules).message.required = true,
+    (buf.validate.field).required = true,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example: "\"repository:1\""}
   ];
 
   // Name of the permission or relation, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   string permission = 2 [
     json_name = "permission",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^[a-zA-Z_]{1,64}$"
       max_bytes: 64
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "The action the user wants to perform on the resource"}
   ];
@@ -896,18 +894,18 @@ message PermissionBulkCheckRequestItem {
   // Subject for which the permission needs to be checked, required.
   Subject subject = 3 [
     json_name = "subject",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 }
+
 // PermissionBulkCheckRequest is the request message for the BulkCheck method in the Permission service.
 message PermissionBulkCheckRequest {
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -915,13 +913,13 @@ message PermissionBulkCheckRequest {
   // Metadata associated with this request, required.
   PermissionCheckRequestMetadata metadata = 2 [
     json_name = "metadata",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // List of permission check requests, maximum 100 items.
   repeated PermissionBulkCheckRequestItem items = 3 [
     json_name = "items",
-    (validate.rules).repeated = {
+    (buf.validate.field).repeated = {
       min_items: 1
       max_items: 100
     }
@@ -950,10 +948,9 @@ message PermissionExpandRequest {
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -961,23 +958,23 @@ message PermissionExpandRequest {
   // Metadata associated with this request, required.
   PermissionExpandRequestMetadata metadata = 2 [
     json_name = "metadata",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Entity on which the permission needs to be expanded, required.
   Entity entity = 3 [
     json_name = "entity",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Name of the permission to be expanded, not required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   string permission = 4 [
     json_name = "permission",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^[a-zA-Z_]{1,64}$"
       max_bytes: 64
-      ignore_empty: true
-    }
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 
   // Context associated with this request.
@@ -1012,10 +1009,9 @@ message PermissionLookupEntityRequest {
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -1023,33 +1019,31 @@ message PermissionLookupEntityRequest {
   // Metadata associated with this request, required.
   PermissionLookupEntityRequestMetadata metadata = 2 [
     json_name = "metadata",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Type of the entity to lookup, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   string entity_type = 3 [
     json_name = "entity_type",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^[a-zA-Z_]{1,64}$"
       max_bytes: 64
-      ignore_empty: false
     }
   ];
 
   // Name of the permission to check, required, must start with a letter and can include alphanumeric and underscore, max 64 bytes.
   string permission = 4 [
     json_name = "permission",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^[a-zA-Z_]{1,64}$"
       max_bytes: 64
-      ignore_empty: false
     }
   ];
 
   // Subject for which to check the permission, required.
   Subject subject = 5 [
     json_name = "subject",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Context associated with this request.
@@ -1063,17 +1057,16 @@ message PermissionLookupEntityRequest {
   // The value should be between 1 and 100.
   uint32 page_size = 8 [
     json_name = "page_size",
-    (validate.rules).uint32 = {
-      gte: 1
-      ignore_empty: true
-    }
+    (buf.validate.field).uint32 = {gte: 1},
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 
   // continuous_token is an optional parameter used for pagination.
   // It should be the value received in the previous response.
   string continuous_token = 9 [
     json_name = "continuous_token",
-    (validate.rules).string = {ignore_empty: true}
+    (buf.validate.field).string = {},
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 }
 
@@ -1091,7 +1084,7 @@ message PermissionLookupEntityRequestMetadata {
   // Depth of lookup, required, must be greater or equal to 3.
   int32 depth = 3 [
     json_name = "depth",
-    (validate.rules).int32.gte = 3,
+    (buf.validate.field).int32.gte = 3,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop."}
   ];
 }
@@ -1121,10 +1114,9 @@ message PermissionEntityFilterRequest {
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -1132,7 +1124,7 @@ message PermissionEntityFilterRequest {
   // Metadata associated with this request, required.
   PermissionEntityFilterRequestMetadata metadata = 2 [
     json_name = "metadata",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Reference to the entity to filter.
@@ -1152,7 +1144,8 @@ message PermissionEntityFilterRequest {
   // It should be the value received in the previous response.
   string cursor = 7 [
     json_name = "cursor",
-    (validate.rules).string = {ignore_empty: true}
+    (buf.validate.field).string = {},
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 }
 
@@ -1170,7 +1163,7 @@ message PermissionEntityFilterRequestMetadata {
   // Depth of lookup, required, must be greater or equal to 3.
   int32 depth = 3 [
     json_name = "depth",
-    (validate.rules).int32.gte = 3,
+    (buf.validate.field).int32.gte = 3,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop."}
   ];
 }
@@ -1182,10 +1175,9 @@ message PermissionLookupSubjectRequest {
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -1193,29 +1185,28 @@ message PermissionLookupSubjectRequest {
   // Metadata associated with this request, required.
   PermissionLookupSubjectRequestMetadata metadata = 2 [
     json_name = "metadata",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Entity for which to check the permission, required.
   Entity entity = 3 [
     json_name = "entity",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Permission to be checked, can be a permission or relation. Required, and must match the pattern "^([a-zA-Z][a-zA-Z0-9_]{1,62}[a-zA-Z0-9])$", max 64 bytes.
   string permission = 4 [
     json_name = "permission",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^[a-zA-Z_]{1,64}$"
       max_bytes: 64
-      ignore_empty: false
     }
   ];
 
   // Reference to the subject to lookup.
   RelationReference subject_reference = 5 [
     json_name = "subject_reference",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Context associated with this request.
@@ -1228,17 +1219,16 @@ message PermissionLookupSubjectRequest {
   // The value should be between 1 and 100.
   uint32 page_size = 8 [
     json_name = "page_size",
-    (validate.rules).uint32 = {
-      gte: 1
-      ignore_empty: true
-    }
+    (buf.validate.field).uint32 = {gte: 1},
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 
   // continuous_token is an optional parameter used for pagination.
   // It should be the value received in the previous response.
   string continuous_token = 9 [
     json_name = "continuous_token",
-    (validate.rules).string = {ignore_empty: true}
+    (buf.validate.field).string = {},
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 }
 
@@ -1256,7 +1246,7 @@ message PermissionLookupSubjectRequestMetadata {
   // Depth of the check, must be greater than or equal to 3.
   int32 depth = 3 [
     json_name = "depth",
-    (validate.rules).int32.gte = 3,
+    (buf.validate.field).int32.gte = 3,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop."}
   ];
 }
@@ -1277,10 +1267,9 @@ message PermissionSubjectPermissionRequest {
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -1288,19 +1277,19 @@ message PermissionSubjectPermissionRequest {
   // Metadata associated with this request, required.
   PermissionSubjectPermissionRequestMetadata metadata = 2 [
     json_name = "metadata",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Entity for which to check the permission, required.
   Entity entity = 3 [
     json_name = "entity",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Subject for which to check the permission, required.
   Subject subject = 4 [
     json_name = "subject",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Context associated with this request.
@@ -1324,7 +1313,7 @@ message PermissionSubjectPermissionRequestMetadata {
   // Depth of the check, must be greater than or equal to 3.
   int32 depth = 4 [
     json_name = "depth",
-    (validate.rules).int32.gte = 3,
+    (buf.validate.field).int32.gte = 3,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Query limit when if recursive database queries got in loop."}
   ];
 }
@@ -1436,10 +1425,9 @@ message WatchRequest {
   // Identifier of the tenant, required, and must match the pattern "[a-zA-Z0-9-,]+", max 64 bytes.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -1772,7 +1760,7 @@ service Schema {
                 }
                 fields: { // cURL example for listing schemas
                   key: "source" // Source code example
-                  value: {string_value: // cURL command string
+                  value: {string_value: /* cURL command string */
                       "curl --location --request POST 'localhost:3476/v1/tenants/{tenant_id}/schemas/list' \\\n" // List schemas endpoint
                       "--header 'Content-Type: application/json' \\\n"
                       "--data-raw '{\n"
@@ -1799,10 +1787,9 @@ message SchemaWriteRequest {
   // be a maximum of 64 bytes, and must not be empty.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -1827,17 +1814,16 @@ message SchemaPartialWriteRequest {
   // be a maximum of 64 bytes, and must not be empty.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     }
   ];
 
   // metadata is the additional information needed for the Partial Write request.
   SchemaPartialWriteRequestMetadata metadata = 2 [
     json_name = "metadata",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // Map of entity name with the values needed to be updated
@@ -1867,10 +1853,9 @@ message SchemaReadRequest {
   // be a maximum of 64 bytes, and must not be empty.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -1878,7 +1863,7 @@ message SchemaReadRequest {
   // metadata is the additional information needed for the Read request.
   SchemaReadRequestMetadata metadata = 2 [
     json_name = "metadata",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 }
 
@@ -1905,10 +1890,9 @@ message SchemaListRequest {
   // be a maximum of 64 bytes, and must not be empty.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -1917,17 +1901,16 @@ message SchemaListRequest {
   // The value should be between 1 and 100.
   uint32 page_size = 2 [
     json_name = "page_size",
-    (validate.rules).uint32 = {
-      gte: 1
-      ignore_empty: true
-    }
+    (buf.validate.field).uint32 = {gte: 1},
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 
   // continuous_token is an optional parameter used for pagination.
   // It should be the value received in the previous response.
   string continuous_token = 3 [
     json_name = "continuous_token",
-    (validate.rules).string = {ignore_empty: true}
+    (buf.validate.field).string = {},
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 }
 
@@ -2666,10 +2649,9 @@ message DataWriteRequest {
   // tenant_id represents the unique identifier of the tenant for which data is written.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -2677,29 +2659,19 @@ message DataWriteRequest {
   // metadata holds additional data related to the request.
   DataWriteRequestMetadata metadata = 2 [
     json_name = "metadata",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // tuples contains the list of tuples (entity-relation-entity triples) that need to be written.
   repeated Tuple tuples = 3 [
     json_name = "tuples",
-    (validate.rules).repeated = {
-      min_items: 0
-      items: {
-        message: {required: true}
-      }
-    }
+    (buf.validate.field).repeated.min_items = 0
   ];
 
   // attributes contains the list of attributes (entity-attribute-value triples) that need to be written.
   repeated Attribute attributes = 4 [
     json_name = "attributes",
-    (validate.rules).repeated = {
-      min_items: 0
-      items: {
-        message: {required: true}
-      }
-    }
+    (buf.validate.field).repeated.min_items = 0
   ];
 }
 
@@ -2725,10 +2697,9 @@ message RelationshipWriteRequest {
   // Unique identifier for the tenant with specific constraints.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -2736,18 +2707,13 @@ message RelationshipWriteRequest {
   // Metadata for the request. It's required.
   RelationshipWriteRequestMetadata metadata = 2 [
     json_name = "metadata",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // List of tuples for the request. Must have between 1 and 100 items.
   repeated Tuple tuples = 3 [
     json_name = "tuples",
-    (validate.rules).repeated = {
-      min_items: 1
-      items: {
-        message: {required: true}
-      }
-    }
+    (buf.validate.field).repeated.min_items = 1
   ];
 }
 
@@ -2770,10 +2736,9 @@ message RelationshipReadRequest {
   // tenant_id represents the unique identifier of the tenant for which relationships are read.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -2781,29 +2746,28 @@ message RelationshipReadRequest {
   // metadata holds additional data related to the request.
   RelationshipReadRequestMetadata metadata = 2 [
     json_name = "metadata",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // filter is used to specify criteria for the data that needs to be read.
   TupleFilter filter = 3 [
     json_name = "filter",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // page_size specifies the number of results to return in a single page.
   // If more results are available, a continuous_token is included in the response.
   uint32 page_size = 4 [
     json_name = "page_size",
-    (validate.rules).uint32 = {
-      gte: 1
-      ignore_empty: true
-    }
+    (buf.validate.field).uint32 = {gte: 1},
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 
   // continuous_token is used in case of paginated reads to get the next page of results.
   string continuous_token = 5 [
     json_name = "continuous_token",
-    (validate.rules).string = {ignore_empty: true}
+    (buf.validate.field).string = {},
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 }
 
@@ -2833,10 +2797,9 @@ message AttributeReadRequest {
   // tenant_id represents the unique identifier of the tenant from which the attributes are being read.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -2844,29 +2807,28 @@ message AttributeReadRequest {
   // metadata holds additional information related to the request.
   AttributeReadRequestMetadata metadata = 2 [
     json_name = "metadata",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // filter specifies the criteria used to select the attributes that should be returned.
   AttributeFilter filter = 3 [
     json_name = "filter",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // page_size specifies the number of results to return in a single page.
   // If more results are available, a continuous_token is included in the response.
   uint32 page_size = 4 [
     json_name = "page_size",
-    (validate.rules).uint32 = {
-      gte: 1
-      ignore_empty: true
-    }
+    (buf.validate.field).uint32 = {gte: 1},
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 
   // continuous_token is used in case of paginated reads to get the next page of results.
   string continuous_token = 5 [
     json_name = "continuous_token",
-    (validate.rules).string = {ignore_empty: true}
+    (buf.validate.field).string = {},
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 }
 
@@ -2896,10 +2858,9 @@ message DataDeleteRequest {
   // tenant_id represents the unique identifier of the tenant from which the data will be deleted.
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -2907,13 +2868,13 @@ message DataDeleteRequest {
   // tuple_filter specifies the criteria used to select the tuples that should be deleted.
   TupleFilter tuple_filter = 2 [
     json_name = "tuple_filter",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 
   // attribute_filter specifies the criteria used to select the attributes that should be deleted.
   AttributeFilter attribute_filter = 3 [
     json_name = "attribute_filter",
-    (validate.rules).message.required = true
+    (buf.validate.field).required = true
   ];
 }
 
@@ -2931,10 +2892,9 @@ message DataDeleteResponse {
 message RelationshipDeleteRequest {
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -2955,10 +2915,9 @@ message RelationshipDeleteResponse {
 message BundleRunRequest {
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -3309,10 +3268,9 @@ service Bundle {
 message BundleWriteRequest {
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -3329,10 +3287,9 @@ message BundleWriteResponse {
 message BundleReadRequest {
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -3349,10 +3306,9 @@ message BundleReadResponse {
 message BundleDeleteRequest {
   string tenant_id = 1 [
     json_name = "tenant_id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "^([a-zA-Z0-9_\\-@\\.:+]{1,128}|\\*)$"
       max_bytes: 128
-      ignore_empty: false
     },
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Identifier of the tenant, if you are not using multi-tenancy (have only one tenant) use pre-inserted tenant <code>t1</code> for this field. Required, and must match the pattern \\“[a-zA-Z0-9-,]+\\“, max 64 bytes."}
   ];
@@ -3636,20 +3592,16 @@ message TenantCreateRequest {
   // id is a unique identifier for the tenant.
   string id = 1 [
     json_name = "id",
-    (validate.rules).string = {
+    (buf.validate.field).string = {
       pattern: "[a-zA-Z0-9-,]+"
       max_bytes: 64
-      ignore_empty: false
     }
   ];
 
   // name is the name of the tenant.
   string name = 2 [
     json_name = "name",
-    (validate.rules).string = {
-      max_bytes: 64
-      ignore_empty: false
-    }
+    (buf.validate.field).string = {max_bytes: 64}
   ];
 }
 
@@ -3664,7 +3616,7 @@ message TenantDeleteRequest {
   // id is the unique identifier of the tenant to be deleted.
   string id = 1 [
     json_name = "id",
-    (validate.rules).string = {ignore_empty: false}
+    (buf.validate.field).string = {}
   ];
 }
 
@@ -3680,17 +3632,16 @@ message TenantListRequest {
   // The value should be between 1 and 100.
   uint32 page_size = 1 [
     json_name = "page_size",
-    (validate.rules).uint32 = {
-      gte: 1
-      ignore_empty: true
-    }
+    (buf.validate.field).uint32 = {gte: 1},
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 
   // continuous_token is an optional parameter used for pagination.
   // It should be the value received in the previous response.
   string continuous_token = 2 [
     json_name = "continuous_token",
-    (validate.rules).string = {ignore_empty: true}
+    (buf.validate.field).string = {},
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 }
 

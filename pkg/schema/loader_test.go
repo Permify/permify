@@ -4,7 +4,8 @@ import (       // Package imports
 	// Test frameworks
 	. "github.com/onsi/ginkgo/v2" // BDD test framework
 	. "github.com/onsi/gomega"    // Matcher library
-)                                   // End imports
+) // End imports
+
 var _ = Describe("Loader", func() { // Loader test suite
 	Context("LoadSchema function", func() { // LoadSchema tests
 		It("should load schema from URL", func() { // Test URL loading

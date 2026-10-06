@@ -131,6 +131,7 @@ func (p *Parser) previousTokenIs(tokens ...token.Type) bool { // Check if previo
 	} // All types checked
 	return false // No match found
 } // End previousTokenIs
+
 // peekTokenIs checks if the Parser's peekToken is any of the given token types
 func (p *Parser) peekTokenIs(tokens ...token.Type) bool {
 	// iterate through the given token types and check if any of them match the peekToken's type

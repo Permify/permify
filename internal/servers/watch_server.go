@@ -1,6 +1,7 @@
 package servers
 
 import (
+	"buf.build/go/protovalidate"
 	"google.golang.org/grpc/status"
 
 	"github.com/Permify/permify/internal"
@@ -32,7 +33,7 @@ func (r *WatchServer) Watch(request *v1.WatchRequest, server v1.Watch_WatchServe
 	defer span.End() // Ensure the span ends when the function returns.
 
 	// Validate the incoming request.
-	v := request.Validate()
+	v := protovalidate.Validate(request)
 	if v != nil {
 		return v // Return validation error, if any.
 	}
