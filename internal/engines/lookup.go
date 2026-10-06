@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 
+	"google.golang.org/grpc/metadata"
+
 	"github.com/Permify/permify/internal/invoke"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/storage/context/utils"
@@ -26,6 +28,8 @@ type LookupEngine struct {
 	schemaMap sync.Map
 	// concurrencyLimit is the maximum number of concurrent permission checks allowed
 	concurrencyLimit int
+	// maxBatchSize is the maximum number of subject IDs per batch query in EntityFilter
+	maxBatchSize int
 }
 
 func NewLookupEngine(
@@ -40,6 +44,7 @@ func NewLookupEngine(
 		dataReader:       dataReader,
 		schemaMap:        sync.Map{},
 		concurrencyLimit: _defaultConcurrencyLimit,
+		maxBatchSize:     _defaultMaxBatchSize,
 	}
 
 	// options
@@ -72,10 +77,13 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 		ct = token
 	}
 
+	streaming := skipOrdering(ctx)
+
 	// Create configuration for BulkChecker
 	config := BulkCheckerConfig{
 		ConcurrencyLimit: engine.concurrencyLimit,
-		BufferSize:       1000,
+		BufferSize:       engine.maxBatchSize,
+		Streaming:        streaming,
 	}
 
 	// Create and start BulkChecker. It performs permission checks in parallel.
@@ -98,8 +106,7 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 	// Create a map to keep track of visited entities
 	visits := &VisitsMap{}
 
-	// Perform an entity filter operation based on the permission request
-	err = NewEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
+	filterRequest := &base.PermissionEntityFilterRequest{
 		TenantId: request.GetTenantId(),
 		Metadata: &base.PermissionEntityFilterRequestMetadata{
 			SnapToken:     request.GetMetadata().GetSnapToken(),
@@ -114,15 +121,50 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 		Context: request.GetContext(),
 		Scope:   request.GetScope(),
 		Cursor:  request.GetContinuousToken(),
-	}, visits, publisher)
-	if err != nil {
-		return nil, err
 	}
 
-	// At this point, the BulkChecker has collected and sorted requests
-	err = checker.ExecuteRequests(size) // Execute the collected requests in parallel
-	if err != nil {
-		return nil, err
+	ef := NewEntityFilter(engine.dataReader, sc, engine.maxBatchSize)
+
+	if streaming {
+		// Streaming mode (x-permify-skip-ordering): EntityFilter and permission checks
+		// run in parallel. Candidates are checked in batches as they arrive, and processing
+		// stops as soon as enough ALLOWED results are found.
+		// Use checker's context so bc.cancel() stops EntityFilter too.
+		checkerCtx := checker.Context()
+		filterErrCh := make(chan error, 1)
+		go func() {
+			filterErrCh <- ef.EntityFilter(checkerCtx, filterRequest, nil, visits, publisher)
+			checker.SignalProducerDone()
+		}()
+
+		err = checker.ExecuteStreamingRequests(size)
+		if err != nil {
+			return nil, err
+		}
+
+		// Check EntityFilter error — non-blocking since it may still be running
+		// (context was cancelled for early termination, EntityFilter will finish eventually).
+		select {
+		case filterErr := <-filterErrCh:
+			if filterErr != nil && !isContextError(filterErr) {
+				return nil, filterErr
+			}
+		default:
+			// EntityFilter still running — that's fine, it will exit via cancelled context.
+		}
+
+		ct = "<unordered>"
+	} else {
+		// Standard mode: collect all candidates, sort, then check.
+		err = ef.EntityFilter(ctx, filterRequest, nil, visits, publisher)
+		if err != nil {
+			return nil, err
+		}
+
+		err = checker.ExecuteRequests(size)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Return response containing allowed entity IDs
@@ -156,7 +198,7 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 	// Create configuration for BulkChecker
 	config := BulkCheckerConfig{
 		ConcurrencyLimit: engine.concurrencyLimit,
-		BufferSize:       1000,
+		BufferSize:       engine.maxBatchSize,
 	}
 
 	// Create and start BulkChecker. It performs permission checks concurrently.
@@ -179,7 +221,7 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 	visits := &VisitsMap{}
 
 	// Perform an entity filter operation based on the permission request
-	err = NewEntityFilter(engine.dataReader, sc).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
+	err = NewEntityFilter(engine.dataReader, sc, engine.maxBatchSize).EntityFilter(ctx, &base.PermissionEntityFilterRequest{
 		TenantId: request.GetTenantId(),
 		Metadata: &base.PermissionEntityFilterRequestMetadata{
 			SnapToken:     request.GetMetadata().GetSnapToken(),
@@ -193,7 +235,7 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 		Subject: request.GetSubject(),
 		Context: request.GetContext(),
 		Cursor:  request.GetContinuousToken(),
-	}, visits, publisher)
+	}, nil, visits, publisher)
 	if err != nil {
 		return err
 	}
@@ -309,4 +351,14 @@ func (engine *LookupEngine) readSchema(ctx context.Context, tenantID, schemaVers
 
 	// Return the freshly read schema.
 	return sch, nil
+}
+
+// skipOrdering checks gRPC metadata for the x-permify-skip-ordering flag.
+func skipOrdering(ctx context.Context) bool {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return false
+	}
+	vals := md.Get("x-permify-skip-ordering")
+	return len(vals) > 0 && vals[0] == "true"
 }
