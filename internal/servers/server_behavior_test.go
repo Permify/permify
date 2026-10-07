@@ -411,20 +411,14 @@ func TestPermissionServerPassesThroughInvoker(t *testing.T) {
 	}
 }
 
-func TestPermissionServerValidationAndInvokerErrors(t *testing.T) {
+// Request-level validation now lives in the gRPC interceptor rather than the
+// handlers, so it is covered end-to-end in TestRequestValidationOverGRPC.
+func TestPermissionServerInvokerErrors(t *testing.T) {
 	invoker := &fakePermissionInvoker{}
 	server := NewPermissionServer(invoker)
 
-	_, err := server.Check(context.Background(), &v1.PermissionCheckRequest{})
-	if err == nil {
-		t.Fatal("expected invalid check request to fail")
-	}
-	if invoker.checkReq != nil {
-		t.Fatal("invalid check request should not reach invoker")
-	}
-
 	invoker.err = errors.New(v1.ErrorCode_ERROR_CODE_NOT_FOUND.String())
-	_, err = server.Check(context.Background(), validPermissionCheckRequest())
+	_, err := server.Check(context.Background(), validPermissionCheckRequest())
 	if status.Code(err) != codes.NotFound {
 		t.Fatalf("expected not found status, got %v", status.Code(err))
 	}
@@ -466,173 +460,6 @@ func TestPermissionServerBulkCheckItemValidation(t *testing.T) {
 			}
 			if tc.wantDenied && invoker.checkReq != nil {
 				t.Fatal("invalid bulk item should not reach invoker")
-			}
-		})
-	}
-}
-
-func TestPermissionServerLookupEntityStreamValidation(t *testing.T) {
-	invoker := &fakePermissionInvoker{}
-	server := NewPermissionServer(invoker)
-
-	tests := []struct {
-		name     string
-		tenantID string
-	}{
-		{name: "empty tenant_id", tenantID: ""},
-		{name: "tenant_id longer than 128 bytes", tenantID: strings.Repeat("a", 129)},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			invoker.lookupEntityReq = nil
-			req := validPermissionLookupEntityRequest()
-			req.TenantId = tc.tenantID
-			err := server.LookupEntityStream(req, &fakeLookupEntityStreamServer{})
-			if err == nil {
-				t.Fatal("expected validation to fail")
-			}
-			if invoker.lookupEntityReq != nil {
-				t.Fatal("invalid lookup entity stream request should not reach invoker")
-			}
-		})
-	}
-}
-
-func TestDataServerValidation(t *testing.T) {
-	server := NewDataServer(nil, nil, nil, nil)
-	ctx := context.Background()
-
-	tenantIDs := []struct {
-		name string
-		id   string
-	}{
-		{name: "empty tenant_id", id: ""},
-		{name: "tenant_id longer than 128 bytes", id: strings.Repeat("a", 129)},
-	}
-
-	methods := []struct {
-		name string
-		call func(tenantID string) error
-	}{
-		{
-			name: "ReadRelationships",
-			call: func(tenantID string) error {
-				_, err := server.ReadRelationships(ctx, &v1.RelationshipReadRequest{
-					TenantId: tenantID,
-					Metadata: &v1.RelationshipReadRequestMetadata{},
-					Filter:   &v1.TupleFilter{},
-				})
-				return err
-			},
-		},
-		{
-			name: "ReadAttributes",
-			call: func(tenantID string) error {
-				_, err := server.ReadAttributes(ctx, &v1.AttributeReadRequest{
-					TenantId: tenantID,
-					Metadata: &v1.AttributeReadRequestMetadata{},
-					Filter:   &v1.AttributeFilter{},
-				})
-				return err
-			},
-		},
-		{
-			name: "Write",
-			call: func(tenantID string) error {
-				_, err := server.Write(ctx, &v1.DataWriteRequest{
-					TenantId: tenantID,
-					Metadata: &v1.DataWriteRequestMetadata{},
-				})
-				return err
-			},
-		},
-		{
-			name: "WriteRelationships",
-			call: func(tenantID string) error {
-				_, err := server.WriteRelationships(ctx, &v1.RelationshipWriteRequest{
-					TenantId: tenantID,
-					Metadata: &v1.RelationshipWriteRequestMetadata{},
-					Tuples:   []*v1.Tuple{{Entity: testEntity(), Relation: "viewer", Subject: testSubject()}},
-				})
-				return err
-			},
-		},
-		{
-			name: "Delete",
-			call: func(tenantID string) error {
-				_, err := server.Delete(ctx, &v1.DataDeleteRequest{
-					TenantId: tenantID,
-					TupleFilter: &v1.TupleFilter{
-						Entity:   &v1.EntityFilter{Type: "document", Ids: []string{"document-1"}},
-						Relation: "viewer",
-						Subject:  &v1.SubjectFilter{Type: "user", Ids: []string{"user-1"}},
-					},
-					AttributeFilter: &v1.AttributeFilter{},
-				})
-				return err
-			},
-		},
-		{
-			name: "DeleteRelationships",
-			call: func(tenantID string) error {
-				_, err := server.DeleteRelationships(ctx, &v1.RelationshipDeleteRequest{
-					TenantId: tenantID,
-					Filter: &v1.TupleFilter{
-						Entity:   &v1.EntityFilter{Type: "document", Ids: []string{"document-1"}},
-						Relation: "viewer",
-						Subject:  &v1.SubjectFilter{Type: "user", Ids: []string{"user-1"}},
-					},
-				})
-				return err
-			},
-		},
-		{
-			name: "RunBundle",
-			call: func(tenantID string) error {
-				_, err := server.RunBundle(ctx, &v1.BundleRunRequest{TenantId: tenantID})
-				return err
-			},
-		},
-	}
-
-	for _, method := range methods {
-		for _, tenant := range tenantIDs {
-			t.Run(method.name+"/"+tenant.name, func(t *testing.T) {
-				if err := method.call(tenant.id); err == nil {
-					t.Fatal("expected validation to fail")
-				}
-			})
-		}
-	}
-
-	t.Run("WriteRelationships/empty tuples", func(t *testing.T) {
-		_, err := server.WriteRelationships(ctx, &v1.RelationshipWriteRequest{
-			TenantId: "a",
-			Metadata: &v1.RelationshipWriteRequestMetadata{},
-		})
-		if err == nil {
-			t.Fatal("expected validation to fail")
-		}
-	})
-}
-
-func TestWatchServerValidation(t *testing.T) {
-	server := NewWatchServer(nil, nil)
-
-	tests := []struct {
-		name     string
-		tenantID string
-	}{
-		{name: "empty tenant_id", tenantID: ""},
-		{name: "tenant_id longer than 128 bytes", tenantID: strings.Repeat("a", 129)},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			err := server.Watch(&v1.WatchRequest{TenantId: tc.tenantID}, &fakeWatchStreamServer{})
-			if err == nil {
-				t.Fatal("expected validation to fail")
 			}
 		})
 	}

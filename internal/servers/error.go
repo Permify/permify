@@ -1,6 +1,9 @@
 package servers
 
 import (
+	"errors"
+
+	"buf.build/go/protovalidate"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -13,6 +16,14 @@ func GetStatus(err error) codes.Code {
 	if ok {
 		// This was a custom error, so return its code directly
 		return s.Code()
+	}
+
+	// Request validation failures describe malformed input, not a server fault.
+	// Their message is free-form text that never matches an ErrorCode name, so
+	// without this they would fall through to Internal and surface as HTTP 500.
+	var validationErr *protovalidate.ValidationError
+	if errors.As(err, &validationErr) {
+		return codes.InvalidArgument
 	}
 
 	// If this wasn't a custom error, continue with your existing logic...

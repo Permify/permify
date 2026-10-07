@@ -7,8 +7,6 @@ import (
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"google.golang.org/grpc/status"
 
-	"buf.build/go/protovalidate"
-
 	"github.com/Permify/permify/internal"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/internal/validation"
@@ -37,11 +35,6 @@ func NewBundleServer(
 func (r *BundleServer) Write(ctx context.Context, request *v1.BundleWriteRequest) (*v1.BundleWriteResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "bundle.write")
 	defer span.End()
-
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
 
 	for _, bundle := range request.GetBundles() {
 		for _, operation := range bundle.GetOperations() {
@@ -79,11 +72,6 @@ func (r *BundleServer) Read(ctx context.Context, request *v1.BundleReadRequest) 
 	ctx, span := internal.Tracer.Start(ctx, "bundle.read")
 	defer span.End()
 
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
-
 	bundle, err := r.br.Read(ctx, request.GetTenantId(), request.GetName())
 	if err != nil {
 		span.RecordError(err)
@@ -101,11 +89,6 @@ func (r *BundleServer) Read(ctx context.Context, request *v1.BundleReadRequest) 
 func (r *BundleServer) Delete(ctx context.Context, request *v1.BundleDeleteRequest) (*v1.BundleDeleteResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "bundle.delete")
 	defer span.End()
-
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
 
 	err := r.bw.Delete(ctx, request.GetTenantId(), request.GetName())
 	if err != nil {

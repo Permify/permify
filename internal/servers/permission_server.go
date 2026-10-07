@@ -35,11 +35,6 @@ func (r *PermissionServer) Check(ctx context.Context, request *v1.PermissionChec
 	ctx, span := internal.Tracer.Start(ctx, "permissions.check")
 	defer span.End()
 
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
-
 	response, err := r.invoker.Check(ctx, request)
 	if err != nil {
 		span.RecordError(err)
@@ -104,7 +99,14 @@ func (r *PermissionServer) BulkCheck(ctx context.Context, request *v1.Permission
 		go func(index int, checkRequestItem *v1.PermissionBulkCheckRequestItem) {
 			defer wg.Done()
 
-			// Validate individual request
+			// Validate individual request.
+			//
+			// Unreachable over gRPC: the interceptor validates the whole
+			// PermissionBulkCheckRequest, and protovalidate recurses into
+			// repeated message fields, so a malformed item already fails the
+			// call with InvalidArgument. Kept because this handler is also
+			// callable directly, where a bad item should become a DENIED result
+			// instead of failing the whole batch.
 			v := protovalidate.Validate(checkRequestItem)
 			if v != nil {
 				resultChannel <- resultItem{
@@ -187,11 +189,6 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 	ctx, span := internal.Tracer.Start(ctx, "permissions.expand")
 	defer span.End()
 
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
-
 	response, err := r.invoker.Expand(ctx, request)
 	if err != nil {
 		span.RecordError(err)
@@ -207,11 +204,6 @@ func (r *PermissionServer) Expand(ctx context.Context, request *v1.PermissionExp
 func (r *PermissionServer) LookupEntity(ctx context.Context, request *v1.PermissionLookupEntityRequest) (*v1.PermissionLookupEntityResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "permissions.lookup-entity")
 	defer span.End()
-
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
 
 	response, err := r.invoker.LookupEntity(ctx, request)
 	if err != nil {
@@ -229,11 +221,6 @@ func (r *PermissionServer) LookupEntityStream(request *v1.PermissionLookupEntity
 	ctx, span := internal.Tracer.Start(server.Context(), "permissions.lookup-entity-stream")
 	defer span.End()
 
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return v
-	}
-
 	err := r.invoker.LookupEntityStream(ctx, request, server)
 	if err != nil {
 		span.RecordError(err)
@@ -250,11 +237,6 @@ func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.Permis
 	ctx, span := internal.Tracer.Start(ctx, "permissions.lookup-subject")
 	defer span.End()
 
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
-
 	response, err := r.invoker.LookupSubject(ctx, request)
 	if err != nil {
 		span.RecordError(err)
@@ -270,11 +252,6 @@ func (r *PermissionServer) LookupSubject(ctx context.Context, request *v1.Permis
 func (r *PermissionServer) SubjectPermission(ctx context.Context, request *v1.PermissionSubjectPermissionRequest) (*v1.PermissionSubjectPermissionResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "permissions.subject-permission")
 	defer span.End()
-
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
 
 	response, err := r.invoker.SubjectPermission(ctx, request)
 	if err != nil {
