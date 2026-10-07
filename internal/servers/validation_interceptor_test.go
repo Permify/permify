@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"buf.build/go/protovalidate"
 	grpcValidate "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/protovalidate"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -39,7 +38,7 @@ var oversizedTenant = strings.Repeat("a", 129)
 func newValidationTestConn(t *testing.T) *grpc.ClientConn {
 	t.Helper()
 
-	validator, err := protovalidate.New()
+	validator, err := newRequestValidator()
 	if err != nil {
 		t.Fatalf("failed to build validator: %v", err)
 	}

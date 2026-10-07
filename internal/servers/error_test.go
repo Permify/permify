@@ -2,13 +2,29 @@ package servers
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
 
+	"buf.build/go/protovalidate"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	base "github.com/Permify/permify/pkg/pb/base/v1"
 )
+
+// protovalidateError returns a real *protovalidate.ValidationError produced by
+// validating a request that breaks the tenant_id max_bytes rule.
+func protovalidateError(t *testing.T) error {
+	t.Helper()
+
+	err := protovalidate.Validate(&base.SchemaListRequest{TenantId: strings.Repeat("a", 129)})
+	var validationErr *protovalidate.ValidationError
+	if !errors.As(err, &validationErr) {
+		t.Fatalf("expected a *protovalidate.ValidationError, got %T: %v", err, err)
+	}
+	return err
+}
 
 func TestGetStatus(t *testing.T) {
 	tests := []struct {
@@ -57,6 +73,17 @@ func TestGetStatus(t *testing.T) {
 			name:     "unknown error string maps to codes.Internal",
 			err:      errors.New("some unexpected error"),
 			expected: codes.Internal,
+		},
+		// Request validation failures are client errors, not server faults.
+		{
+			name:     "protovalidate validation error maps to codes.InvalidArgument",
+			err:      protovalidateError(t),
+			expected: codes.InvalidArgument,
+		},
+		{
+			name:     "wrapped protovalidate validation error maps to codes.InvalidArgument",
+			err:      fmt.Errorf("wrapped: %w", protovalidateError(t)),
+			expected: codes.InvalidArgument,
 		},
 		// A pre-wrapped gRPC status error must be passed through unchanged.
 		{

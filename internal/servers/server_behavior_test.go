@@ -572,6 +572,31 @@ func TestBundleServer(t *testing.T) {
 	}
 }
 
+// TestDataServerDeleteRejectsEmptyFilters covers the filter checks that remain
+// in the handlers after request validation moved to the interceptor. Both must
+// fail with InvalidArgument before any storage dependency is touched, which is
+// why the server is built with nil dependencies.
+func TestDataServerDeleteRejectsEmptyFilters(t *testing.T) {
+	server := NewDataServer(nil, nil, nil, nil)
+
+	_, err := server.Delete(context.Background(), &v1.DataDeleteRequest{
+		TenantId:        "tenant-1",
+		TupleFilter:     &v1.TupleFilter{},
+		AttributeFilter: &v1.AttributeFilter{},
+	})
+	if status.Code(err) != codes.InvalidArgument {
+		t.Fatalf("Delete: status = %v, want %v (err: %v)", status.Code(err), codes.InvalidArgument, err)
+	}
+
+	_, err = server.DeleteRelationships(context.Background(), &v1.RelationshipDeleteRequest{
+		TenantId: "tenant-1",
+		Filter:   &v1.TupleFilter{},
+	})
+	if status.Code(err) != codes.InvalidArgument {
+		t.Fatalf("DeleteRelationships: status = %v, want %v (err: %v)", status.Code(err), codes.InvalidArgument, err)
+	}
+}
+
 func TestBundleServerValidationAndStorageErrors(t *testing.T) {
 	server := NewBundleServer(newFakeBundleStore(), newFakeBundleStore())
 	duplicateBundle := &v1.DataBundle{
