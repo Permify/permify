@@ -18,6 +18,7 @@ import (
 	health "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 
+	"github.com/Permify/permify/internal/config"
 	"github.com/Permify/permify/internal/storage"
 	"github.com/Permify/permify/pkg/database"
 	v1 "github.com/Permify/permify/pkg/pb/base/v1"
@@ -569,6 +570,26 @@ func TestBundleServer(t *testing.T) {
 	}
 	if deleted.GetName() != "starter" || store.deletedTenant != "tenant-1" || store.deletedName != "starter" {
 		t.Fatalf("delete did not return/delete expected bundle")
+	}
+}
+
+// TestRunRejectsUnknownAuthenticationMethod drives Run through request
+// validator and interceptor setup up to the authentication switch, which fails
+// before any listener is opened, so no ports are bound.
+func TestRunRejectsUnknownAuthenticationMethod(t *testing.T) {
+	container := &Container{}
+
+	err := container.Run(
+		context.Background(),
+		&config.Server{RateLimit: 100},
+		slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil)),
+		&config.Distributed{},
+		&config.Authn{Enabled: true, Method: "unknown"},
+		&config.Profiler{},
+		nil,
+	)
+	if err == nil || !strings.Contains(err.Error(), "unknown authentication method") {
+		t.Fatalf("expected unknown authentication method error, got %v", err)
 	}
 }
 
