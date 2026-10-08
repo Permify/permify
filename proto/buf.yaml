@@ -9,12 +9,7 @@ deps:
 lint:
   except:
     - FIELD_LOWER_SNAKE_CASE
-    - FIELD_NOT_REQUIRED
-    - PACKAGE_NO_IMPORT_CYCLE
     - PACKAGE_VERSION_SUFFIX
     - SERVICE_SUFFIX
 breaking:
-  except:
-    - EXTENSION_NO_DELETE
-    - FIELD_SAME_DEFAULT
   ignore_unstable_packages: true

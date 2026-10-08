@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 
-	"buf.build/go/protovalidate"
 	otelCodes "go.opentelemetry.io/otel/codes"
 	api "go.opentelemetry.io/otel/metric"
 	"google.golang.org/grpc/status"
@@ -68,11 +67,6 @@ func (r *DataServer) ReadRelationships(ctx context.Context, request *v1.Relation
 		size = 50
 	}
 
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
-
 	snap := request.GetMetadata().GetSnapToken()
 	if snap == "" {
 		st, err := r.dr.HeadSnapshot(ctx, request.GetTenantId())
@@ -117,11 +111,6 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 		size = 50
 	}
 
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
-
 	snap := request.GetMetadata().GetSnapToken()
 	if snap == "" {
 		st, err := r.dr.HeadSnapshot(ctx, request.GetTenantId())
@@ -160,11 +149,6 @@ func (r *DataServer) ReadAttributes(ctx context.Context, request *v1.AttributeRe
 func (r *DataServer) Write(ctx context.Context, request *v1.DataWriteRequest) (*v1.DataWriteResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "data.write")
 	defer span.End()
-
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
 
 	version := request.GetMetadata().GetSchemaVersion()
 	if version == "" {
@@ -257,11 +241,6 @@ func (r *DataServer) WriteRelationships(ctx context.Context, request *v1.Relatio
 	ctx, span := internal.Tracer.Start(ctx, "relationships.write")
 	defer span.End()
 
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
-
 	version := request.GetMetadata().GetSchemaVersion()
 	if version == "" {
 		v, err := r.sr.HeadVersion(ctx, request.GetTenantId())
@@ -323,14 +302,9 @@ func (r *DataServer) Delete(ctx context.Context, request *v1.DataDeleteRequest) 
 	ctx, span := internal.Tracer.Start(ctx, "data.delete")
 	defer span.End()
 
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
-
 	err := validation.ValidateFilters(request.GetTupleFilter(), request.GetAttributeFilter())
 	if err != nil {
-		return nil, status.Error(GetStatus(v), err.Error())
+		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
 	snap, err := r.dw.Delete(ctx, request.GetTenantId(), request.GetTupleFilter(), request.GetAttributeFilter())
@@ -353,14 +327,9 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 	ctx, span := internal.Tracer.Start(ctx, "relationships.delete")
 	defer span.End()
 
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
-
 	err := validation.ValidateTupleFilter(request.GetFilter())
 	if err != nil {
-		return nil, status.Error(GetStatus(v), err.Error())
+		return nil, status.Error(GetStatus(err), err.Error())
 	}
 
 	snap, err := r.dw.Delete(ctx, request.GetTenantId(), request.GetFilter(), &v1.AttributeFilter{})
@@ -382,11 +351,6 @@ func (r *DataServer) DeleteRelationships(ctx context.Context, request *v1.Relati
 func (r *DataServer) RunBundle(ctx context.Context, request *v1.BundleRunRequest) (*v1.BundleRunResponse, error) {
 	ctx, span := internal.Tracer.Start(ctx, "bundle.run")
 	defer span.End()
-
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return nil, status.Error(GetStatus(v), v.Error()) // Return validation error
-	}
 
 	bundle, err := r.br.Read(ctx, request.GetTenantId(), request.GetName())
 	if err != nil {

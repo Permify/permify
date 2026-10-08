@@ -1063,11 +1063,7 @@ message PermissionLookupEntityRequest {
 
   // continuous_token is an optional parameter used for pagination.
   // It should be the value received in the previous response.
-  string continuous_token = 9 [
-    json_name = "continuous_token",
-    (buf.validate.field).string = {},
-    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
-  ];
+  string continuous_token = 9 [json_name = "continuous_token"];
 }
 
 // PermissionLookupEntityRequestMetadata metadata for the PermissionLookupEntityRequest.
@@ -1142,11 +1138,7 @@ message PermissionEntityFilterRequest {
 
   // cursor is an optional parameter used for pagination.
   // It should be the value received in the previous response.
-  string cursor = 7 [
-    json_name = "cursor",
-    (buf.validate.field).string = {},
-    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
-  ];
+  string cursor = 7 [json_name = "cursor"];
 }
 
 // PermissionEntityFilterRequestMetadata metadata for the PermissionEntityFilterRequest.
@@ -1225,11 +1217,7 @@ message PermissionLookupSubjectRequest {
 
   // continuous_token is an optional parameter used for pagination.
   // It should be the value received in the previous response.
-  string continuous_token = 9 [
-    json_name = "continuous_token",
-    (buf.validate.field).string = {},
-    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
-  ];
+  string continuous_token = 9 [json_name = "continuous_token"];
 }
 
 // PermissionLookupSubjectRequestMetadata metadata for the PermissionLookupSubjectRequest.
@@ -1907,11 +1895,7 @@ message SchemaListRequest {
 
   // continuous_token is an optional parameter used for pagination.
   // It should be the value received in the previous response.
-  string continuous_token = 3 [
-    json_name = "continuous_token",
-    (buf.validate.field).string = {},
-    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
-  ];
+  string continuous_token = 3 [json_name = "continuous_token"];
 }
 
 // SchemaListResponse is the response message for the List method in the Schema service.
@@ -2663,16 +2647,10 @@ message DataWriteRequest {
   ];
 
   // tuples contains the list of tuples (entity-relation-entity triples) that need to be written.
-  repeated Tuple tuples = 3 [
-    json_name = "tuples",
-    (buf.validate.field).repeated.min_items = 0
-  ];
+  repeated Tuple tuples = 3 [json_name = "tuples"];
 
   // attributes contains the list of attributes (entity-attribute-value triples) that need to be written.
-  repeated Attribute attributes = 4 [
-    json_name = "attributes",
-    (buf.validate.field).repeated.min_items = 0
-  ];
+  repeated Attribute attributes = 4 [json_name = "attributes"];
 }
 
 // DataWriteRequestMetadata defines the structure of metadata for a write request.
@@ -2764,11 +2742,7 @@ message RelationshipReadRequest {
   ];
 
   // continuous_token is used in case of paginated reads to get the next page of results.
-  string continuous_token = 5 [
-    json_name = "continuous_token",
-    (buf.validate.field).string = {},
-    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
-  ];
+  string continuous_token = 5 [json_name = "continuous_token"];
 }
 
 // RelationshipReadRequestMetadata defines the structure of the metadata for a read request focused on relationships.
@@ -2825,11 +2799,7 @@ message AttributeReadRequest {
   ];
 
   // continuous_token is used in case of paginated reads to get the next page of results.
-  string continuous_token = 5 [
-    json_name = "continuous_token",
-    (buf.validate.field).string = {},
-    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
-  ];
+  string continuous_token = 5 [json_name = "continuous_token"];
 }
 
 // AttributeReadRequestMetadata defines the structure for the metadata of an attribute read request.
@@ -3614,10 +3584,7 @@ message TenantCreateResponse {
 // TenantDeleteRequest is the message used for the request to delete a tenant.
 message TenantDeleteRequest {
   // id is the unique identifier of the tenant to be deleted.
-  string id = 1 [
-    json_name = "id",
-    (buf.validate.field).string = {}
-  ];
+  string id = 1 [json_name = "id"];
 }
 
 // TenantDeleteResponse is the message returned from the request to delete a tenant.
@@ -3638,11 +3605,7 @@ message TenantListRequest {
 
   // continuous_token is an optional parameter used for pagination.
   // It should be the value received in the previous response.
-  string continuous_token = 2 [
-    json_name = "continuous_token",
-    (buf.validate.field).string = {},
-    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
-  ];
+  string continuous_token = 2 [json_name = "continuous_token"];
 }
 
 // TenantListResponse is the message returned from the request to list all tenants.

@@ -1,7 +1,6 @@
 package servers
 
 import (
-	"buf.build/go/protovalidate"
 	"google.golang.org/grpc/status"
 
 	"github.com/Permify/permify/internal"
@@ -31,12 +30,6 @@ func (r *WatchServer) Watch(request *v1.WatchRequest, server v1.Watch_WatchServe
 	// Start a new context and span for tracing.
 	ctx, span := internal.Tracer.Start(server.Context(), "watch.watch")
 	defer span.End() // Ensure the span ends when the function returns.
-
-	// Validate the incoming request.
-	v := protovalidate.Validate(request)
-	if v != nil {
-		return v // Return validation error, if any.
-	}
 
 	// Extract the snapshot token from the request.
 	snap := request.GetSnapToken()

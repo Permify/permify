@@ -10,6 +10,8 @@ import (
 	"net/http/pprof"
 	"time"
 
+	"buf.build/go/protovalidate"
+
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/ratelimit"
@@ -17,7 +19,7 @@ import (
 	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 
 	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	grpcValidator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
+	grpcValidate "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/protovalidate"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -94,6 +96,24 @@ func NewContainer(
 	}
 }
 
+// newRequestValidator builds the validator shared by the whole server.
+// protovalidate compiles the CEL programs behind the buf.validate annotations
+// lazily and caches them per message type, so a single instance keeps that
+// cache shared across requests. Compiling costs roughly 1ms per message type
+// against ~1µs for a cached evaluation, so the permission requests on the
+// latency-sensitive path are compiled up front rather than on the first call
+// that hits them.
+func newRequestValidator() (protovalidate.Validator, error) {
+	return protovalidate.New(protovalidate.WithMessages(
+		&grpcV1.PermissionCheckRequest{},
+		&grpcV1.PermissionBulkCheckRequest{},
+		&grpcV1.PermissionExpandRequest{},
+		&grpcV1.PermissionLookupEntityRequest{},
+		&grpcV1.PermissionLookupSubjectRequest{},
+		&grpcV1.PermissionSubjectPermissionRequest{},
+	))
+}
+
 // Run is a method that starts the Container and its services, including the gRPC server,
 // an optional HTTP server, and an optional profiler server. It also sets up authentication,
 // TLS configurations, and interceptors as needed.
@@ -114,15 +134,20 @@ func (s *Container) Run(
 		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall),
 	}
 
+	validator, err := newRequestValidator()
+	if err != nil {
+		return fmt.Errorf("failed to initialize request validator: %w", err)
+	}
+
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
-		grpcValidator.UnaryServerInterceptor(),
+		grpcValidate.UnaryServerInterceptor(validator),
 		grpcRecovery.UnaryServerInterceptor(),
 		ratelimit.UnaryServerInterceptor(limiter),
 		logging.UnaryServerInterceptor(InterceptorLogger(logger), lopts...),
 	}
 
 	streamingInterceptors := []grpc.StreamServerInterceptor{
-		grpcValidator.StreamServerInterceptor(),
+		grpcValidate.StreamServerInterceptor(validator),
 		grpcRecovery.StreamServerInterceptor(),
 		ratelimit.StreamServerInterceptor(limiter),
 		logging.StreamServerInterceptor(InterceptorLogger(logger), lopts...),
