@@ -354,6 +354,9 @@ func (s *Container) Run(
 		if err = grpcV1.RegisterTenancyHandler(ctx, mux, conn); err != nil {
 			return err
 		}
+		if err = RegisterOpenAPIHandlers(mux); err != nil {
+			return err
+		}
 
 		corsHandler := cors.New(cors.Options{ // CORS configuration
 			AllowCredentials: true,                        // Allow credentials
