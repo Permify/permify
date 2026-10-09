@@ -128,10 +128,10 @@ message SchemaDefinition {
   }
 
   // Map of entity definitions. The key is the entity name, and the value is the corresponding EntityDefinition.
-  map<string, EntityDefinition> entity_definitions = 1;
+  map<string, EntityDefinition> entity_definitions = 1 [json_name = "entity_definitions"];
 
   // Map of rule definitions. The key is the rule name, and the value is the corresponding RuleDefinition.
-  map<string, RuleDefinition> rule_definitions = 2;
+  map<string, RuleDefinition> rule_definitions = 2 [json_name = "rule_definitions"];
 
   // Map of references to signify whether a string refers to an entity or a rule.
   map<string, Reference> references = 3;
