@@ -282,6 +282,23 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 
 	// Each item in the Scenarios slice is processed individually
 	for i, scenario := range shape.Scenarios {
+		// Convert scenario-scoped relationships and attributes once so they can be
+		// merged into every check/filter context in this scenario.
+		scenarioTuples, scenarioAttrs, scErrs := c.ScenarioContext(ctx, version, scenario)
+		for _, e := range scErrs {
+			errors = append(errors, Error{
+				Type:    "scenarios",
+				Key:     i,
+				Message: e,
+			})
+		}
+		// If the scenario's own fixtures failed to convert/validate, skip its
+		// checks and filters so we don't cascade into spurious assertion
+		// failures driven by the missing context.
+		if len(scErrs) > 0 {
+			continue
+		}
+
 		// Each Check in the current scenario is processed
 		for _, check := range scenario.Checks {
 			entity, err := tuple.E(check.Entity)
@@ -313,6 +330,8 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 				})
 				continue
 			}
+			cont.Tuples = append(cont.Tuples, scenarioTuples...)
+			cont.Attributes = append(cont.Attributes, scenarioAttrs...)
 
 			subject := &v1.Subject{
 				Type:     ear.GetEntity().GetType(),
@@ -399,6 +418,8 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 				})
 				continue
 			}
+			cont.Tuples = append(cont.Tuples, scenarioTuples...)
+			cont.Attributes = append(cont.Attributes, scenarioAttrs...)
 
 			subject := &v1.Subject{
 				Type:     ear.GetEntity().GetType(),
@@ -462,6 +483,8 @@ func (c *Development) RunWithShape(ctx context.Context, shape *file.Shape) (erro
 				})
 				continue
 			}
+			cont.Tuples = append(cont.Tuples, scenarioTuples...)
+			cont.Attributes = append(cont.Attributes, scenarioAttrs...)
 
 			var entity *v1.Entity
 			entity, err = tuple.E(filter.Entity)
@@ -567,6 +590,59 @@ func Context(fileContext file.Context) (cont *v1.Context, err error) {
 
 	// If everything goes well, return the context and a nil error.
 	return cont, nil
+}
+
+// ScenarioContext converts a scenario's relationships and attributes into base
+// tuples and attributes, validated against the schema at the given version.
+// Any per-item validation or parse errors are collected and returned as strings
+// so the caller can report them under the "scenarios" error type.
+//
+// Exported so that callers outside this package (e.g. the CLI validator) can
+// reuse the same conversion/validation logic.
+func (c *Development) ScenarioContext(ctx context.Context, version string, scenario file.Scenario) (tuples []*v1.Tuple, attrs []*v1.Attribute, errs []string) {
+	for _, t := range scenario.Relationships {
+		tup, err := tuple.Tuple(t)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", tup.GetEntity().GetType(), version)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		if err := validation.ValidateTuple(definition, tup); err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		tuples = append(tuples, tup)
+	}
+
+	for _, a := range scenario.Attributes {
+		attr, err := attribute.Attribute(a)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		definition, _, err := c.Container.SR.ReadEntityDefinition(ctx, "t1", attr.GetEntity().GetType(), version)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		if err := validation.ValidateAttribute(definition, attr); err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		attrs = append(attrs, attr)
+	}
+
+	return
 }
 
 // isSameArray - check if two arrays are the same

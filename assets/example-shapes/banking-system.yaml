@@ -5,7 +5,7 @@ schema: |-
 
         // Defines a relation where an account has an owner of type 'user'.
         relation owner @user
-        
+
         // Attribute to store the balance information of the account.
         attribute balance integer
 
@@ -36,8 +36,6 @@ scenarios:
       - entity: "account:1"
         subject: "user:andrew"
         context:
-          tuples: []
-          attributes: []
           data:
             amount: 3000
         assertions:
@@ -48,9 +46,34 @@ scenarios:
       - entity: "account:1"
         subject: "user:steven"
         context:
-          tuples: []
-          attributes: []
           data:
             amount: 3000
+        assertions:
+          withdraw: false
+
+  # Scenario-scoped relationships and attributes stay in the scenario and are
+  # injected as contextual tuples and attributes into every check/filter below.
+  # Useful when a scenario needs its own fixture state without persisting it
+  # globally or repeating it per-check.
+  - name: "Joint Account Withdrawal Test"
+    description: "Tests a joint account where both 'andrew' and 'kate' are owners and the balance covers the requested amount."
+    relationships:
+      - account:3#owner@user:andrew
+      - account:3#owner@user:kate
+    attributes:
+      - account:3$balance|integer:2000
+    checks:
+      - entity: "account:3"
+        subject: "user:kate"
+        context:
+          data:
+            amount: 1500
+        assertions:
+          withdraw: true
+      - entity: "account:3"
+        subject: "user:steven"
+        context:
+          data:
+            amount: 1500
         assertions:
           withdraw: false
