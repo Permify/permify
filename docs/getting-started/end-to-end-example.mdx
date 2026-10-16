@@ -381,7 +381,7 @@ except ApiException as e:
 // Rest SDK for Javascript
 const api = permify.SchemaApi(apiClient)
 const schema = "entity user {}\n\nentity organization {\n    relation admin @user\n    relation member @user\n}\n\nentity repository {\n    relation parent @organization\n    relation owner @user\n    \n    permission edit = parent.admin or owner\n    permission delete = owner\n}";
-const. body = {
+const body = {
     tenantId: "t1",
     schema: schema
 };
@@ -405,7 +405,7 @@ try {
 // Rest SDK for Typescript
 const api = permify.SchemaApi(apiClient)
 const schema = "entity user {}\n\nentity organization {\n    relation admin @user\n    relation member @user\n}\n\nentity repository {\n    relation parent @organization\n    relation owner @user\n    \n    permission edit = parent.admin or owner\n    permission delete = owner\n}";
-const. body = {
+const body = {
     tenantId: "t1",
     schema: schema
 };
@@ -428,7 +428,7 @@ try {
 ```javascript
 // gRPC SDK for Node
 const schema = "entity user {}\n\nentity organization {\n    relation admin @user\n    relation member @user\n}\n\nentity repository {\n    relation parent @organization\n    relation owner @user\n    \n    permission edit = parent.admin or owner\n    permission delete = owner\n}";
-const. body = {
+const body = {
     tenantId: "t1",
     schema: schema
 };
