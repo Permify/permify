@@ -689,6 +689,7 @@ func subjectFilterUnion(ctx context.Context, functions []SubjectFilterFunction, 
 				return subjectFilterEmpty(), d.err
 			}
 			// Check if the response contains "<>" or "<> plus additional IDs"
+			d.resp = expandWildcard(d.resp)
 			if containsWildcard(d.resp) {
 				encounteredWildcard = true
 				// Collect any additional IDs alongside "<>", treat them as exclusions
@@ -768,6 +769,7 @@ func subjectFilterIntersection(ctx context.Context, functions []SubjectFilterFun
 				return subjectFilterEmpty(), d.err
 			}
 			// If "<>" is encountered, handle any exclusions that come with it
+			d.resp = expandWildcard(d.resp)
 			if containsWildcard(d.resp) {
 				encounteredWildcard = true
 				for _, id := range d.resp {
@@ -792,6 +794,17 @@ func subjectFilterIntersection(ctx context.Context, functions []SubjectFilterFun
 
 	// If wildcard was encountered, we exclude the IDs in `excludedIds`
 	if encounteredWildcard {
+		// Every function returned a wildcard, so nothing narrowed the set down to a
+		// concrete list: the intersection is still everything, minus whatever any of
+		// them carved out. Testing commonIds alone cannot see this case, because an
+		// empty commonIds also means the concrete lists intersected to nothing.
+		if !initialized {
+			if len(excludedIds) > 0 {
+				return []string{ALL + "-" + strings.Join(excludedIds, ",")}, nil
+			}
+			return []string{ALL}, nil
+		}
+
 		if len(commonIds) == 0 {
 			return []string{}, nil
 		}
@@ -863,7 +876,7 @@ func subjectFilterExclusion(ctx context.Context, functions []SubjectFilterFuncti
 			return subjectFilterEmpty(), left.err
 		}
 		// Get the list of subject IDs from the first lookup function
-		leftIds = left.resp
+		leftIds = expandWildcard(left.resp)
 
 	// If the context is cancelled, return a cancellation error
 	case <-ctx.Done():
@@ -882,6 +895,7 @@ func subjectFilterExclusion(ctx context.Context, functions []SubjectFilterFuncti
 				return subjectFilterEmpty(), d.err
 			}
 			// If "<>" is encountered in the right functions, mark the wildcard for exclusion
+			d.resp = expandWildcard(d.resp)
 			if containsWildcard(d.resp) {
 				encounteredRightWildcard = true
 				// If a wildcard is encountered, no need to process further, as all should be excluded
@@ -902,6 +916,13 @@ func subjectFilterExclusion(ctx context.Context, functions []SubjectFilterFuncti
 
 	// Handle wildcard logic in the leftIds (i.e., if "<>" is in leftIds)
 	if containsWildcard(leftIds) {
+		// The left set carries its own exclusions alongside the wildcard, and they
+		// have to survive into the result together with the right side's.
+		for _, id := range leftIds {
+			if id != ALL && !slices.Contains(exIds, id) {
+				exIds = append(exIds, id)
+			}
+		}
 		// If left side contains "<>", return it with exclusions
 		if len(exIds) > 0 {
 			// Format the result as "<>-id1,id2,id3" where id1, id2, id3 are the exclusions
@@ -1011,6 +1032,31 @@ func intersect(a, b []string) []string {
 	}
 
 	return result
+}
+
+// expandWildcard rewrites the packed wildcard form into the form the filters are
+// written against.
+//
+// A filter result that holds "<>" alongside other ids means "everything except
+// those ids", and every reader in this file is written for that shape.
+// subjectFilterUnion and subjectFilterExclusion, however, emit the same set
+// packed into a single string, "<>-1,2,3". Nothing here unpacks it, so a nested
+// result carrying exclusions arrives at the enclosing filter looking like an
+// ordinary subject id and its wildcard goes unseen. lookup.go is the only reader
+// in the tree that understands the packed form, and it only ever sees the
+// outermost result.
+func expandWildcard(ids []string) []string {
+	expanded := make([]string, 0, len(ids))
+	for _, id := range ids {
+		excluded, packed := strings.CutPrefix(id, ALL+"-")
+		if !packed {
+			expanded = append(expanded, id)
+			continue
+		}
+		expanded = append(expanded, ALL)
+		expanded = append(expanded, strings.Split(excluded, ",")...)
+	}
+	return expanded
 }
 
 // containsWildcard checks if the wildcard "<>" is present in the id list
