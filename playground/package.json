@@ -38,7 +38,7 @@
   },
   "resolutions": {
     "dompurify": "3.3.3",
-    "vite": "8.0.16"
+    "vite": "8.1.6"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.1.4",
@@ -51,7 +51,7 @@
     "jsdom": "^30.0.1",
     "less": "^4.8.1",
     "typescript": "^7.0.2",
-    "vite": "^8.0.16",
+    "vite": "^8.1.6",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^5.0.2"
   }
