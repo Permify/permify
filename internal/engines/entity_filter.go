@@ -772,5 +772,27 @@ func (engine *EntityFilter) pathChainEntrance(
 		}, request.GetContext(), base.CheckResult_CHECK_RESULT_UNSPECIFIED)
 	}
 
+	// Path-chain results can also be seeds for a same-type recursive permission.
+	// Expand them just like direct attribute results, otherwise a directly scoped
+	// role assignment publishes only its scope and hides inherited descendants.
+	if sourceType == request.GetEntrance().GetType() {
+		for _, relation := range engine.graph.SelfCycleRelationsForPermission(
+			request.GetEntrance().GetType(),
+			request.GetEntrance().GetValue(),
+		) {
+			if err := engine.expandRecursiveRelation(
+				ctx,
+				request,
+				sourceType,
+				relation,
+				currentIds,
+				visits,
+				publisher,
+			); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
