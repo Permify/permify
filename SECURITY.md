@@ -1,3 +1,3 @@
 # Security Policy
 
-Please any security-related issues at using the form found at [fusionauth.io/security](https://fusionauth.io/security).
+Please report any security-related issues using the form found at [fusionauth.io/security](https://fusionauth.io/security).
