@@ -168,7 +168,7 @@ flowchart TD
     Start{What do you need help with?}
 
     Start -->|<b>Question?</b>| Forum[Ask in the <a href="https://fusionauth.io/community/forum/">forum</a>]
-    Start -->|<b>Security vulnerability?</b>| SecurityNode[Contact security at <br><a href="https://fusionauth.io/security">fusionauth.io/security</a>]
+    Start -->|<b>Security vulnerability?</b>| SecurityNode[Contact security at <br><a href="mailto:support@permify.co">support@permify.co</a> or <br><a href="https://fusionauth.io/security">fusionauth.io/security</a>]
     Start -->|<b>Problem?</b>| LicenseCheck{Have a paid license?}
 
     LicenseCheck -->|<b>Yes</b>| Support[Contact support at <br><a href="https://account.fusionauth.io/account/support/">account.fusionauth.io/support</a><br> or email <a href="mailto:support@fusionauth.io">support@fusionauth.io</a>]
