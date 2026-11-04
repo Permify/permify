@@ -620,7 +620,9 @@ func (engine *EntityFilter) lt(
 	return nil
 }
 
-// pathChainEntrance handles multi-hop relation chain traversal for nested attributes
+// pathChainEntrance resolves nested attributes through a multi-hop relation chain.
+// Resolved source entities respect the lookup cursor when published, but all of
+// them remain recursion seeds so descendants on later pages stay reachable.
 //
 // TODO: Optimize performance with smart batching:
 // - Extract unique attributes from path chain entrances to avoid duplicate queries
@@ -758,8 +760,17 @@ func (engine *EntityFilter) pathChainEntrance(
 		currentIds = nextIds
 	}
 
-	// 5. Publish all resolved source entities
+	// 5. Publish resolved source entities at or after the lookup cursor.
+	cursorValue, err := decodeCursorValue(request.GetCursor())
+	if err != nil {
+		return err
+	}
+
 	for _, id := range currentIds {
+		if cursorValue != "" && id < cursorValue {
+			continue
+		}
+
 		entity := &base.Entity{Type: sourceType, Id: id}
 		if !visits.AddPublished(entity) {
 			continue

@@ -3,7 +3,6 @@ package engines
 import (
 	"context"
 	"reflect"
-	"sort"
 	"testing"
 
 	"github.com/Permify/permify/internal/config"
@@ -16,6 +15,8 @@ import (
 	"github.com/Permify/permify/pkg/tuple"
 )
 
+// TestLookupEntityExpandsRecursivePathChainCandidates verifies that recursive
+// descendants are returned once across consecutive lookup pages.
 func TestLookupEntityExpandsRecursivePathChainCandidates(t *testing.T) {
 	schema := `
 	entity user {}
@@ -97,25 +98,38 @@ func TestLookupEntityExpandsRecursivePathChainCandidates(t *testing.T) {
 	invoker := invoke.NewDirectInvoker(schemaReader, dataReader, checkEngine, nil, lookupEngine, nil)
 	checkEngine.SetInvoker(invoker)
 
-	response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
-		TenantId:   "t1",
-		EntityType: "retailer_entity_group",
-		Subject:    &base.Subject{Type: "user", Id: "target"},
-		Permission: "view",
-		Metadata: &base.PermissionLookupEntityRequestMetadata{
-			SnapToken: token.NewNoopToken().Encode().String(),
-			Depth:     20,
-		},
-		PageSize: 100,
-	})
-	if err != nil {
-		t.Fatal(err)
+	lookup := func(continuousToken string) *base.PermissionLookupEntityResponse {
+		response, lookupErr := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+			TenantId:        "t1",
+			EntityType:      "retailer_entity_group",
+			Subject:         &base.Subject{Type: "user", Id: "target"},
+			Permission:      "view",
+			ContinuousToken: continuousToken,
+			Metadata: &base.PermissionLookupEntityRequestMetadata{
+				SnapToken: token.NewNoopToken().Encode().String(),
+				Depth:     20,
+			},
+			PageSize: 2,
+		})
+		if lookupErr != nil {
+			t.Fatal(lookupErr)
+		}
+		return response
 	}
 
-	got := response.GetEntityIds()
-	sort.Strings(got)
-	want := []string{"1", "2", "3", "4"}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("got entities %v; want %v", got, want)
+	firstPage := lookup("")
+	if want := []string{"1", "2"}; !reflect.DeepEqual(firstPage.GetEntityIds(), want) {
+		t.Fatalf("got first page %v; want %v", firstPage.GetEntityIds(), want)
+	}
+	if firstPage.GetContinuousToken() == "" {
+		t.Fatal("first page returned an empty continuous token")
+	}
+
+	secondPage := lookup(firstPage.GetContinuousToken())
+	if want := []string{"3", "4"}; !reflect.DeepEqual(secondPage.GetEntityIds(), want) {
+		t.Fatalf("got second page %v; want %v", secondPage.GetEntityIds(), want)
+	}
+	if secondPage.GetContinuousToken() != "" {
+		t.Fatalf("second page returned unexpected continuous token %q", secondPage.GetContinuousToken())
 	}
 }
