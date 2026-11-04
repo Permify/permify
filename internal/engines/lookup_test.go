@@ -4927,6 +4927,18 @@ entity group_perms {
 	})
 
 	Context("Error Handling", func() {
+		It("should reject invalid entity lookup cursors", func() {
+			engine := NewLookupEngine(nil, nil, nil)
+			request := &base.PermissionLookupEntityRequest{ContinuousToken: "not-a-valid-base64"}
+			_, expectedErr := decodeCursorValue(request.GetContinuousToken())
+
+			_, err := engine.LookupEntity(context.Background(), request)
+			Expect(err).To(MatchError(expectedErr))
+
+			err = engine.LookupEntityStream(context.Background(), request, nil)
+			Expect(err).To(MatchError(expectedErr))
+		})
+
 		It("should handle NewBulkChecker errors in LookupEntity", func() {
 			db, err := factories.DatabaseFactory(
 				config.Database{
