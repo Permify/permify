@@ -4927,6 +4927,18 @@ entity group_perms {
 	})
 
 	Context("Error Handling", func() {
+		It("should reject invalid entity lookup cursors", func() {
+			engine := NewLookupEngine(nil, nil, nil)
+			request := &base.PermissionLookupEntityRequest{ContinuousToken: "not-a-valid-base64"}
+			_, expectedErr := decodeCursorValue(request.GetContinuousToken())
+
+			_, err := engine.LookupEntity(context.Background(), request)
+			Expect(err).To(MatchError(expectedErr))
+
+			err = engine.LookupEntityStream(context.Background(), request, nil)
+			Expect(err).To(MatchError(expectedErr))
+		})
+
 		It("should handle NewBulkChecker errors in LookupEntity", func() {
 			db, err := factories.DatabaseFactory(
 				config.Database{
@@ -6564,6 +6576,118 @@ entity group_perms {
 			})
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("recursive relation expansion exceeded maximum depth"))
+		})
+	})
+
+	Context("Lookup Entity same-type hierarchy pagination", func() {
+		It("returns every relation and subject-set result across pages", func() {
+			schema := `
+			entity user {}
+
+			entity organization {
+				relation parent @organization
+				relation member @user
+				permission view = member or parent.view
+			}
+
+			entity team {
+				relation member @user @team#member
+				permission view = member
+			}
+			`
+
+			db, err := factories.DatabaseFactory(config.Database{Engine: "memory"})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(schema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			const childCount = 220
+			relationships := []string{
+				"organization:o0000#member@user:u1",
+				"team:t0000#member@user:u1",
+			}
+			expected := map[string][]string{
+				"organization": {"o0000"},
+				"team":         {"t0000"},
+			}
+			for i := 1; i <= childCount; i++ {
+				organizationID := fmt.Sprintf("o%04d", i)
+				teamID := fmt.Sprintf("t%04d", i)
+				relationships = append(
+					relationships,
+					fmt.Sprintf("organization:%s#parent@organization:o0000", organizationID),
+					fmt.Sprintf("team:%s#member@team:t0000#member", teamID),
+				)
+				expected["organization"] = append(expected["organization"], organizationID)
+				expected["team"] = append(expected["team"], teamID)
+			}
+
+			var tuples []*base.Tuple
+			for _, relationship := range relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			_, err = dataWriter.Write(
+				context.Background(),
+				"t1",
+				database.NewTupleCollection(tuples...),
+				database.NewAttributeCollection(),
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			lookupEngine := NewLookupEngine(checkEngine, schemaReader, dataReader)
+			invoker := invoke.NewDirectInvoker(schemaReader, dataReader, checkEngine, nil, lookupEngine, nil)
+			checkEngine.SetInvoker(invoker)
+
+			for _, entityType := range []string{"organization", "team"} {
+				for _, pageSize := range []uint32{1, 100} {
+					var ids []string
+					continuousToken := ""
+					pages := 0
+
+					for {
+						resp, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+							TenantId:   "t1",
+							EntityType: entityType,
+							Subject: &base.Subject{
+								Type: "user",
+								Id:   "u1",
+							},
+							Permission: "view",
+							Metadata: &base.PermissionLookupEntityRequestMetadata{
+								SnapToken:     token.NewNoopToken().Encode().String(),
+								SchemaVersion: "",
+								Depth:         20,
+							},
+							PageSize:        pageSize,
+							ContinuousToken: continuousToken,
+						})
+						Expect(err).ShouldNot(HaveOccurred())
+						ids = append(ids, resp.GetEntityIds()...)
+						continuousToken = resp.GetContinuousToken()
+						pages++
+						Expect(pages).To(BeNumerically("<=", childCount+1))
+						if continuousToken == "" {
+							break
+						}
+					}
+
+					Expect(ids).To(ConsistOf(expected[entityType]))
+					Expect(ids).To(HaveLen(childCount + 1))
+				}
+			}
 		})
 	})
 
