@@ -414,19 +414,13 @@ func (engine *EntityFilter) relationEntrance(
 	}
 
 	var (
-		cti, rit   *database.TupleIterator
-		err        error
-		pagination database.CursorPagination
+		cti, rit *database.TupleIterator
+		err      error
 	)
 
-	// Determine the pagination settings based on the entity type in the request.
-	// If the entity type matches the target entrance, use cursor pagination with sorting by "entity_id".
-	// Otherwise, use the default pagination settings.
-	if request.GetEntrance().GetType() == entrance.TargetEntrance.GetType() {
-		pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
-	} else {
-		pagination = database.NewCursorPagination()
-	}
+	// A same-type tuple below the cursor can seed a hierarchy whose descendants
+	// belong on this page. The publisher filters already-returned entities.
+	pagination := database.NewCursorPagination()
 
 	// Query the relationships using the specified pagination settings.
 	// The context tuples are filtered based on the provided filter.
@@ -508,19 +502,13 @@ func (engine *EntityFilter) tupleToUserSetEntrance(
 	}
 
 	var (
-		cti, rit   *database.TupleIterator
-		err        error
-		pagination database.CursorPagination
+		cti, rit *database.TupleIterator
+		err      error
 	)
 
-	// Determine the pagination settings based on the entity type in the request.
-	// If the entity type matches the target entrance, use cursor pagination with sorting by "entity_id".
-	// Otherwise, use the default pagination settings.
-	if request.GetEntrance().GetType() == entrance.TargetEntrance.GetType() {
-		pagination = database.NewCursorPagination(database.Cursor(request.GetCursor()), database.Sort("entity_id"))
-	} else {
-		pagination = database.NewCursorPagination()
-	}
+	// A same-type tuple below the cursor can seed a hierarchy whose descendants
+	// belong on this page. The publisher filters already-returned entities.
+	pagination := database.NewCursorPagination()
 
 	// Query the relationships using the specified pagination settings.
 	// The context tuples are filtered based on the provided filter.
