@@ -160,6 +160,21 @@ Here are the ways to contribute to Permify:
 - **Improve documentation:** Alongside our codebase, documentation one of the most significant part in our open-source journey. We're trying to give the best DX possible to explain ourselves and Permify. And you can help on that with importing resources or adding new ones.
 - **Contribute to playground:** Permify playground allows you to visualize and test your authorization logic. You can contribute to our playground by improving its user interface, fixing glitches, or adding new features.
 
+## Report an Issue
+
+
+```mermaid
+flowchart TD
+    Start{What do you need help with?}
+
+    Start -->|<b>Question?</b>| Forum[Ask in the <a href="https://fusionauth.io/community/forum/">forum</a>]
+    Start -->|<b>Security vulnerability?</b>| SecurityNode[Contact security at <br><a href="https://fusionauth.io/security">fusionauth.io/security</a>]
+    Start -->|<b>Problem?</b>| LicenseCheck{Have a paid license?}
+
+    LicenseCheck -->|<b>Yes</b>| Support[Contact support at <br><a href="https://account.fusionauth.io/account/support/">account.fusionauth.io/support</a>]
+    LicenseCheck -->|<b>No</b>| ReportNode[Report here at <br><a href="https://github.com/Permify/permify/issues">permify/issues</a>]
+```
+
 ### Bounties
 
 [![Open Bounties](https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fpermify%2Fbounties%3Fstatus%3Dopen&style=for-the-badge)](https://console.algora.io/org/permify/bounties?status=open)
