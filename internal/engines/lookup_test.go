@@ -3232,6 +3232,133 @@ entity ccc {
 		})
 	})
 
+	// A permission that reaches a boolean attribute through a relation (team -> member -> is_active)
+	// is resolved by a path-chain entrance. That entrance reads the attribute without the lookup
+	// cursor, so the candidates it publishes include teams that sort before the token.
+	nestedAttributePaginationSchema := `
+	entity user {}
+
+	entity member {
+		relation user @user
+		attribute is_active boolean
+
+		permission active = user and is_active
+	}
+
+	entity team {
+		relation admin @user
+		relation member @member
+
+		permission active_admin = admin and member.active
+	}
+	`
+
+	Context("Nested attribute lookup pagination", func() {
+		It("terminates when the last allowed entity is not the last candidate", func() {
+			db, err := factories.DatabaseFactory(
+				config.Database{
+					Engine: "memory",
+				},
+			)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			conf, err := newSchema(nestedAttributePaginationSchema)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			schemaWriter := factories.SchemaWriterFactory(db)
+			err = schemaWriter.WriteSchema(context.Background(), conf)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			relationships := []string{
+				// user:1 is an active admin of teams a and c.
+				"team:a#admin@user:1",
+				"team:a#member@member:a1",
+				"member:a1#user@user:1",
+				"team:c#admin@user:1",
+				"team:c#member@member:c1",
+				"member:c1#user@user:1",
+				// Teams b and d belong to someone else, but they have active members, so the
+				// path chain publishes them as candidates between and after a and c.
+				"team:b#member@member:b1",
+				"member:b1#user@user:9",
+				"team:d#member@member:d1",
+				"member:d1#user@user:9",
+			}
+			attributes := []string{
+				"member:a1$is_active|boolean:true",
+				"member:b1$is_active|boolean:true",
+				"member:c1$is_active|boolean:true",
+				"member:d1$is_active|boolean:true",
+			}
+
+			schemaReader := factories.SchemaReaderFactory(db)
+			dataReader := factories.DataReaderFactory(db)
+			dataWriter := factories.DataWriterFactory(db)
+
+			checkEngine := NewCheckEngine(schemaReader, dataReader)
+			lookupEngine := NewLookupEngine(checkEngine, schemaReader, dataReader)
+			invoker := invoke.NewDirectInvoker(schemaReader, dataReader, checkEngine, nil, lookupEngine, nil)
+			checkEngine.SetInvoker(invoker)
+
+			var tuples []*base.Tuple
+			for _, relationship := range relationships {
+				t, err := tuple.Tuple(relationship)
+				Expect(err).ShouldNot(HaveOccurred())
+				tuples = append(tuples, t)
+			}
+
+			var attrs []*base.Attribute
+			for _, attr := range attributes {
+				a, err := attribute.Attribute(attr)
+				Expect(err).ShouldNot(HaveOccurred())
+				attrs = append(attrs, a)
+			}
+
+			_, err = dataWriter.Write(context.Background(), "t1", database.NewTupleCollection(tuples...), database.NewAttributeCollection(attrs...))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			subject := &base.Subject{Type: "user", Id: "1"}
+
+			// Follow continuous tokens the way a caller does. A token that comes back equal to the
+			// one just sent means the lookup is looping, so fail instead of spinning.
+			collect := func(pageSize uint32) []string {
+				ct := ""
+				var ids []string
+				for pages := 0; pages < 6; pages++ {
+					response, err := invoker.LookupEntity(context.Background(), &base.PermissionLookupEntityRequest{
+						TenantId:   "t1",
+						EntityType: "team",
+						Subject:    subject,
+						Permission: "active_admin",
+						Metadata: &base.PermissionLookupEntityRequestMetadata{
+							SnapToken:     token.NewNoopToken().Encode().String(),
+							SchemaVersion: "",
+							Depth:         100,
+						},
+						PageSize:        pageSize,
+						ContinuousToken: ct,
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					ids = append(ids, response.GetEntityIds()...)
+					next := response.GetContinuousToken()
+					if next == "" {
+						return ids
+					}
+					Expect(next).ShouldNot(Equal(ct))
+					ct = next
+				}
+				Fail("lookup did not terminate within 6 pages")
+				return nil
+			}
+
+			// Page size 1 has to walk past the unrelated candidates without dropping c or returning a again.
+			Expect(collect(1)).Should(Equal([]string{"a", "c"}))
+			// A page that fits every allowed team still has to stop, even though a higher-id candidate exists.
+			Expect(collect(20)).Should(Equal([]string{"a", "c"}))
+		})
+	})
+
 	driveSchemaSubjectFilter := `
 	entity user {}
 	

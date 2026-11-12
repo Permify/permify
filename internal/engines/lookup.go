@@ -63,6 +63,11 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 		size = 1000
 	}
 
+	// Validate the continuous token before the publisher uses it to skip candidates from earlier pages.
+	if _, err = decodeCursorValue(request.GetContinuousToken()); err != nil {
+		return nil, err
+	}
+
 	// Callback function which is called for each entity. If the entity passes the permission check,
 	// the entity ID is appended to the entityIDs slice.
 	callback := func(entityID, token string) {
@@ -138,6 +143,11 @@ func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *bas
 	size := request.GetPageSize()
 	if size == 0 {
 		size = 1000
+	}
+
+	// Validate the continuous token before the publisher uses it to skip candidates from earlier pages.
+	if _, err = decodeCursorValue(request.GetContinuousToken()); err != nil {
+		return err
 	}
 
 	// Define a callback function that will be called for each entity that passes the permission check.

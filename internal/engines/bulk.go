@@ -481,6 +481,9 @@ type BulkEntityPublisher struct {
 	bulkChecker *BulkChecker
 	// request contains the base lookup request parameters
 	request *base.PermissionLookupEntityRequest
+	// cursor is the decoded continuous token of the request. Entities of the requested
+	// type that sort below it were already returned on an earlier page.
+	cursor string
 }
 
 // NewBulkEntityPublisher creates a new BulkEntityPublisher instance.
@@ -493,10 +496,15 @@ type BulkEntityPublisher struct {
 //
 // Returns:
 //   - *BulkEntityPublisher: The initialized publisher instance
+//
+// The continuous token is decoded from the request. LookupEntity and LookupEntityStream validate it
+// before building a publisher, so a token that fails to decode here is treated as the first page.
 func NewBulkEntityPublisher(ctx context.Context, request *base.PermissionLookupEntityRequest, bulkChecker *BulkChecker) *BulkEntityPublisher {
+	cursor, _ := decodeCursorValue(request.GetContinuousToken())
 	return &BulkEntityPublisher{
 		bulkChecker: bulkChecker,
 		request:     request,
+		cursor:      cursor,
 	}
 }
 
@@ -511,6 +519,13 @@ func NewBulkEntityPublisher(ctx context.Context, request *base.PermissionLookupE
 //   - context: Additional context for the permission check
 //   - result: Optional pre-computed result
 func (p *BulkEntityPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, context *base.Context, result base.CheckResult) {
+	// Skip candidates that sort before the continuous token. Some entrances, such as
+	// path-chain attribute lookups, do not apply the cursor in their storage query. Without
+	// this check every page republishes earlier entities and hands back the same token.
+	if p.cursor != "" && entity.GetType() == p.request.GetEntityType() && entity.GetId() < p.cursor {
+		return
+	}
+
 	select {
 	case p.bulkChecker.requestChan <- BulkCheckerRequest{
 		Request: &base.PermissionCheckRequest{
