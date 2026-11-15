@@ -481,6 +481,8 @@ type BulkEntityPublisher struct {
 	bulkChecker *BulkChecker
 	// request contains the base lookup request parameters
 	request *base.PermissionLookupEntityRequest
+	// cursor is the decoded continuous token
+	cursor string
 }
 
 // NewBulkEntityPublisher creates a new BulkEntityPublisher instance.
@@ -494,9 +496,11 @@ type BulkEntityPublisher struct {
 // Returns:
 //   - *BulkEntityPublisher: The initialized publisher instance
 func NewBulkEntityPublisher(ctx context.Context, request *base.PermissionLookupEntityRequest, bulkChecker *BulkChecker) *BulkEntityPublisher {
+	cursor, _ := decodeCursorValue(request.GetContinuousToken())
 	return &BulkEntityPublisher{
 		bulkChecker: bulkChecker,
 		request:     request,
+		cursor:      cursor,
 	}
 }
 
@@ -511,6 +515,9 @@ func NewBulkEntityPublisher(ctx context.Context, request *base.PermissionLookupE
 //   - context: Additional context for the permission check
 //   - result: Optional pre-computed result
 func (p *BulkEntityPublisher) Publish(entity *base.Entity, metadata *base.PermissionCheckRequestMetadata, context *base.Context, result base.CheckResult) {
+	if p.cursor != "" && entity.GetType() == p.request.GetEntityType() && entity.GetId() < p.cursor {
+		return
+	}
 	select {
 	case p.bulkChecker.requestChan <- BulkCheckerRequest{
 		Request: &base.PermissionCheckRequest{

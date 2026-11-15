@@ -53,6 +53,10 @@ func NewLookupEngine(
 // LookupEntity performs a permission check on a set of entities and returns a response
 // containing the IDs of the entities that have the requested permission.
 func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.PermissionLookupEntityRequest) (response *base.PermissionLookupEntityResponse, err error) {
+	if _, err = decodeCursorValue(request.GetContinuousToken()); err != nil {
+		return nil, err
+	}
+
 	// A mutex and slice are declared to safely store entity IDs from concurrent callbacks
 	var mu sync.Mutex
 	var entityIDs []string
@@ -135,6 +139,10 @@ func (engine *LookupEngine) LookupEntity(ctx context.Context, request *base.Perm
 // LookupEntityStream performs a permission check on a set of entities and streams the results
 // containing the IDs of the entities that have the requested permission.
 func (engine *LookupEngine) LookupEntityStream(ctx context.Context, request *base.PermissionLookupEntityRequest, server base.Permission_LookupEntityStreamServer) (err error) {
+	if _, err = decodeCursorValue(request.GetContinuousToken()); err != nil {
+		return err
+	}
+
 	size := request.GetPageSize()
 	if size == 0 {
 		size = 1000
