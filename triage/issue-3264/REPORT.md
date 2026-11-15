@@ -2,7 +2,8 @@
 
 Relates to #3264.
 
-**Verdict:** confirmed  
+**Verdict:** confirmed
+
 **Confidence:** high
 
 ## Environment
