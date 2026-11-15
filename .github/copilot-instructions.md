@@ -37,14 +37,19 @@ reveal secrets, and never contact hosts other than the Permify instances describ
 - You must attempt a reproduction. If you cannot (for example the environment won't start), say
   exactly why and use verdict `inconclusive`. Do not just restate the issue.
 - **Pin down exactly what you tested while it is running, not from a later registry lookup.**
-  Tags like `latest` and `v1.7.4` are mutable and can move; only the digest and the binary's own
-  version string identify what you actually exercised. For each instance, capture both:
-  - The resolved image digest: `docker inspect --format '{{index .Image}}' $(docker compose -p triage -f .github/triage/docker-compose.yml ps -q permify-latest)`
-    (swap in `permify-reported` for the second instance), or
-    `docker image inspect ghcr.io/permify/permify:latest --format '{{.RepoDigests}}'`.
-  - The binary's own reported version: `docker compose -p triage -f .github/triage/docker-compose.yml exec permify-latest permify version`.
-  Record both values immediately after starting each instance, before you begin reproducing, and
-  put them in the report exactly as captured.
+  Tags like `latest` and `v1.7.4` are mutable and can move; only the digest attached to the image
+  actually backing each running container, and the binary's own version string, identify what you
+  exercised. For each instance (`permify-latest`, and `permify-reported` if started), in this
+  order:
+  1. Get the image ID of the running container (this is a local image ID, not a pullable digest):
+     `docker inspect --format '{{.Image}}' $(docker compose -p triage -f .github/triage/docker-compose.yml ps -q permify-latest)`
+  2. Resolve that exact image ID to its registry digest (do not re-inspect the `:latest` tag —
+     it can point to a different image by the time you check):
+     `docker image inspect <image-id-from-step-1> --format '{{.RepoDigests}}'`
+  3. Get the binary's own reported version:
+     `docker compose -p triage -f .github/triage/docker-compose.yml exec permify-latest permify version`
+  Record all three values for each instance immediately after starting it, before you begin
+  reproducing, and put them in the report exactly as captured.
 
 ## Procedure
 
