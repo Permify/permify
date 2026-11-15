@@ -1,0 +1,46 @@
+# Only for triaging bugs with the GitHub Copilot coding agent: starts Permify (built from this
+# checkout) and Postgres before the agent begins, so it finds a live instance to test against.
+#
+# This does NOT run automatically against incoming issues. The agent only runs when a Permify
+# team member explicitly assigns an issue to Copilot (Issues require write access to assign).
+# There is no public or unauthenticated trigger here.
+#
+# Must live on the default branch, and the job must be named `copilot-setup-steps`.
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/copilot-setup-steps.yml, .github/triage/**, Dockerfile.local]
+  pull_request:
+    paths: [.github/workflows/copilot-setup-steps.yml, .github/triage/**, Dockerfile.local]
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2 # v2.13.3
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Build and start Permify (HEAD) + Postgres
+        run: docker compose -p triage -f .github/triage/docker-compose.yml up -d --build db-latest permify-latest
+
+      - name: Wait until Permify answers on :3476
+        run: |
+          for i in $(seq 1 36); do
+            if curl -fs http://localhost:3476/healthz >/dev/null; then
+              echo "Permify is ready"; exit 0
+            fi
+            sleep 5
+          done
+          echo "Permify did not become ready"
+          docker compose -p triage -f .github/triage/docker-compose.yml logs --tail 200
+          exit 1
