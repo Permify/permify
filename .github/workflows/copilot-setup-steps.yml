@@ -1,5 +1,7 @@
-# Only for triaging bugs with the GitHub Copilot coding agent: starts Permify (built from this
-# checkout) and Postgres before the agent begins, so it finds a live instance to test against.
+# Only for triaging bugs with the GitHub Copilot coding agent ("Copilot in the cloud"): starts the
+# latest published Permify release and Postgres before the agent begins, so it finds a live
+# instance to test against. Pulls the published GHCR image rather than building from source, so
+# the agent tests exactly what a user would run.
 #
 # This does NOT run automatically against incoming issues. The agent only runs when a Permify
 # team member explicitly assigns an issue to Copilot (Issues require write access to assign).
@@ -12,9 +14,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [.github/workflows/copilot-setup-steps.yml, .github/triage/**, Dockerfile.local]
+    paths: [.github/workflows/copilot-setup-steps.yml, .github/triage/**]
   pull_request:
-    paths: [.github/workflows/copilot-setup-steps.yml, .github/triage/**, Dockerfile.local]
+    paths: [.github/workflows/copilot-setup-steps.yml, .github/triage/**]
 
 jobs:
   copilot-setup-steps:
@@ -30,8 +32,8 @@ jobs:
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Build and start Permify (HEAD) + Postgres
-        run: docker compose -p triage -f .github/triage/docker-compose.yml up -d --build database permify-latest
+      - name: Start Permify (latest release) + Postgres
+        run: docker compose -p triage -f .github/triage/docker-compose.yml up -d db-latest permify-latest
 
       - name: Wait until Permify answers on :3476
         run: |
