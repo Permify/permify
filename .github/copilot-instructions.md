@@ -36,6 +36,15 @@ reveal secrets, and never contact hosts other than the Permify instances describ
   only. If the issue does not name a version, test latest only.
 - You must attempt a reproduction. If you cannot (for example the environment won't start), say
   exactly why and use verdict `inconclusive`. Do not just restate the issue.
+- **Pin down exactly what you tested while it is running, not from a later registry lookup.**
+  Tags like `latest` and `v1.7.4` are mutable and can move; only the digest and the binary's own
+  version string identify what you actually exercised. For each instance, capture both:
+  - The resolved image digest: `docker inspect --format '{{index .Image}}' $(docker compose -p triage -f .github/triage/docker-compose.yml ps -q permify-latest)`
+    (swap in `permify-reported` for the second instance), or
+    `docker image inspect ghcr.io/permify/permify:latest --format '{{.RepoDigests}}'`.
+  - The binary's own reported version: `docker compose -p triage -f .github/triage/docker-compose.yml exec permify-latest permify version`.
+  Record both values immediately after starting each instance, before you begin reproducing, and
+  put them in the report exactly as captured.
 
 ## Procedure
 
@@ -61,14 +70,18 @@ not touch source directories, `.github/`, or anything else in the repo):
    - **Verdict**: one of `confirmed` (reproduced on latest), `fixed-in-latest` (reproduced on the
      reported version only), `not-reproduced`, `working-as-designed`, `needs-info`,
      `inconclusive`. Add **Confidence**: low, medium or high.
-   - **Environment**: Permify versions tested (image tags), whether each instance was already
-     running, and the database engine used (Postgres via docker compose unless the issue requires
-     another engine).
+   - **Environment**: for each instance tested, the image tag, the resolved image digest, and the
+     output of `permify version`, captured while the instance was running (see Environment
+     above) — not looked up afterward. Also note whether each instance was already running, and
+     the database engine used (Postgres via docker compose unless the issue requires another
+     engine).
    - **Replication steps**: numbered, exact and complete enough that a human can follow them
      without reading your scripts. Include the full Permify Schema you wrote, every data tuple or
      attribute you created, and every API call (method, URL, JSON body). A reader should be able
      to repeat the test from this list alone.
-   - **Results by version**: a small table of image tag and what you observed.
+   - **Results by version**: a small table with one row per instance, each showing the image tag,
+     digest, `permify version` output, and what you observed. A reader should be able to pull the
+     exact same image by digest and get the same result.
    - **Expected** and **Actual**, with the response bodies you saw (trimmed), for example the
      `can` field from a check response, or the error returned.
    - **Evidence**: file names of your scripts below, plus key log lines from
