@@ -38,18 +38,24 @@ reveal secrets, and never contact hosts other than the Permify instances describ
   exactly why and use verdict `inconclusive`. Do not just restate the issue.
 - **Pin down exactly what you tested while it is running, not from a later registry lookup.**
   Tags like `latest` and `v1.7.4` are mutable and can move; only the digest attached to the image
-  actually backing each running container, and the binary's own version string, identify what you
-  exercised. For each instance (`permify-latest`, and `permify-reported` if started), in this
+  actually backing each running container, plus its platform and the binary's own version string,
+  identify what you exercised. The published images are multi-platform manifests (amd64 and
+  arm64); the digest alone names that manifest, not a single-architecture image, so record the
+  platform too. For each instance (`permify-latest`, and `permify-reported` if started), in this
   order:
   1. Get the image ID of the running container (this is a local image ID, not a pullable digest):
      `docker inspect --format '{{.Image}}' $(docker compose -p triage -f .github/triage/docker-compose.yml ps -q permify-latest)`
-  2. Resolve that exact image ID to its registry digest (do not re-inspect the `:latest` tag —
-     it can point to a different image by the time you check):
-     `docker image inspect <image-id-from-step-1> --format '{{.RepoDigests}}'`
+  2. Resolve that exact image ID to its registry digest and platform (do not re-inspect the
+     `:latest` tag — it can point to a different image by the time you check):
+     `docker image inspect <image-id-from-step-1> --format '{{.RepoDigests}} {{.Os}}/{{.Architecture}}'`
   3. Get the binary's own reported version:
      `docker compose -p triage -f .github/triage/docker-compose.yml exec permify-latest permify version`
-  Record all three values for each instance immediately after starting it, before you begin
-  reproducing, and put them in the report exactly as captured.
+  Record the digest, platform, and version for each instance immediately after starting it,
+  before you begin reproducing, and put them in the report exactly as captured. When you
+  reference the digest in the report, write it as `<repo>@<digest> (platform: <os>/<arch>)` so
+  a reader on a different architecture knows to pull that specific platform
+  (`docker pull --platform <os>/<arch> <repo>@<digest>`) rather than whatever the manifest
+  resolves to by default on their machine.
 
 ## Procedure
 
@@ -75,18 +81,19 @@ not touch source directories, `.github/`, or anything else in the repo):
    - **Verdict**: one of `confirmed` (reproduced on latest), `fixed-in-latest` (reproduced on the
      reported version only), `not-reproduced`, `working-as-designed`, `needs-info`,
      `inconclusive`. Add **Confidence**: low, medium or high.
-   - **Environment**: for each instance tested, the image tag, the resolved image digest, and the
-     output of `permify version`, captured while the instance was running (see Environment
-     above) — not looked up afterward. Also note whether each instance was already running, and
-     the database engine used (Postgres via docker compose unless the issue requires another
-     engine).
+   - **Environment**: for each instance tested, the image tag, the resolved image digest, the
+     platform (`os/arch`), and the output of `permify version`, captured while the instance was
+     running (see Environment above) — not looked up afterward. Also note whether each instance
+     was already running, and the database engine used (Postgres via docker compose unless the
+     issue requires another engine).
    - **Replication steps**: numbered, exact and complete enough that a human can follow them
      without reading your scripts. Include the full Permify Schema you wrote, every data tuple or
      attribute you created, and every API call (method, URL, JSON body). A reader should be able
      to repeat the test from this list alone.
    - **Results by version**: a small table with one row per instance, each showing the image tag,
-     digest, `permify version` output, and what you observed. A reader should be able to pull the
-     exact same image by digest and get the same result.
+     digest, platform, `permify version` output, and what you observed. A reader should be able to
+     pull the exact same image for the exact same platform (`docker pull --platform <os>/<arch>
+     <repo>@<digest>`) and get the same result.
    - **Expected** and **Actual**, with the response bodies you saw (trimmed), for example the
      `can` field from a check response, or the error returned.
    - **Evidence**: file names of your scripts below, plus key log lines from
