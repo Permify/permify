@@ -1,0 +1,86 @@
+name: triage
+
+networks:
+  # No route to the internet by default.
+  internal:
+    internal: true
+
+services:
+  # Named "database" (not "db-latest") because Dockerfile.local's air config
+  # (.air.toml full_bin) has this hostname, user and password hardcoded and does not read
+  # PERMIFY_DATABASE_* env vars. Matching it here is simpler than overriding full_bin.
+  database:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: permify
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  db-reported:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: permify
+    networks: [internal]
+    profiles: ["reported"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Always started: the exact code under test (HEAD of the branch/PR), built from the
+  # repo's own dev Dockerfile so the agent is testing the real checkout, not a release.
+  permify-latest:
+    build:
+      context: ../..
+      dockerfile: Dockerfile.local
+    # No command override: Dockerfile.local's ENTRYPOINT is `air`, which reads build.full_bin
+    # from .air.toml to start Permify. A command here would just be appended as extra args to
+    # air itself, not passed through to the built binary.
+    depends_on:
+      database:
+        condition: service_healthy
+    networks: [default, internal]
+    volumes:
+      - ../..:/app
+    ports:
+      - "3476:3476" # REST, host-side readiness checks only
+      - "3478:3478" # gRPC
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr", "localhost:3478"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  # Started only when the issue names a released version different from HEAD.
+  # Pulls the public release image instead of building, so it reflects exactly what shipped.
+  permify-reported:
+    image: ghcr.io/permify/permify:${REPORTED_VERSION:-latest}
+    command: ["serve"]
+    profiles: ["reported"]
+    depends_on:
+      db-reported:
+        condition: service_healthy
+    networks: [default, internal]
+    environment:
+      PERMIFY_DATABASE_ENGINE: postgres
+      PERMIFY_DATABASE_URI: postgres://postgres:postgres@db-reported:5432/permify?sslmode=disable
+      PERMIFY_DATABASE_AUTO_MIGRATE: "true"
+    ports:
+      - "3486:3476"
+      - "3488:3478"
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr", "localhost:3478"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
