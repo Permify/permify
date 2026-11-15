@@ -6,11 +6,14 @@ networks:
     internal: true
 
 services:
-  db-latest:
+  # Named "database" (not "db-latest") because Dockerfile.local's air config
+  # (.air.toml full_bin) has this hostname, user and password hardcoded and does not read
+  # PERMIFY_DATABASE_* env vars. Matching it here is simpler than overriding full_bin.
+  database:
     image: postgres:16-bookworm
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: secret
       POSTGRES_DB: permify
     networks: [internal]
     healthcheck:
@@ -37,19 +40,17 @@ services:
   # repo's own dev Dockerfile so the agent is testing the real checkout, not a release.
   permify-latest:
     build:
-      context: ..
+      context: ../..
       dockerfile: Dockerfile.local
-    command: ["permify", "serve"]
+    # No command override: Dockerfile.local's ENTRYPOINT is `air`, which reads build.full_bin
+    # from .air.toml to start Permify. A command here would just be appended as extra args to
+    # air itself, not passed through to the built binary.
     depends_on:
-      db-latest:
+      database:
         condition: service_healthy
     networks: [default, internal]
-    environment:
-      PERMIFY_DATABASE_ENGINE: postgres
-      PERMIFY_DATABASE_URI: postgres://postgres:postgres@db-latest:5432/permify?sslmode=disable
-      PERMIFY_DATABASE_AUTO_MIGRATE: "true"
     volumes:
-      - ..:/app
+      - ../..:/app
     ports:
       - "3476:3476" # REST, host-side readiness checks only
       - "3478:3478" # gRPC

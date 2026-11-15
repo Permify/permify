@@ -24,7 +24,7 @@ reveal secrets, and never contact hosts other than the Permify instances describ
 - **HEAD** (this checkout, i.e. the default branch) should already be running at
   `http://localhost:3476` (REST) / `localhost:3478` (gRPC). Check it first:
   `curl -s http://localhost:3476/healthz`. If that fails, start it yourself and wait up to about
-  5 minutes: `docker compose -p triage -f .github/triage/docker-compose.yml up -d --build db-latest permify-latest`.
+  5 minutes: `docker compose -p triage -f .github/triage/docker-compose.yml up -d --build database permify-latest`.
   State in your report whether it was already running or you had to start it.
 - No auth is configured (`authn.enabled: false`), so no API key or token is needed. Every request
   needs a tenant id; use the pre-inserted tenant `t1` unless the issue says otherwise.
