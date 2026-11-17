@@ -2,7 +2,8 @@
 
 Relates to #2362.
 
-**Verdict:** not-reproduced  
+**Verdict:** not-reproduced
+
 **Confidence:** high for the explicit reproduction below; the original schema is incomplete.
 
 Lookup Entity agrees with Check and Subject Permission for positive, subset,
