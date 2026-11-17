@@ -253,7 +253,7 @@ func (engine *EntityFilter) attributeEntrance(
 
 // decodeCursorValue decodes a cursor token and returns its underlying value.
 // It returns an empty string when the cursor is empty.
-// If decoding fails, the error is returned.
+// If decoding fails, ERROR_CODE_INVALID_CONTINUOUS_TOKEN is returned so the server maps it to InvalidArgument.
 // If the decoded token is not a ContinuousToken, it returns an empty string.
 func decodeCursorValue(cursor string) (string, error) {
 	if cursor == "" {
@@ -261,7 +261,7 @@ func decodeCursorValue(cursor string) (string, error) {
 	}
 	t, err := tokenutils.EncodedContinuousToken{Value: cursor}.Decode()
 	if err != nil {
-		return "", err
+		return "", errors.New(base.ErrorCode_ERROR_CODE_INVALID_CONTINUOUS_TOKEN.String())
 	}
 	decoded, ok := t.(tokenutils.ContinuousToken)
 	if !ok {
