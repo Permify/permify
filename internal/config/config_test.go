@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -23,6 +24,7 @@ func TestNewConfig_FileNotFound(t *testing.T) {
 	assert.Equal(t, "127.0.0.1", cfg.Server.HTTP.GRPCTargetHost)
 	assert.Equal(t, "3478", cfg.Server.GRPC.Port)
 	assert.Equal(t, "info", cfg.Log.Level)
+	assert.Equal(t, time.Duration(0), cfg.Server.ShutdownDelay)
 }
 
 func TestNewConfig(t *testing.T) {
@@ -257,4 +259,23 @@ invalid config
 	cfg, err := NewConfigWithFile(tmpFile) // Load config
 	assert.Nil(t, cfg)                     // Config should be nil
 	assert.Error(t, err)                   // Error expected
+}
+
+func TestNewConfigWithFile_ShutdownDelay(t *testing.T) {
+	configContent := []byte(`
+server:
+  shutdown_delay: 5s
+`)
+	tmpDir, err := os.MkdirTemp("", "shutdown-delay-config-test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	tmpFile := filepath.Join(tmpDir, "config.yaml")
+	err = os.WriteFile(tmpFile, configContent, 0o600)
+	require.NoError(t, err)
+
+	cfg, err := NewConfigWithFile(tmpFile)
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+	assert.Equal(t, 5*time.Second, cfg.Server.ShutdownDelay)
 }

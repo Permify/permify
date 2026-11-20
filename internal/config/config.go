@@ -27,11 +27,12 @@ type (
 
 	// Server contains the configurations for both HTTP and gRPC servers.
 	Server struct {
-		Host         string `mapstructure:"host"` // Host for servers
-		HTTP         HTTP   `mapstructure:"http"` // HTTP server configuration
-		GRPC         GRPC   `mapstructure:"grpc"` // gRPC server configuration
-		NameOverride string `mapstructure:"name_override"`
-		RateLimit    int64  `mapstructure:"rate_limit"` // Rate limit configuration
+		Host          string        `mapstructure:"host"` // Host for servers
+		HTTP          HTTP          `mapstructure:"http"` // HTTP server configuration
+		GRPC          GRPC          `mapstructure:"grpc"` // gRPC server configuration
+		NameOverride  string        `mapstructure:"name_override"`
+		RateLimit     int64         `mapstructure:"rate_limit"`     // Rate limit configuration
+		ShutdownDelay time.Duration `mapstructure:"shutdown_delay"` // Delay before graceful shutdown starts, to allow time to stop routing traffic
 	}
 
 	// HTTP contains configuration for the HTTP server.
