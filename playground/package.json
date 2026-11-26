@@ -21,7 +21,7 @@
     "monaco-editor": "0.55.1",
     "monaco-yaml": "^5.4.0",
     "nanoid": "^5.1.16",
-    "react": "^19.0.1",
+    "react": "^19.2.8",
     "react-dom": "^19.0.1",
     "react-hot-toast": "^2.1.0",
     "react-router-dom": "^7.17.0",
@@ -43,7 +43,7 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^16.2.0",
-    "@types/react": "^19.0.1",
+    "@types/react": "^19.2.18",
     "@types/react-dom": "^19.0.1",
     "@vitejs/plugin-react": "^5.1.0",
     "eslint-import-resolver-alias": "^1.1.2",
